@@ -25,7 +25,7 @@ public class Main {
 	public static void main(String[] args) throws IOException, TasteException {
 		// TODO Auto-generated method stub
 		
-		FileDataModel movielens = new FileDataModel(new File("data/movielens-1m/ratings.txt"));
+		FileDataModel movielens = new FileDataModel(new File("data/movielens-1m/ratings.dat"));
 		System.out.println("koko");
 		
 		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(movielens);
