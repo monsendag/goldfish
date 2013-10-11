@@ -19,31 +19,37 @@ import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.recommender.Recommender;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 import org.apache.mahout.common.RandomUtils;
-import org.apache.taglibs.standard.lang.jstl.Evaluator;
+
 
 public class Main {
 	
-	public void getRatings(int numberOfRatings, int userId, Recommender recommender) throws TasteException{
+	public static List<RecommendedItem> getRecommendations(int numberOfRatings, int userId, Recommender recommender) throws TasteException{
 		Recommender cachingRecommender = new CachingRecommender(recommender);
 		
 		List<RecommendedItem> recommendations = cachingRecommender.recommend(userId, numberOfRatings);
-		
-		for (RecommendedItem recommendedItem : recommendations) {
-			System.out.print(recommendedItem.getItemID());
-			System.out.print(" : ");
-			System.out.println(recommendedItem.getValue());
-		}
+	
+		return recommendations;
 	}
 	
-	public GenericUserBasedRecommender createRecommender() throws TasteException, IOException{
-		FileDataModel movielens = new FileDataModel(new File("data/movielens-1m/ratings.txt"));
-		System.out.println("koko");
+	public static GenericUserBasedRecommender createRecommender(String ratings, int neighborhoodSize) 
+			throws TasteException, IOException {
+		FileDataModel movielens = new FileDataModel(new File(ratings));
 		
 		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(movielens);
 		
-		UserNeighborhood neighborhood = new NearestNUserNeighborhood(100, userSimilarity, movielens);
+		UserNeighborhood neighborhood = new NearestNUserNeighborhood(neighborhoodSize, userSimilarity, movielens);
 		
 		return new GenericUserBasedRecommender(movielens, neighborhood, userSimilarity);
+	}
+	
+	public static void printRecommendations(List<RecommendedItem> recommendations) {
+		System.out.println("");
+		
+		for (RecommendedItem recommendedItem : recommendations) {
+			System.out.format("Item recommended : %d with value : %f \n", recommendedItem.getItemID(), 
+					recommendedItem.getValue());
+		}
+		
 	}
 
 	/**
@@ -51,7 +57,19 @@ public class Main {
 	 * @throws IOException 
 	 * @throws TasteException 
 	 */
-	public static void main(String[] args) throws IOException, TasteException {
+	public static void main(String[] args) throws TasteException, IOException  {
+		// creates a generic recommender with the ratings set from data and a neighborhood size of 50
+		GenericUserBasedRecommender recommender = createRecommender("data/movielens-1m/ratings.dat", 50);
+		
+		// uses the above recommender to get 20 recommendations (top-20) for user with id 100
+		List<RecommendedItem> recommendations = getRecommendations(20, 33, recommender);
+		
+		// prints the recommendations to console
+		printRecommendations(recommendations);
+		
+		}
+	
+	public static void evaluateRecommender() throws IOException, TasteException {
 		RandomUtils.useTestSeed();
 		DataModel model = new FileDataModel(new File("data/movielens-1m/ratings.txt"));
 		
@@ -68,6 +86,5 @@ public class Main {
 		
 		double score = evaluator.evaluate(recommenderBuilder, null, model, 0.8, 0.2);
 		System.out.println(score);
-		
-		}
+	}
 }
