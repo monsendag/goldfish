@@ -12,7 +12,9 @@ import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommender
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
 import org.apache.mahout.cf.taste.impl.recommender.CachingRecommender;
+import org.apache.mahout.cf.taste.impl.recommender.GenericItemBasedRecommender;
 import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
+import org.apache.mahout.cf.taste.impl.recommender.slopeone.SlopeOneRecommender;
 import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
@@ -49,10 +51,12 @@ public class Main {
 	 */
 	public static void main(String[] args) throws TasteException, IOException  {
 		// creates a generic recommender with the ratings set from data and a neighborhood size of 50
-		GenericUserBasedRecommender userBasedRecommender = Algorithms.userBasedRecommender("data/movielens-1m/ratings.dat.gz", 50, "pearson");
+		GenericUserBasedRecommender recommender = Algorithms.userBasedRecommender("data/movielens-1m/ratings.dat.gz", 50, "pearson");
+//		GenericItemBasedRecommender recommender = Algorithms.itemBasedRecommender("data/movielens-1m/ratings.dat.gz", "pearson");
+//		SlopeOneRecommender recommender = Algorithms.slopeOneRecommender("data/movielens-1m/ratings.dat.gz");
 		
-		// uses the above recommender to get 20 recommendations (top-20) for user with id 100
-		List<RecommendedItem> recommendations = getRecommendations(20, 33, userBasedRecommender);
+		// uses the above recommender to get 20 recommendations (top-20) for user with id 33
+		List<RecommendedItem> recommendations = getRecommendations(20, 33, recommender);
 		
 		// prints the recommendations to console
 		printRecommendations(recommendations);
