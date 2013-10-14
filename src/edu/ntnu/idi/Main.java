@@ -60,7 +60,7 @@ public class Main {
 	 */
 	public static void main(String[] args) throws TasteException, IOException  {
 		// creates a generic recommender with the ratings set from data and a neighborhood size of 50
-		GenericUserBasedRecommender recommender = createRecommender("data/movielens-1m/ratings.dat", 50);
+		GenericUserBasedRecommender recommender = createRecommender("data/movielens-1m/ratings.dat.gz", 50);
 		
 		// uses the above recommender to get 20 recommendations (top-20) for user with id 100
 		List<RecommendedItem> recommendations = getRecommendations(20, 33, recommender);
@@ -72,7 +72,7 @@ public class Main {
 	
 	public static void evaluateRecommender() throws IOException, TasteException {
 		RandomUtils.useTestSeed();
-		DataModel model = new FileDataModel(new File("data/movielens-1m/ratings.txt"));
+		DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
 		
 		RecommenderEvaluator evaluator = new AverageAbsoluteDifferenceRecommenderEvaluator();
 		
