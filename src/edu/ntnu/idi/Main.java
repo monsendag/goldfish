@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderEvaluator;
+import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
@@ -33,7 +34,7 @@ public class Main {
 	
 	public static GenericUserBasedRecommender createRecommender(String ratings, int neighborhoodSize) 
 			throws TasteException, IOException {
-		FileDataModel movielens = new FileDataModel(new File(ratings));
+		FileDataModel movielens = new GroupLensDataModel(new File(ratings));
 		
 		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(movielens);
 		
