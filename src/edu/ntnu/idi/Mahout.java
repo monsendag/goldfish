@@ -15,16 +15,20 @@ import org.apache.mahout.cf.taste.impl.recommender.CachingRecommender;
 import org.apache.mahout.cf.taste.impl.recommender.GenericItemBasedRecommender;
 import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
 import org.apache.mahout.cf.taste.impl.recommender.slopeone.SlopeOneRecommender;
+import org.apache.mahout.cf.taste.impl.similarity.EuclideanDistanceSimilarity;
+import org.apache.mahout.cf.taste.impl.similarity.LogLikelihoodSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
+import org.apache.mahout.cf.taste.impl.similarity.TanimotoCoefficientSimilarity;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.recommender.Recommender;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 import org.apache.mahout.common.RandomUtils;
+import org.apache.mahout.math.hadoop.similarity.cooccurrence.measures.LoglikelihoodSimilarity;
 
 
-public class Main {
+public class Mahout {
 	
 	public static List<RecommendedItem> getRecommendations(int numberOfRatings, int userId, Recommender recommender) throws TasteException{
 		Recommender cachingRecommender = new CachingRecommender(recommender);
@@ -50,8 +54,11 @@ public class Main {
 	 * @throws TasteException 
 	 */
 	public static void main(String[] args) throws TasteException, IOException  {
+		DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
+		
 		// creates a generic recommender with the ratings set from data and a neighborhood size of 50
-		GenericUserBasedRecommender recommender = Algorithms.userBasedRecommender("data/movielens-1m/ratings.dat.gz", 50, "pearson");
+		GenericUserBasedRecommender recommender = Algorithms.userBasedRecommender(model, 50, 
+				new PearsonCorrelationSimilarity(model));
 //		GenericItemBasedRecommender recommender = Algorithms.itemBasedRecommender("data/movielens-1m/ratings.dat.gz", "pearson");
 //		SlopeOneRecommender recommender = Algorithms.slopeOneRecommender("data/movielens-1m/ratings.dat.gz");
 		
@@ -61,24 +68,46 @@ public class Main {
 		// prints the recommendations to console
 		printRecommendations(recommendations);
 		
+		System.out.println("");
+		
+		double[][] results = doEvaluation();
+		printEvaluations(results);
+		
 		}
 	
-	public static void evaluateRecommender() throws IOException, TasteException {
-		RandomUtils.useTestSeed();
+	public static double[][] doEvaluation() throws IOException, TasteException {
 		DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
+		int neighborhoodSize = 1;
+		double[][] results = new double[4][8];
+		UserSimilarity[] similarityMetrics = {	new PearsonCorrelationSimilarity(model),
+												new EuclideanDistanceSimilarity(model),
+												new LogLikelihoodSimilarity(model),
+												new TanimotoCoefficientSimilarity(model)
+											};
 		
-		RecommenderEvaluator evaluator = new AverageAbsoluteDifferenceRecommenderEvaluator();
-		
-		RecommenderBuilder recommenderBuilder = new RecommenderBuilder() {
+		for (int i = 0; i < results.length; i++) {
+			for (int j = 0; j < results[0].length; j++) {
+				results[i][j] = Evaluation.evaluateUserRecommender(model, neighborhoodSize, similarityMetrics[i], 
+						new AverageAbsoluteDifferenceRecommenderEvaluator());
+				neighborhoodSize = neighborhoodSize * 2;
+			}
 			
-			public Recommender buildRecommender(DataModel model) throws TasteException {
-				UserSimilarity similarity = new PearsonCorrelationSimilarity(model);
-				UserNeighborhood neighborhood = new NearestNUserNeighborhood(100, similarity, model);
-				return new GenericUserBasedRecommender(model, neighborhood, similarity);
-				}
-			};
+			neighborhoodSize = 1;
+		}
 		
-		double score = evaluator.evaluate(recommenderBuilder, null, model, 0.8, 0.2);
-		System.out.println(score);
+		return results;
 	}
+	
+	public static void printEvaluations(double[][] evaluations) {
+		String[] similarityMetrics = {"Pearson", "Euclidean", "Log-likelihood", "Tanimoto"};
+		
+		for (int i = 0; i < evaluations.length; i++) {
+			System.out.print(similarityMetrics[i] + " : ");
+			for (int j = 0; j < evaluations[0].length; j++) {
+				System.out.print(evaluations[i][j] + " , ");
+			}
+			System.out.println("");
+		}
+	}
+	
 }

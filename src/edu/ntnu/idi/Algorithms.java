@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.eval.RecommenderEvaluator;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.hadoop.slopeone.SlopeOneAverageDiffsJob;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
@@ -18,6 +19,7 @@ import org.apache.mahout.cf.taste.impl.similarity.LogLikelihoodSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.SpearmanCorrelationSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.TanimotoCoefficientSimilarity;
+import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.recommender.Recommender;
@@ -26,32 +28,33 @@ import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
 public class Algorithms {
 	
-	public static GenericUserBasedRecommender userBasedRecommender(String ratings, int neighborhoodSize, String similarityMetric) 
+	public static GenericUserBasedRecommender userBasedRecommender(DataModel dataModel, int neighborhoodSize, UserSimilarity userSimilarity) 
 			throws TasteException, IOException {
-		FileDataModel model = new GroupLensDataModel(new File(ratings));
+		DataModel model = dataModel;
 		
-		UserSimilarity userSimilarity = selectSimilarity(similarityMetric, model);
+		UserSimilarity similarity = userSimilarity;
 		
 		UserNeighborhood neighborhood = new NearestNUserNeighborhood(neighborhoodSize, userSimilarity, model);
 		
 		System.out.format("\n A user-based recommendation algorithm was created. \n Similarity metric is %s. \n Size of " +
-				"neighborhood is %d \n", similarityMetric, neighborhoodSize);
+				"neighborhood is %d \n", userSimilarity.toString(), neighborhoodSize);
 		
 		return new GenericUserBasedRecommender(model, neighborhood, userSimilarity);
 	}
 	
-	public static GenericItemBasedRecommender itemBasedRecommender (String ratings, String similarityMetric) throws TasteException, IOException {
-		FileDataModel model = new GroupLensDataModel(new File(ratings));
+	public static GenericItemBasedRecommender itemBasedRecommender (DataModel dataModel, ItemSimilarity itemSimilarity) 
+			throws TasteException, IOException {
+		DataModel model = dataModel;
 		
-		UserSimilarity userSimilarity = selectSimilarity(similarityMetric, model);
+		ItemSimilarity similarity = itemSimilarity;
 		
-		System.out.format("\n An item-based recommendation algorithm was created. \n Similarity metric is %s. \n", similarityMetric);
+		System.out.format("\n An item-based recommendation algorithm was created. \n Similarity metric is %s. \n", itemSimilarity.toString());
 		
-		return new GenericItemBasedRecommender(model, (ItemSimilarity) userSimilarity);
+		return new GenericItemBasedRecommender(model, similarity);
 	}
 	
-	public static SlopeOneRecommender slopeOneRecommender (String ratings) throws IOException, TasteException {
-		FileDataModel model = new GroupLensDataModel(new File(ratings));
+	public static SlopeOneRecommender slopeOneRecommender (DataModel dataModel) throws IOException, TasteException {
+		DataModel model = dataModel;
 		
 		System.out.println(" \n A slope-one recommender algorithm was created.");
 		
