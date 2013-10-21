@@ -9,6 +9,7 @@ import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderEvaluator;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommenderEvaluator;
+import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
 import org.apache.mahout.cf.taste.impl.recommender.CachingRecommender;
@@ -54,28 +55,29 @@ public class Mahout {
 	 * @throws TasteException 
 	 */
 	public static void main(String[] args) throws TasteException, IOException  {
-		DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
+//		DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
 		
 		// creates a generic recommender with the ratings set from data and a neighborhood size of 50
-		GenericUserBasedRecommender recommender = Algorithms.userBasedRecommender(model, 50, 
-				new PearsonCorrelationSimilarity(model));
+//		GenericUserBasedRecommender recommender = Algorithms.userBasedRecommender(model, 50, 
+//				new PearsonCorrelationSimilarity(model));
 //		GenericItemBasedRecommender recommender = Algorithms.itemBasedRecommender("data/movielens-1m/ratings.dat.gz", "pearson");
 //		SlopeOneRecommender recommender = Algorithms.slopeOneRecommender("data/movielens-1m/ratings.dat.gz");
 		
 		// uses the above recommender to get 20 recommendations (top-20) for user with id 33
-		List<RecommendedItem> recommendations = getRecommendations(20, 33, recommender);
+//		List<RecommendedItem> recommendations = getRecommendations(20, 33, recommender);
 		
 		// prints the recommendations to console
-		printRecommendations(recommendations);
+//		printRecommendations(recommendations);
 		
-		System.out.println("");
+//		System.out.println("");
 		
-		double[][] results = doEvaluation();
+		double[][] results = AverageAbsoluteDifferenceEvaluation("nearestN");
 		printEvaluations(results);
 		
 		}
 	
-	public static double[][] doEvaluation() throws IOException, TasteException {
+	public static double[][] doEvaluation(RecommenderEvaluator recommenderEvaluator, 
+			String neighborhoodType) throws IOException, TasteException {
 		DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
 		int neighborhoodSize = 1;
 		double[][] results = new double[4][8];
@@ -85,17 +87,39 @@ public class Mahout {
 												new TanimotoCoefficientSimilarity(model)
 											};
 		
-		for (int i = 0; i < results.length; i++) {
-			for (int j = 0; j < results[0].length; j++) {
-				results[i][j] = Evaluation.evaluateUserRecommender(model, neighborhoodSize, similarityMetrics[i], 
-						new AverageAbsoluteDifferenceRecommenderEvaluator());
-				neighborhoodSize = neighborhoodSize * 2;
+		if( neighborhoodType.equals("nearestN") ) {
+			for (int i = 0; i < results.length; i++) {
+				for (int j = 0; j < results[0].length; j++) {
+					results[i][j] = Evaluation.evaluateNearestNNeighborhoodUserRecommender(model, neighborhoodSize, similarityMetrics[i], 
+							recommenderEvaluator, 0.9, 0.1);
+					neighborhoodSize = neighborhoodSize * 2;
+				}
+				neighborhoodSize = 1;
+				break;
 			}
+		} else {
+			results = new double[4][6];
+			double threshold = 0.95; 
 			
-			neighborhoodSize = 1;
+			for (int i = 0; i < results.length; i++) {
+				for (int j = 0; j < results[0].length; j++) {
+					results[i][j] = Evaluation.evaluateThresholdNeighborhoodUserRecommender(model, threshold, 
+							similarityMetrics[i], recommenderEvaluator, 0.9, 0.1);
+					threshold -= 0.05;
+				}
+				threshold = 0.95;
+			}
 		}
 		
 		return results;
+	}
+	
+	public static double[][] AverageAbsoluteDifferenceEvaluation(String neighborhoodType) throws IOException, TasteException{
+		return doEvaluation(new AverageAbsoluteDifferenceRecommenderEvaluator(), neighborhoodType);
+	}
+	
+	public static double[][] RootMeanSquareEvaluation(String neighborhoodType) throws IOException, TasteException{
+		return doEvaluation(new RMSRecommenderEvaluator(), neighborhoodType);
 	}
 	
 	public static void printEvaluations(double[][] evaluations) {

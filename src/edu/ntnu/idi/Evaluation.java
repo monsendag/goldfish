@@ -10,6 +10,7 @@ import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
+import org.apache.mahout.cf.taste.impl.neighborhood.ThresholdUserNeighborhood;
 import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
 import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
 import org.apache.mahout.cf.taste.model.DataModel;
@@ -39,8 +40,9 @@ public class Evaluation {
 		System.out.println(score);
 	}
 	
-	public static double evaluateUserRecommender(DataModel dataModel, final int neighborhoodSize, 
-			final UserSimilarity userSimilarity, RecommenderEvaluator evaluator) throws IOException, TasteException {
+	public static double evaluateNearestNNeighborhoodUserRecommender(DataModel dataModel, final int neighborhoodSize, 
+			final UserSimilarity userSimilarity, RecommenderEvaluator evaluator, double trainSet,
+			double testSet) throws IOException, TasteException {
 		
 		RandomUtils.useTestSeed();
 		
@@ -56,7 +58,28 @@ public class Evaluation {
 			}
 		};
 		
-		return recommenderEvaluator.evaluate(recommenderBuilder, null, model, 0.9, 0.1);
+		return recommenderEvaluator.evaluate(recommenderBuilder, null, model, trainSet, testSet);
+	}
+	
+	public static double evaluateThresholdNeighborhoodUserRecommender(DataModel dataModel, final double threshold, 
+			final UserSimilarity userSimilarity, RecommenderEvaluator evaluator, double trainSet,
+			double testSet) throws IOException, TasteException {
+		
+		RandomUtils.useTestSeed();
+		
+		RecommenderEvaluator recommenderEvaluator = evaluator;
+		DataModel model = dataModel;
+		
+		RecommenderBuilder recommenderBuilder = new RecommenderBuilder() {
+			
+			public Recommender buildRecommender(DataModel model) throws TasteException {
+				UserSimilarity similarity = userSimilarity;
+				UserNeighborhood neighborhood = new ThresholdUserNeighborhood(threshold, similarity, model);
+				return new GenericUserBasedRecommender(model, neighborhood, similarity);
+			}
+		};
+		
+		return recommenderEvaluator.evaluate(recommenderBuilder, null, model, trainSet, testSet);
 	}
 	
 	public static RecommenderEvaluator selectEvaluator (String evaluator) {
