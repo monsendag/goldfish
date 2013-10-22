@@ -8,6 +8,7 @@ import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderEvaluator;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
+import org.apache.mahout.cf.taste.impl.eval.AbstractDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
@@ -21,6 +22,7 @@ import org.apache.mahout.cf.taste.impl.similarity.LogLikelihoodSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.TanimotoCoefficientSimilarity;
 import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.recommender.Recommender;
@@ -71,8 +73,17 @@ public class Mahout {
 		
 //		System.out.println("");
 		
-		double[][] results = AverageAbsoluteDifferenceEvaluation("nearestN");
-		printEvaluations(results);
+		double[][] aadResults = AverageAbsoluteDifferenceEvaluation("nearestN");
+		double[][] rmsResults = RootMeanSquareEvaluation("nearestN");
+
+		System.out.println("Average Absolute  Difference Evaluation with nearest N neighborhood");
+		printEvaluations(aadResults);
+
+		System.out.println("");
+		
+		System.out.println("Root Mean Square with nearest N neighborhood");
+		printEvaluations(rmsResults);
+		
 		
 		}
 	
