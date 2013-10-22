@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.eval.IRStatistics;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderEvaluator;
+import org.apache.mahout.cf.taste.eval.RecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommenderEvaluator;
+import org.apache.mahout.cf.taste.impl.eval.GenericRecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
 import org.apache.mahout.cf.taste.impl.neighborhood.ThresholdUserNeighborhood;
@@ -80,6 +83,54 @@ public class Evaluation {
 		};
 		
 		return recommenderEvaluator.evaluate(recommenderBuilder, null, model, trainSet, testSet);
+	}
+	
+	public static double[] evaluatePrecisionAndRecallWithThreshold(DataModel dataModel, final double threshold, 
+			final UserSimilarity userSimilarity, int at) throws IOException, TasteException {
+		
+		RandomUtils.useTestSeed();
+		
+		RecommenderIRStatsEvaluator evaluator = new GenericRecommenderIRStatsEvaluator();
+		DataModel model = dataModel;
+		
+		RecommenderBuilder recommenderBuilder = new RecommenderBuilder() {
+			
+			public Recommender buildRecommender(DataModel model) throws TasteException {
+				UserSimilarity similarity = userSimilarity;
+				UserNeighborhood neighborhood = new ThresholdUserNeighborhood(threshold, similarity, model);
+				return new GenericUserBasedRecommender(model, neighborhood, similarity);
+			}
+		};
+		
+		IRStatistics stats = evaluator.evaluate(recommenderBuilder, null, model, null, at, 
+				GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD, 1.0);
+		
+		double[] results = {stats.getPrecision(), stats.getRecall()}; 
+		return results;
+	}
+	
+	public static double[] evaluatePrecisionAndRecallWithNearestN(DataModel dataModel, final int neighborhoodSize, 
+			final UserSimilarity userSimilarity, int at) throws IOException, TasteException {
+		
+		RandomUtils.useTestSeed();
+		
+		RecommenderIRStatsEvaluator evaluator = new GenericRecommenderIRStatsEvaluator();
+		DataModel model = dataModel;
+		
+		RecommenderBuilder recommenderBuilder = new RecommenderBuilder() {
+			
+			public Recommender buildRecommender(DataModel model) throws TasteException {
+				UserSimilarity similarity = userSimilarity;
+				UserNeighborhood neighborhood = new NearestNUserNeighborhood(neighborhoodSize, similarity, model);
+				return new GenericUserBasedRecommender(model, neighborhood, similarity);
+			}
+		};
+		
+		IRStatistics stats = evaluator.evaluate(recommenderBuilder, null, model, null, at, 
+				GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD, 1.0);
+		
+		double[] results = {stats.getPrecision(), stats.getRecall()}; 
+		return results;
 	}
 	
 	public static RecommenderEvaluator selectEvaluator (String evaluator) {

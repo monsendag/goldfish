@@ -2,6 +2,7 @@ package edu.ntnu.idi;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.mahout.cf.taste.common.TasteException;
@@ -131,6 +132,40 @@ public class Mahout {
 	
 	public static double[][] RootMeanSquareEvaluation(String neighborhoodType) throws IOException, TasteException{
 		return doEvaluation(new RMSRecommenderEvaluator(), neighborhoodType);
+	}
+	
+	public static ArrayList<double[]> precisionAndRecallEvaluation(String neighborhoodType) throws IOException, TasteException{
+		DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
+		int neighborhoodSize = 1;
+		ArrayList<double[]> results = new ArrayList<double[]>();
+		UserSimilarity[] similarityMetrics = {	new PearsonCorrelationSimilarity(model),
+												new EuclideanDistanceSimilarity(model),
+												new LogLikelihoodSimilarity(model),
+												new TanimotoCoefficientSimilarity(model)
+											};
+		
+		if( neighborhoodType.equals("nearestN") ) {
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 8; j++) {
+					results.add(Evaluation.evaluatePrecisionAndRecallWithNearestN(model, neighborhoodSize, similarityMetrics[i], 10)); 
+					neighborhoodSize = neighborhoodSize * 2;
+				}
+				neighborhoodSize = 1;
+				break;
+			}
+		} else {
+			double threshold = 0.95; 
+			
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 6; j++) {
+					results.add(Evaluation.evaluatePrecisionAndRecallWithThreshold(model, threshold, similarityMetrics[i], 10));
+					threshold -= 0.05;
+				}
+				threshold = 0.95;
+			}
+		}
+		
+		return results;
 	}
 	
 	public static void printEvaluations(double[][] evaluations) {
