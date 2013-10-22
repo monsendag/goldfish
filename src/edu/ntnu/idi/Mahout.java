@@ -74,6 +74,7 @@ public class Mahout {
 		
 //		System.out.println("");
 		
+		/*
 		double[][] aadResults = AverageAbsoluteDifferenceEvaluation("nearestN");
 		double[][] rmsResults = RootMeanSquareEvaluation("nearestN");
 
@@ -84,7 +85,11 @@ public class Mahout {
 		
 		System.out.println("Root Mean Square with nearest N neighborhood");
 		printEvaluations(rmsResults);
+		*/
 		
+		String[][] papResults = precisionAndRecallEvaluation("nearestN");
+		System.out.println("Precision and recall with nearest N neighborhood");
+		printPrecisionAndRecallEvaluations(papResults);
 		
 		}
 	
@@ -134,10 +139,10 @@ public class Mahout {
 		return doEvaluation(new RMSRecommenderEvaluator(), neighborhoodType);
 	}
 	
-	public static ArrayList<double[]> precisionAndRecallEvaluation(String neighborhoodType) throws IOException, TasteException{
+	public static String[][] precisionAndRecallEvaluation(String neighborhoodType) throws IOException, TasteException{
 		DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
 		int neighborhoodSize = 1;
-		ArrayList<double[]> results = new ArrayList<double[]>();
+		String[][] results = new String[4][8];
 		UserSimilarity[] similarityMetrics = {	new PearsonCorrelationSimilarity(model),
 												new EuclideanDistanceSimilarity(model),
 												new LogLikelihoodSimilarity(model),
@@ -145,20 +150,21 @@ public class Mahout {
 											};
 		
 		if( neighborhoodType.equals("nearestN") ) {
-			for (int i = 0; i < 4; i++) {
-				for (int j = 0; j < 8; j++) {
-					results.add(Evaluation.evaluatePrecisionAndRecallWithNearestN(model, neighborhoodSize, similarityMetrics[i], 10)); 
+			for (int i = 0; i < results.length; i++) {
+				for (int j = 0; j < results[0].length; j++) {
+					results[i][j] = Evaluation.evaluatePrecisionAndRecallWithNearestN(model, neighborhoodSize, similarityMetrics[i], 10);
 					neighborhoodSize = neighborhoodSize * 2;
 				}
 				neighborhoodSize = 1;
 				break;
 			}
 		} else {
+			results = new String[4][6];
 			double threshold = 0.95; 
 			
-			for (int i = 0; i < 4; i++) {
-				for (int j = 0; j < 6; j++) {
-					results.add(Evaluation.evaluatePrecisionAndRecallWithThreshold(model, threshold, similarityMetrics[i], 10));
+			for (int i = 0; i < results.length; i++) {
+				for (int j = 0; j < results[0].length; j++) {
+					results[i][j] = Evaluation.evaluatePrecisionAndRecallWithThreshold(model, threshold, similarityMetrics[i], 10);
 					threshold -= 0.05;
 				}
 				threshold = 0.95;
@@ -178,6 +184,18 @@ public class Mahout {
 			}
 			System.out.println("");
 		}
+	}
+	
+	public static void printPrecisionAndRecallEvaluations(String[][] evaluations) {
+		String[] similarityMetrics = {"Pearson", "Euclidean", "Log-likelihood", "Tanimoto"};
+			
+			for (int i = 0; i < evaluations.length; i++) {
+				System.out.print(similarityMetrics[i] + " : ");
+				for (int j = 0; j < evaluations[0].length; j++) {
+					System.out.print(evaluations[i][j] + " , ");
+				}
+				System.out.println("");
+			}
 	}
 	
 }

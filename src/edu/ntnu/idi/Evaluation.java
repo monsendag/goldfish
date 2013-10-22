@@ -85,7 +85,7 @@ public class Evaluation {
 		return recommenderEvaluator.evaluate(recommenderBuilder, null, model, trainSet, testSet);
 	}
 	
-	public static double[] evaluatePrecisionAndRecallWithThreshold(DataModel dataModel, final double threshold, 
+	public static String evaluatePrecisionAndRecallWithThreshold(DataModel dataModel, final double threshold, 
 			final UserSimilarity userSimilarity, int at) throws IOException, TasteException {
 		
 		RandomUtils.useTestSeed();
@@ -105,11 +105,11 @@ public class Evaluation {
 		IRStatistics stats = evaluator.evaluate(recommenderBuilder, null, model, null, at, 
 				GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD, 1.0);
 		
-		double[] results = {stats.getPrecision(), stats.getRecall()}; 
+		String results = "Precision: " + stats.getPrecision() + " , recall: " + stats.getRecall();
 		return results;
 	}
 	
-	public static double[] evaluatePrecisionAndRecallWithNearestN(DataModel dataModel, final int neighborhoodSize, 
+	public static String evaluatePrecisionAndRecallWithNearestN(DataModel dataModel, final int neighborhoodSize, 
 			final UserSimilarity userSimilarity, int at) throws IOException, TasteException {
 		
 		RandomUtils.useTestSeed();
@@ -129,7 +129,7 @@ public class Evaluation {
 		IRStatistics stats = evaluator.evaluate(recommenderBuilder, null, model, null, at, 
 				GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD, 1.0);
 		
-		double[] results = {stats.getPrecision(), stats.getRecall()}; 
+		String results = "Precision: " + stats.getPrecision() + " , recall: " + stats.getRecall(); 
 		return results;
 	}
 	
