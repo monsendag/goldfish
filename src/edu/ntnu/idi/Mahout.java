@@ -140,7 +140,7 @@ public class Mahout {
 	}
 	
 	public static String[][] precisionAndRecallEvaluation(String neighborhoodType) throws IOException, TasteException{
-		DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
+		DataModel model = new GroupLensDataModel(new File("data/sample100/ratings.dat"));
 		int neighborhoodSize = 1;
 		String[][] results = new String[4][8];
 		UserSimilarity[] similarityMetrics = {	new PearsonCorrelationSimilarity(model),
@@ -152,7 +152,7 @@ public class Mahout {
 		if( neighborhoodType.equals("nearestN") ) {
 			for (int i = 0; i < results.length; i++) {
 				for (int j = 0; j < results[0].length; j++) {
-					results[i][j] = Evaluation.evaluatePrecisionAndRecallWithNearestN(model, neighborhoodSize, similarityMetrics[i], 10);
+					results[i][j] = Evaluation.evaluatePrecisionAndRecallWithNearestN(model, neighborhoodSize, similarityMetrics[i], 5);
 					neighborhoodSize = neighborhoodSize * 2;
 				}
 				neighborhoodSize = 1;

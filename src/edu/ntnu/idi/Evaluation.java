@@ -127,7 +127,7 @@ public class Evaluation {
 		};
 		
 		IRStatistics stats = evaluator.evaluate(recommenderBuilder, null, model, null, at, 
-				GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD, 1.0);
+				GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD, 0.5);
 		
 		String results = "Precision: " + stats.getPrecision() + " , recall: " + stats.getRecall(); 
 		return results;
