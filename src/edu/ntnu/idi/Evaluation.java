@@ -105,8 +105,7 @@ public class Evaluation {
 		IRStatistics stats = evaluator.evaluate(recommenderBuilder, null, model, null, at, 
 				GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD, 1.0);
 		
-		String results = "Precision: " + stats.getPrecision() + " , recall: " + stats.getRecall();
-		return results;
+		return "(Precision: " + stats.getPrecision() + " , Recall: " + stats.getRecall() + ")";
 	}
 	
 	public static String evaluatePrecisionAndRecallWithNearestN(DataModel dataModel, final int neighborhoodSize, 
@@ -127,10 +126,9 @@ public class Evaluation {
 		};
 		
 		IRStatistics stats = evaluator.evaluate(recommenderBuilder, null, model, null, at, 
-				GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD, 0.5);
+				GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD, 1.0);
 		
-		String results = "Precision: " + stats.getPrecision() + " , recall: " + stats.getRecall(); 
-		return results;
+		return "(Precision: " + stats.getPrecision() + " , Recall: " + stats.getRecall() + ")";
 	}
 	
 	public static RecommenderEvaluator selectEvaluator (String evaluator) {

@@ -87,9 +87,15 @@ public class Mahout {
 		printEvaluations(rmsResults);
 		*/
 		
-		String[][] papResults = precisionAndRecallEvaluation("nearestN");
+		/*
+		String[][] parResults = precisionAndRecallEvaluation("nearestN");
 		System.out.println("Precision and recall with nearest N neighborhood");
-		printPrecisionAndRecallEvaluations(papResults);
+		printPrecisionAndRecallEvaluations(parResults);
+		*/
+		
+		double[][] nnResults = RootMeanSquareEvaluation("nearestN");
+		System.out.println("Root Mean Square evaluation with nearest N neighborhood");
+		printEvaluations(nnResults);
 		
 		}
 	
@@ -112,7 +118,6 @@ public class Mahout {
 					neighborhoodSize = neighborhoodSize * 2;
 				}
 				neighborhoodSize = 1;
-				break;
 			}
 		} else {
 			results = new double[4][6];
@@ -152,11 +157,10 @@ public class Mahout {
 		if( neighborhoodType.equals("nearestN") ) {
 			for (int i = 0; i < results.length; i++) {
 				for (int j = 0; j < results[0].length; j++) {
-					results[i][j] = Evaluation.evaluatePrecisionAndRecallWithNearestN(model, neighborhoodSize, similarityMetrics[i], 5);
+					results[i][j] = Evaluation.evaluatePrecisionAndRecallWithNearestN(model, neighborhoodSize, similarityMetrics[i], 20);
 					neighborhoodSize = neighborhoodSize * 2;
 				}
 				neighborhoodSize = 1;
-				break;
 			}
 		} else {
 			results = new String[4][6];
