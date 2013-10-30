@@ -5,7 +5,7 @@ import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
-public class Threshold extends ModelBased {
+public class Threshold extends MemoryBased {
 		
 	double threshold = 1;
 

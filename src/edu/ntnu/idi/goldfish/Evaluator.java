@@ -12,7 +12,7 @@ import org.apache.mahout.cf.taste.impl.eval.GenericRecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluator;
 import org.apache.mahout.cf.taste.model.DataModel;
 
-public class Evaluator extends ArrayList<ModelBased> {
+public class Evaluator extends ArrayList<Recommender> {
 	
 	private static final long serialVersionUID = -167230272254792689L;
 	DataModel dataModel;
@@ -36,7 +36,7 @@ public class Evaluator extends ArrayList<ModelBased> {
 		double rmse;
 		double aad;
 		IRStatistics stats;
-		for(ModelBased recommender : this) {
+		for(Recommender recommender : this) {
 			rmse = RMSE.evaluate(recommender.getBuilder(), null, dataModel, trainingPercentage, testPercentage);
 			aad = AAD.evaluate(recommender.getBuilder(), null, dataModel, trainingPercentage, testPercentage);
 			stats = irStats.evaluate(recommender.getBuilder(), null, dataModel, null, topN, relevanceThreshold, testPercentage);

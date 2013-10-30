@@ -6,7 +6,7 @@ import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
-public class KNN extends ModelBased {
+public class KNN extends MemoryBased {
 	
 	int neighborhoodSize = 1;
 

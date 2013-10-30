@@ -10,7 +10,7 @@ import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 
-import edu.ntnu.idi.goldfish.ModelBased.Similarity;
+import edu.ntnu.idi.goldfish.MemoryBased.Similarity;
 
 
 public class Main {
