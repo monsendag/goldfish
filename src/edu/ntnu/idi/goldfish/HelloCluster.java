@@ -81,6 +81,7 @@ public class HelloCluster {
 		for (int i = 0; i < k; i++) {
 			Vector vec = vectors.get(i);
 			Kluster cluster = new Kluster(vec, i, new EuclideanDistanceMeasure());
+			writer.append(new Text(cluster.getIdentifier()), cluster);
 		}
 		writer.close();
 		
