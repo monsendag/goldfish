@@ -30,6 +30,8 @@ public class Main {
 		
 		Evaluator evaluator = new Evaluator(dataModel);
 		
+		
+		
 		/*
 		 * MEMORY-based evaluation 
 		 * 
@@ -48,6 +50,8 @@ public class Main {
 				evaluator.add(new Threshold(similarity, T));
 			}
 		}
+		
+		evaluator.add(new SVD());
 
 		ArrayList<EvaluationResult> results = evaluator.evaluateAll();
 		
