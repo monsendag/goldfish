@@ -26,7 +26,7 @@ public class Main {
 	public static void main(String[] args) throws IOException, TasteException {
 		
 		//DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
-		DataModel dataModel = new GroupLensDataModel(new File("data/sample100/ratings.dat"));
+		DataModel dataModel = new GroupLensDataModel(new File("datasets/sample100/ratings.dat.gz"));
 		
 		Evaluator evaluator = new Evaluator(dataModel);
 		
