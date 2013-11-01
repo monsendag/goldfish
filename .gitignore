@@ -1,6 +1,7 @@
 # ignore data set directory
 datasets
-
+testdata
+output
 
 *.class
 
