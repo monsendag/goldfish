@@ -12,6 +12,7 @@ import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.common.distance.TanimotoDistanceMeasure;
 
 import edu.ntnu.idi.goldfish.EvaluationResult.SortOption;
 import edu.ntnu.idi.goldfish.MemoryBased.Similarity;
@@ -61,10 +62,8 @@ public class Main {
 		//DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
 		DataModel dataModel = new GroupLensDataModel(new File("datasets/sample100/ratings.dat.gz"));
 		//DataModel dataModel = new FileDataModel(new File("datasets/vtt-clustered/cluster0.csv"));
-		
-		List<EvaluationResult> results = evaluateMemoryBased(dataModel);
-		
-		
+		System.out.println(dataModel.getNumUsers());
+		//List<EvaluationResult> results = evaluateMemoryBased(dataModel);
 		
 		/**
 		 * MODEL-based evaluation
@@ -72,25 +71,25 @@ public class Main {
 		
 		// clustering models (KMeans ... EM?)
 		
-		DataModel[] dataModels = UserClusterer.clusterUsers(dataModel, 5);
-		List<EvaluationResult> res;
+		DataModel[] dataModels = UserClusterer.clusterUsers(dataModel, 5, new TanimotoDistanceMeasure());
+		
+		for(int i=0;i<dataModels.length; i++) {
+			System.out.format("Cluster %d count %d", i, dataModels[i].getNumUsers());
+		}
+		
+		/*List<EvaluationResult> res;
 		for(DataModel clusteredModel : dataModels) {
 			res = evaluateMemoryBased(clusteredModel);
 		}
-		
+		*/
 		// latent semantic models (Matrix Factorizations, etc..)
 		
 		
-		EvaluationResult.sortList(results, SortOption.RMSE);
-		
+		//EvaluationResult.sortList(results, SortOption.RMSE);
+		/*
 		for(EvaluationResult re : results) {
 			System.out.println(re);
 		}
+		*/
 	}
-	
-
-	
-	
-	
-	
 }
