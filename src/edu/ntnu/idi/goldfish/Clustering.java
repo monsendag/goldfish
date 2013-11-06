@@ -27,6 +27,7 @@ import org.apache.mahout.clustering.kmeans.KMeansDriver;
 import org.apache.mahout.clustering.kmeans.Kluster;
 import org.apache.mahout.common.HadoopUtil;
 import org.apache.mahout.common.distance.EuclideanDistanceMeasure;
+import org.apache.mahout.common.distance.TanimotoDistanceMeasure;
 import org.apache.mahout.math.DenseVector;
 import org.apache.mahout.math.NamedVector;
 import org.apache.mahout.math.VectorWritable;
@@ -36,8 +37,18 @@ public class Clustering {
 	private static Map<Integer, Integer> userPositions;
 	private static Map<Integer, Integer> itemPositions;
 	private static List<RatingPair> ratingPairs;
-	private static Map<Integer, Integer> userToItemMap;
+	private static double[][] userItemMatrix;
 	
+	
+	public static Map<Integer, Integer> invert(Map<Integer, Integer> map) {
+
+	    Map<Integer, Integer> inv = new HashMap<Integer, Integer>();
+
+	    for (Entry<Integer, Integer> entry : map.entrySet())
+	        inv.put(entry.getValue(), entry.getKey());
+
+	    return inv;
+	}
 	public static void writeUsersToFile(List<NamedVector > users, Path path, Configuration conf) throws IOException {
 		FileSystem fs = FileSystem.get(path.toUri(), conf);
 		SequenceFile.Writer writer = new SequenceFile.Writer(fs, conf, path, Text.class, VectorWritable.class);
@@ -74,7 +85,6 @@ public class Clustering {
 		itemPositions = new HashMap<Integer, Integer>();
 		userPositions = new HashMap<Integer, Integer>();
 		ratingPairs = new ArrayList<RatingPair>();
-		userToItemMap = new HashMap<Integer, Integer>();
 		
 		
 		int itemPosition = 0;
@@ -87,13 +97,12 @@ public class Clustering {
 		int counter = 0;
 		
 		RatingPair pair;
-		while(sc.hasNextLine() && counter++ <= 100) {
+		while(sc.hasNextLine() && counter++ <= 5000) {
 			
 			pair = new RatingPair(sc.nextInt(), sc.nextInt());
 			sc.nextInt(); // skip rating
 			
 			ratingPairs.add(pair);
-			userToItemMap.put(pair.userId, pair.itemId);
 			
 			if(!userPositions.containsKey(pair.userId)) {
 				userPositions.put(pair.userId, userPosition);
@@ -108,7 +117,7 @@ public class Clustering {
 		}
 		sc.close();
 		
-		double[][] userItemMatrix = new double[userPosition][itemPosition];
+		userItemMatrix = new double[userPosition][itemPosition];
 		
 		for (RatingPair ratingPair : ratingPairs) {
 			userItemMatrix[userPositions.get(ratingPair.userId)][itemPositions.get(ratingPair.itemId)] = 1;
@@ -118,7 +127,7 @@ public class Clustering {
 	}
 
 	public static void main(String[] args) throws TasteException, IOException, InterruptedException, ClassNotFoundException {
-		int numberOfCluster = 3;
+		int numberOfCluster = 10;
 		
 		List<NamedVector> users = getNamedVector();
 		
@@ -155,7 +164,7 @@ public class Clustering {
 				new Path("testdata/points"), 	// the directory pathname for input points
 				new Path("testdata/clusters"),  // the directory pathname for initial & computed clusters
 				output, 						// the directory pathname for output points
-				new EuclideanDistanceMeasure(), // the DistanceMeasure to use
+				new TanimotoDistanceMeasure(), // the DistanceMeasure to use
 				0.001, 							// the convergence delta value
 				10, 							// the maximum number of iterations
 				true, 							// true if points are to be clustered after iterations are completed
@@ -196,34 +205,40 @@ public class Clustering {
 			file.delete();
 		}
 		
+		Map<Integer, Integer> invertedItemPositions = invert(itemPositions);
 		
+		int clusterCounter = 0;
 		
 		// for each cluster
-		
-			// for each user, 
-		
-				// for each rating in userItemMatrix[user][i]
-		
-					// if rating != 0
-						//	get item id from inverted itemPositions
-						// write line: userid,itemid,1
-		
 		for (int i = 0; i < numberOfClusters; i++) {
 			fileName = "datasets/vtt-clustered/cluster" + i + ".csv";
 			fw = new FileWriter(fileName);
 			pw = new PrintWriter(fw);
 			
+			// for each user in cluster i 
 			for (Entry<String, String> entry : clusters.entrySet()) {
 				String clusterId = entry.getValue();
-				String userId = entry.getKey();
+				String userIdString = entry.getKey();
+				int userId = Integer.parseInt(userIdString);
+				
 				if(i == Integer.parseInt(clusterId)) {
-					pw.print(userId);
-					pw.print(",");
-					pw.print(userToItemMap.get(Integer.parseInt(userId)));
-					pw.print(",");
-					pw.println(1);
+					clusterCounter++;
+					// for each rating in userItemMatrix[user][i]
+					for (int j = 0; j < userItemMatrix[userPositions.get(userId)].length; j++) {
+						// if rating != 0
+						if(userItemMatrix[userPositions.get(userId)][j] != 0) {
+							pw.print(userId);
+							pw.print(",");
+							pw.print(invertedItemPositions.get(j));
+							pw.print(",");
+							pw.println(1);
+						}
+					}
 				}
 			}
+			
+			System.out.println("Cluster id " + i + " count " + clusterCounter);
+			clusterCounter = 0;
 			
 			pw.flush();
 		}
