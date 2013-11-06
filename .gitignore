@@ -1,7 +1,6 @@
 # ignore data set directory
 datasets
-testdata
-output
+clusterdata
 
 *.class
 
