@@ -15,31 +15,28 @@ import org.apache.mahout.cf.taste.model.DataModel;
 public class Evaluator extends ArrayList<Recommender> {
 	
 	private static final long serialVersionUID = -167230272254792689L;
-	DataModel dataModel;
-	double trainingPercentage = 0.70;
-	double testPercentage = 0.10;
-	int topN = 10;
+
+	
 	double relevanceThreshold = GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD;
 	
-	public Evaluator(DataModel dataModel) {
-		this.dataModel = dataModel;
+	public Evaluator() {
 	}
 	
-	public ArrayList<EvaluationResult> evaluateAll() throws IOException, TasteException {
+	public ArrayList<EvaluationResult> evaluateAll(DataModel dataModel, double training, double test, int topN) throws IOException, TasteException {
 		
 		RecommenderEvaluator RMSE = new RMSRecommenderEvaluator();
 		RecommenderEvaluator AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
 		RecommenderIRStatsEvaluator irStats = new GenericRecommenderIRStatsEvaluator();
 		
-		ArrayList<EvaluationResult> results = new ArrayList<EvaluationResult>();
+		ArrayList<EvaluationResult> results = new ArrayList<EvaluationResult>();	
 		
 		double rmse;
 		double aad;
 		IRStatistics stats;
 		for(Recommender recommender : this) {
-			rmse = RMSE.evaluate(recommender.getBuilder(), null, dataModel, trainingPercentage, testPercentage);
-			aad = AAD.evaluate(recommender.getBuilder(), null, dataModel, trainingPercentage, testPercentage);
-			stats = irStats.evaluate(recommender.getBuilder(), null, dataModel, null, topN, relevanceThreshold, testPercentage);
+			rmse = RMSE.evaluate(recommender.getBuilder(), null, dataModel, training, test);
+			aad = AAD.evaluate(recommender.getBuilder(), null, dataModel, training, test);
+			stats = irStats.evaluate(recommender.getBuilder(), null, dataModel, null, topN, relevanceThreshold, test);
 			results.add(new EvaluationResult(recommender.toString(), rmse, aad, stats));
 		}
 		return results;
