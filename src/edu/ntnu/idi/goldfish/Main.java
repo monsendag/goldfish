@@ -51,12 +51,6 @@ public class Main {
 
 		ArrayList<EvaluationResult> results = evaluator.evaluateAll();
 		
-		// sort on RMSE (lower is better)
-		Collections.sort(results, new Comparator<EvaluationResult>() {  
-			public int compare(EvaluationResult a, EvaluationResult b) {
-				return (a.RMSE > b.RMSE) ? -1 : (a.RMSE < b.RMSE) ? 1 : 0;
-			}
-		});
 		
 		for(EvaluationResult res : results) {
 			System.out.println(res);
