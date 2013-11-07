@@ -3,8 +3,11 @@ package edu.ntnu.idi.goldfish;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -15,18 +18,34 @@ import org.apache.hadoop.io.Text;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
 import org.apache.mahout.cf.taste.impl.model.GenericDataModel;
-import org.apache.mahout.cf.taste.impl.model.GenericItemPreferenceArray;
+import org.apache.mahout.cf.taste.impl.model.GenericPreference;
+import org.apache.mahout.cf.taste.impl.model.GenericUserPreferenceArray;
 import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
+import org.apache.mahout.clustering.classify.WeightedVectorWritable;
 import org.apache.mahout.clustering.kmeans.KMeansDriver;
 import org.apache.mahout.clustering.kmeans.Kluster;
 import org.apache.mahout.common.HadoopUtil;
 import org.apache.mahout.common.distance.DistanceMeasure;
-import org.apache.mahout.math.DenseVector;
 import org.apache.mahout.math.NamedVector;
+import org.apache.mahout.math.RandomAccessSparseVector;
+import org.apache.mahout.math.Vector.Element;
+import org.apache.mahout.math.VectorView;
 import org.apache.mahout.math.VectorWritable;
 
 public class UserClusterer {
+	
+	
+	public static Map<Long, Integer> getItemIndices(DataModel dataModel) throws TasteException {
+		Map<Long, Integer> map = new HashMap<Long, Integer>();
+		Iterator<Long> iter = dataModel.getItemIDs();
+		int i = 0;
+		while(iter.hasNext()) {
+			map.put(iter.next(), i);
+		}
+		return map;
+	}
 
 	/**
 	 * Split the dataModel into a set of datamodels based on a kMeans clustering of the users
@@ -34,7 +53,7 @@ public class UserClusterer {
 	 */
 	public static DataModel[] clusterUsers(DataModel dataModel, int N, DistanceMeasure dm) throws IOException, InterruptedException, ClassNotFoundException, TasteException {
 		
-		File testData = new File("clusterdata/users");
+		File testData = new File("clusterdata/users/");
 		testData.mkdirs();
 		
 		List<NamedVector> users = getUserVectors(dataModel);
@@ -56,18 +75,18 @@ public class UserClusterer {
 		// Run k-means algorithm
 		KMeansDriver.run(
 				conf, 								// configuration
-				new Path("clusterdata/users"), 	// the directory pathname for input points
+				new Path("clusterdata/users"), 		// the directory pathname for input points
 				new Path("clusterdata/clusters"),	// the directory pathname for initial & computed clusters
 				output, 							// the directory pathname for output points
-				dm, 							// the DistanceMeasure to use
-				0.001, 							// the convergence delta value
+				dm, 		// the DistanceMeasure to use
+				0.5, 							// the convergence delta value
 				10, 							// the maximum number of iterations
 				true, 							// true if points are to be clustered after iterations are completed
 				0.0, 							// clustering strictness/ outlier removal parameter. 
-				false							// if true execute sequental algorithm
+				true							// if true execute sequental algorithm
 			);
 		
-		return readClusters(fs, conf, N);
+		return readClusters(new Path("clusterdata/output/clusteredPoints/part-m-0"), fs, conf, N);
 	}
 	
 	/**
@@ -98,27 +117,30 @@ public class UserClusterer {
 		writer.close();
 	}
 	
-	public static DataModel[] readClusters(FileSystem fs, Configuration conf, int N) throws IOException {
+	public static DataModel[] readClusters(Path path, FileSystem fs, Configuration conf, int N) throws IOException {
+		@SuppressWarnings("unchecked")
 		FastByIDMap<PreferenceArray>[] maps = new FastByIDMap[N];
 		for(int i = 0; i < N; i++) {
 			maps[i] = new FastByIDMap<PreferenceArray>();
 		}
-		
-		Path file = new Path("clusterdata/output/" + Kluster.CLUSTERED_POINTS_DIR + "/part-m-00000");
 		// read clusters from Hadoop Sequence File
-		SequenceFile.Reader reader = new SequenceFile.Reader(fs, file, conf);
-		// clusterId store
-		IntWritable clusterId = new IntWritable();
-		// value store
-		VectorWritable value = new VectorWritable();
+		SequenceFile.Reader reader = new SequenceFile.Reader(fs, path, conf);
+		// store objects
+		IntWritable clusterText = new IntWritable();
+		WeightedVectorWritable value = new WeightedVectorWritable();
 		
-		while (reader.next(clusterId, value)) {
+		long userId;
+		int clusterId;
+		
+		while (reader.next(clusterText, value)) {
 			// Read output, print vector, cluster ID 
-			NamedVector vector = (NamedVector) value.get();
-			long userId = (long) Integer.parseInt(vector.getName());
-			maps[clusterId.get()].put(userId, namedVecToPreferenceArr(vector));
+			NamedVector vector = (NamedVector) value.getVector();
+			userId = (long) Integer.parseInt(vector.getName());
+			clusterId = clusterText.get(); 
+			maps[clusterId].put(userId, namedVecToPreferenceArr(vector));
 		}
 		reader.close();
+		
 		
 		DataModel[] models = new DataModel[N];
 		for(int i = 0; i < N; i++) {
@@ -127,34 +149,41 @@ public class UserClusterer {
 		return models;
 	}
 	
-
-	
-	public static PreferenceArray namedVecToPreferenceArr(NamedVector vec) {
-		PreferenceArray arr = new GenericItemPreferenceArray(vec.size());
-		arr.setUserID(0, Integer.parseInt(vec.getName()));
-		
-		for(int i=0; i < vec.size(); i++) {
-			arr.setValue(i, (float) vec.get(i));
-		}
-		return arr;
-	}
-
-	public static NamedVector preferenceArrToNamedVec(PreferenceArray arr) {
-		DenseVector vec = new DenseVector(arr.length());
-		for(int i=0; i < arr.length(); i++) {
-			vec.set(i, arr.getValue(i));
-		}
-		return new NamedVector(vec, ""+arr.getUserID(0));
-	}
-	
 	public static List<NamedVector> getUserVectors(DataModel dataModel) throws IOException, TasteException {
 		List<NamedVector> users = new ArrayList<NamedVector>();
 		Iterator<Long> userIterator = dataModel.getUserIDs();
+		int cardinality = dataModel.getNumItems();
+		
 		PreferenceArray prefs;
+		
 		while(userIterator.hasNext()) {
 			prefs = dataModel.getPreferencesFromUser(userIterator.next());
-			users.add(preferenceArrToNamedVec(prefs));
+			users.add(preferenceArrToNamedVec(prefs, cardinality));
 		}
 		return users;
+	}
+
+	public static NamedVector preferenceArrToNamedVec(PreferenceArray prefs, int cardinality) {
+		RandomAccessSparseVector ratings = new RandomAccessSparseVector((int)10e5);
+	    for (Preference preference : prefs) {
+	      ratings.set((int) preference.getItemID(), preference.getValue());
+	    }    
+		return new NamedVector(ratings, ""+prefs.getUserID(0));
+	}
+
+	
+	public static PreferenceArray namedVecToPreferenceArr(NamedVector vec) {
+		VectorView view = new VectorView(vec, 0, vec.getNumNondefaultElements());
+		List<Preference> prefs = new ArrayList<Preference>();
+		long userId = (long) Integer.parseInt(vec.getName());
+		Iterator<Element> iter = view.iterateNonZero();
+		Element next;
+		Preference pref;
+		while(iter.hasNext()) {
+			next = iter.next();
+			pref = new GenericPreference(userId, next.index(), (float) next.get());
+			prefs.add(pref);
+		}
+		return new GenericUserPreferenceArray(prefs);
 	}
 }
