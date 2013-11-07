@@ -12,6 +12,7 @@ import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.common.distance.EuclideanDistanceMeasure;
 import org.apache.mahout.common.distance.TanimotoDistanceMeasure;
 
 import edu.ntnu.idi.goldfish.EvaluationResult.SortOption;
@@ -60,9 +61,9 @@ public class Main {
 	public static void main(String[] args) throws IOException, TasteException, InterruptedException, ClassNotFoundException {
 		
 		//DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
-		DataModel dataModel = new GroupLensDataModel(new File("datasets/sample100/ratings.dat.gz"));
+		DataModel dataModel = new GroupLensDataModel(new File("datasets/movielens-1m/ratings.dat.gz"));
 		//DataModel dataModel = new FileDataModel(new File("datasets/vtt-clustered/cluster0.csv"));
-		System.out.println(dataModel.getNumUsers());
+		
 		//List<EvaluationResult> results = evaluateMemoryBased(dataModel);
 		
 		/**
@@ -71,10 +72,10 @@ public class Main {
 		
 		// clustering models (KMeans ... EM?)
 		
-		DataModel[] dataModels = UserClusterer.clusterUsers(dataModel, 5, new TanimotoDistanceMeasure());
+		DataModel[] dataModels = UserClusterer.clusterUsers(dataModel, 5, new EuclideanDistanceMeasure());
 		
 		for(int i=0;i<dataModels.length; i++) {
-			System.out.format("Cluster %d count %d", i, dataModels[i].getNumUsers());
+			System.out.format("Cluster %d count %d\n", i, dataModels[i].getNumUsers());
 		}
 		
 		/*List<EvaluationResult> res;
