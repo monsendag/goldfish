@@ -22,22 +22,25 @@ public class Evaluator extends ArrayList<Recommender> {
 	public Evaluator() {
 	}
 	
-	public ArrayList<EvaluationResult> evaluateAll(DataModel dataModel, double training, double test, int topN) throws IOException, TasteException {
+	public EvaluationResults evaluateAll(DataModel dataModel, double training, double test, int topN) throws IOException, TasteException {
 		
 		RecommenderEvaluator RMSE = new RMSRecommenderEvaluator();
 		RecommenderEvaluator AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
 		RecommenderIRStatsEvaluator irStats = new GenericRecommenderIRStatsEvaluator();
 		
-		ArrayList<EvaluationResult> results = new ArrayList<EvaluationResult>();	
+		EvaluationResults results = new EvaluationResults();	
 		
 		double rmse;
 		double aad;
 		IRStatistics stats;
 		for(Recommender recommender : this) {
 			rmse = RMSE.evaluate(recommender.getBuilder(), null, dataModel, training, test);
+
+//			System.out.print(recommender); 
+//			System.out.println(rmse);
 			aad = AAD.evaluate(recommender.getBuilder(), null, dataModel, training, test);
 			stats = irStats.evaluate(recommender.getBuilder(), null, dataModel, null, topN, relevanceThreshold, test);
-			results.add(new EvaluationResult(recommender.toString(), rmse, aad, stats));
+			results.add(new Result(recommender.toString(), rmse, aad, stats));
 		}
 		return results;
 	}

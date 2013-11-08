@@ -3,19 +3,19 @@ package edu.ntnu.idi.goldfish;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
-import org.apache.lucene.benchmark.quality.QualityStats.RecallPoint;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
-import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
+import org.apache.mahout.cf.taste.impl.similarity.EuclideanDistanceSimilarity;
+import org.apache.mahout.cf.taste.impl.similarity.LogLikelihoodSimilarity;
+import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
+import org.apache.mahout.cf.taste.impl.similarity.SpearmanCorrelationSimilarity;
+import org.apache.mahout.cf.taste.impl.similarity.TanimotoCoefficientSimilarity;
 import org.apache.mahout.cf.taste.model.DataModel;
-import org.apache.mahout.common.distance.EuclideanDistanceMeasure;
-import org.apache.mahout.common.distance.TanimotoDistanceMeasure;
+import org.apache.mahout.cf.taste.similarity.precompute.SimilarItem;
 
-import edu.ntnu.idi.goldfish.EvaluationResult.SortOption;
+import edu.ntnu.idi.goldfish.EvaluationResults.SortOption;
 import edu.ntnu.idi.goldfish.MemoryBased.Similarity;
 
 
@@ -31,19 +31,48 @@ public class Main {
 	 * Evaluate KNN and Threshold based neighborhood models.
 	 * Try all different similarity metrics found in ModelBased.Similarity.
 	 */
-	public static List<EvaluationResult> evaluateMemoryBased(DataModel dataModel) throws IOException, TasteException {
+	public static EvaluationResults evaluateMemoryBased(DataModel dataModel) throws IOException, TasteException {
 		Evaluator evaluator = new Evaluator();
 		
 		
-			for(Similarity similarity : Similarity.values()) {
+		
+		for(Similarity similarity : Similarity.values()) {
 			
-			// KNN: try different neighborhood sizes (odd numbers are preferable)
-			for(int K = 15; K >= 1; K -= 2) {
-				evaluator.add(new KNN(similarity, K));			
+			double lowT = 0.10;
+			double highT = 0.70;
+			double incrT = 0.05;
+			
+			int lowN = 3;
+			int highN = 9;
+			int incrN = 2;
+			
+			
+			switch(similarity) {
+				case PearsonCorrelation: 
+					
+					
+				case EuclideanDistance: 
+					
+				case SpearmanCorrelation:
+					
+				case TanimotoCoefficient: 
+					
+				case LogLikelihood: 
+					
+			
 			}
 			
+			if(similarity == Similarity.TanimotoCoefficient) {
+				continue;
+			}
+			
+			// KNN: try different neighborhood sizes (odd numbers are preferable)
+            for(int K = lowN; K <= highN; K += incrN) {
+                evaluator.add(new KNN(similarity, K));                        
+            }
+			
 			// THRESHOLD: try different thresholds
-			for(double T = 0.70; T <= 1.00; T += 0.05) {
+			for(double T = lowT; T <= highT; T += incrT) {
 				evaluator.add(new Threshold(similarity, T));
 			}
 		}
@@ -60,24 +89,38 @@ public class Main {
 	 */
 	public static void main(String[] args) throws IOException, TasteException, InterruptedException, ClassNotFoundException {
 		
-		//DataModel model = new GroupLensDataModel(new File("data/movielens-1m/ratings.dat.gz"));
-		DataModel dataModel = new GroupLensDataModel(new File("datasets/movielens-1m/ratings.dat.gz"));
+//		DataModel dataModel = new GroupLensDataModel(new File("datasets/movielens-1m/ratings.dat.gz"));
+		DataModel dataModel = new GroupLensDataModel(new File("datasets/sample100/ratings.dat.gz"));
 		//DataModel dataModel = new FileDataModel(new File("datasets/vtt-clustered/cluster0.csv"));
+
+		EvaluationResults results = evaluateMemoryBased(dataModel);
 		
-		//List<EvaluationResult> results = evaluateMemoryBased(dataModel);
+		results.print(SortOption.RMSE);
 		
+		results.save();
+		
+		
+//		
+		
+		
+	
 		/**
 		 * MODEL-based evaluation
 		 */
 		
 		// clustering models (KMeans ... EM?)
-		
-		DataModel[] dataModels = UserClusterer.clusterUsers(dataModel, 5, new EuclideanDistanceMeasure());
-		
-		for(int i=0;i<dataModels.length; i++) {
-			System.out.format("Cluster %d count %d\n", i, dataModels[i].getNumUsers());
-		}
-		
+//		
+//		DataModel[] dataModels = UserClusterer.clusterUsers(dataModel, 5, new EuclideanDistanceMeasure());
+//		
+//		for(DataModel model : dataModels) {
+//			
+//		}
+//		
+//		for(EvaluationResult re : results) {
+//			System.out.println(re);
+//		}
+//		
+//		
 		/*List<EvaluationResult> res;
 		for(DataModel clusteredModel : dataModels) {
 			res = evaluateMemoryBased(clusteredModel);
@@ -86,11 +129,6 @@ public class Main {
 		// latent semantic models (Matrix Factorizations, etc..)
 		
 		
-		//EvaluationResult.sortList(results, SortOption.RMSE);
-		/*
-		for(EvaluationResult re : results) {
-			System.out.println(re);
-		}
-		*/
+		
 	}
 }
