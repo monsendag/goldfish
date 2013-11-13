@@ -28,11 +28,11 @@ public class Result {
 	}
 	
 	public String toString() {
-		return String.format("%-40s | RMSE: %6.3f | AAD: %6.3f | Precision: %6.3f | Recall %6.3f", recommender, RMSE, AAD, irStats.getPrecision(), irStats.getRecall());
+		return String.format("%-40s | RMSE: %6.3f | AAD: %6.3f | Precision: %6.3f | Recall %6.3f", recommender, RMSE, AAD, getPrecision(), getRecall());
 	}
 	
 	public String toCSV() {
-		return String.format("%s,%.3f,%.3f,%.3f,%.3f", recommender, RMSE, AAD, irStats.getPrecision(), irStats.getRecall());
+		return String.format("%s,%.3f,%.3f,%.3f,%.3f", recommender, RMSE, AAD, getPrecision(), getRecall());
 	}
 	
 	public double getPrecision() {
