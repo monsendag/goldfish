@@ -52,6 +52,7 @@ public class EvaluationResults extends ArrayList<Result> {
 	
 	public String toCSV() {
 		String out = "";
+                out += "Recommender,RMSE,AAD,Precision,Recall,Build time,Rec time\n";
 		for (Result res : this) {
 			out += res.toCSV()+"\n";
 		}
