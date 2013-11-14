@@ -2,83 +2,19 @@ package edu.ntnu.idi.goldfish;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
-import org.apache.mahout.cf.taste.impl.similarity.EuclideanDistanceSimilarity;
-import org.apache.mahout.cf.taste.impl.similarity.LogLikelihoodSimilarity;
-import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
-import org.apache.mahout.cf.taste.impl.similarity.SpearmanCorrelationSimilarity;
-import org.apache.mahout.cf.taste.impl.similarity.TanimotoCoefficientSimilarity;
+import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
-import org.apache.mahout.cf.taste.similarity.precompute.SimilarItem;
-
-import edu.ntnu.idi.goldfish.EvaluationResults.SortOption;
-import edu.ntnu.idi.goldfish.MemoryBased.Similarity;
-
 
 public class Main {
 	
 	// disable Mahout logging output
 	static { System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog"); }
 	
-		
-	/*
-	 * MEMORY-based evaluation 
-	 * 
-	 * Evaluate KNN and Threshold based neighborhood models.
-	 * Try all different similarity metrics found in ModelBased.Similarity.
-	 */
-	public static EvaluationResults evaluateMemoryBased(DataModel dataModel) throws IOException, TasteException {
-		Evaluator evaluator = new Evaluator();
-		
-		
-		
-		for(Similarity similarity : Similarity.values()) {
-			
-			double lowT = 0.10;
-			double highT = 0.70;
-			double incrT = 0.05;
-			
-			int lowN = 3;
-			int highN = 9;
-			int incrN = 2;
-			
-			
-			switch(similarity) {
-				case PearsonCorrelation: 
-					
-					
-				case EuclideanDistance: 
-					
-				case SpearmanCorrelation:
-					
-				case TanimotoCoefficient: 
-					
-				case LogLikelihood: 
-					
-			
-			}
-			
-			if(similarity == Similarity.TanimotoCoefficient) {
-				continue;
-			}
-			
-			// KNN: try different neighborhood sizes (odd numbers are preferable)
-            for(int K = lowN; K <= highN; K += incrN) {
-                evaluator.add(new KNN(similarity, K));                        
-            }
-			
-			// THRESHOLD: try different thresholds
-			for(double T = lowT; T <= highT; T += incrT) {
-				evaluator.add(new Threshold(similarity, T));
-			}
-		}
 
-		 return evaluator.evaluateAll(dataModel, 0.90, 0.10, 10);
-	}
 	
 	/**
 	 * @param args
@@ -89,21 +25,37 @@ public class Main {
 	 */
 	public static void main(String[] args) throws IOException, TasteException, InterruptedException, ClassNotFoundException {
 		
-//		DataModel dataModel = new GroupLensDataModel(new File("datasets/movielens-1m/ratings.dat.gz"));
-		DataModel dataModel = new GroupLensDataModel(new File("datasets/sample100/ratings.dat.gz"));
-		//DataModel dataModel = new FileDataModel(new File("datasets/vtt-clustered/cluster0.csv"));
-
-		EvaluationResults results = evaluateMemoryBased(dataModel);
+		DataSet set;
 		
-		results.print(SortOption.RMSE);
+//		set = DataSet.Movielens1M;
+//		set = DataSet.Sample100;
+		set = DataSet.VTT36k;
 		
-		results.save();
+		DataModel dataModel = getDataModel(set);
+		EvaluationResults results = Evaluator.evaluateMemoryBased(dataModel);
 		
+		// configuration options
+		// memory based
+		// (k) NN, (x) Threshold, Similarity metric
+		
+		// model based
+		// (k) clusters
+		// SVD: (x) latent factors ..
+		
+		
+		// evaluation
+		// training %, test %
+		
+		// (n) avg timing, (x) timed recs
+		// irstats: precision at X, amount of recommendations to consider, threshold
+		
+		
+		
+		
+		results.print();
+		results.save(set);
 		
 //		
-		
-		
-	
 		/**
 		 * MODEL-based evaluation
 		 */
@@ -129,6 +81,28 @@ public class Main {
 		// latent semantic models (Matrix Factorizations, etc..)
 		
 		
-		
 	}
+	
+
+	public static enum DataSet {
+		Movielens1M,
+		Sample100,
+		VTT36k
+	}
+	
+	public static DataModel getDataModel(DataSet set) throws IOException, TasteException {
+		
+		switch(set) {
+		case Movielens1M:
+			return new GroupLensDataModel(new File("datasets/movielens-1m/ratings.dat.gz"));
+		case Sample100:
+			return new GroupLensDataModel(new File("datasets/sample100/ratings.dat.gz"));
+		case VTT36k:
+			DataModel dataModel = new FileDataModel(new File("datasets/vtt-36k/VTT_I_data.csv"));
+			return new GenericBooleanPrefDataModel(GenericBooleanPrefDataModel.toDataMap(dataModel));
+		}
+		
+		return null;
+	}
+
 }

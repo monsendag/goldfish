@@ -2,6 +2,8 @@ package edu.ntnu.idi.goldfish;
 
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
+import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
+import org.apache.mahout.cf.taste.impl.recommender.GenericBooleanPrefUserBasedRecommender;
 import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
 import org.apache.mahout.cf.taste.impl.similarity.EuclideanDistanceSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.LogLikelihoodSimilarity;
@@ -40,10 +42,15 @@ public abstract class MemoryBased implements RecommenderWrapper {
 
 	public RecommenderBuilder getBuilder() {
 		return new RecommenderBuilder() {
-                        public Recommender buildRecommender(DataModel dataModel) throws TasteException {
+			public Recommender buildRecommender(DataModel dataModel) throws TasteException {
 				UserSimilarity similarityObject = getSimilarityObject(similarity, dataModel);
 				UserNeighborhood neighborhood = getNeighborhood(similarityObject, dataModel);
+				
+				if(dataModel instanceof GenericBooleanPrefDataModel) {
+					return new GenericBooleanPrefUserBasedRecommender(dataModel, neighborhood, similarityObject);	
+				}
 				return new GenericUserBasedRecommender(dataModel, neighborhood, similarityObject);
+				
 			}
 		};
 	}
