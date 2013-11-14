@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 
+import edu.ntnu.idi.goldfish.Main.DataSet;
+
 public class EvaluationResults extends ArrayList<Result> {
 	private static final long serialVersionUID = 7410339309503861432L;
 
@@ -39,6 +41,7 @@ public class EvaluationResults extends ArrayList<Result> {
 	}
 	
 	public void print() {
+//			System.out.format("%-40s | RMSE: %6s | AAD: %6f | Precision: %6.3f | Recall %6.3f | Build time %7.4f | Rec time %7.4f");
 		for (Result res : this) {
 			System.out.println(res);
 		}
@@ -52,21 +55,21 @@ public class EvaluationResults extends ArrayList<Result> {
 	
 	public String toCSV() {
 		String out = "";
-                out += "Recommender,RMSE,AAD,Precision,Recall,Build time,Rec time\n";
+		out += "Recommender,RMSE,AAD,Precision,Recall,Build time,Rec time\n";
 		for (Result res : this) {
 			out += res.toCSV()+"\n";
 		}
 		return out;
 	}
 	
-	public void save() {
+	public void save(DataSet set) {
 		Writer writer = null;
 		 
         try {
-        	String datetime = String.format("%1$tY-%1$tm-%1$td-%1$tH%1$tM%1$tS", new Date());
+        	String dateTime = String.format("%1$tY-%1$tm-%1$td-%1$tH%1$tM%1$tS", new Date());
         	String output = toCSV();
-            
-            File file = new File("results/"+datetime+".csv");
+            String fileName = String.format("results/%s-%s.csv", dateTime, set.toString());
+            File file = new File(fileName);
             writer = new BufferedWriter(new FileWriter(file));
             writer.write(output);
         } catch (FileNotFoundException e) {
