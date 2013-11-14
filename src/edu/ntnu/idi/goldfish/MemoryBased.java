@@ -10,9 +10,10 @@ import org.apache.mahout.cf.taste.impl.similarity.SpearmanCorrelationSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.TanimotoCoefficientSimilarity;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
+import org.apache.mahout.cf.taste.recommender.Recommender;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
-public abstract class MemoryBased implements Recommender {
+public abstract class MemoryBased implements RecommenderWrapper {
 
 	Similarity similarity;
 
@@ -39,7 +40,7 @@ public abstract class MemoryBased implements Recommender {
 
 	public RecommenderBuilder getBuilder() {
 		return new RecommenderBuilder() {
-			public org.apache.mahout.cf.taste.recommender.Recommender buildRecommender(DataModel dataModel) throws TasteException {
+                        public Recommender buildRecommender(DataModel dataModel) throws TasteException {
 				UserSimilarity similarityObject = getSimilarityObject(similarity, dataModel);
 				UserNeighborhood neighborhood = getNeighborhood(similarityObject, dataModel);
 				return new GenericUserBasedRecommender(dataModel, neighborhood, similarityObject);

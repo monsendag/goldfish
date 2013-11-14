@@ -4,7 +4,7 @@ import org.apache.mahout.cf.taste.eval.IRStatistics;
 
 public class Result {
 
-	String recommender;
+        RecommenderWrapper recommender;
 	
 	// RMSE
 	double RMSE;

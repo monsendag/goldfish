@@ -21,4 +21,13 @@ public class BayesianNetwork extends ModelBased {
 		};
 	}
 
+	public String toString(boolean min) {
+		if(!min) return toString();
+		// TODO Auto-generated method stub
+		return "BN";
+	}
+
+	public String toString() {
+		return "BayesianNetwork";
+	}
 }

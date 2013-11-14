@@ -7,7 +7,7 @@ import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
 public class Threshold extends MemoryBased {
 		
-	double threshold = 1;
+        double threshold = 1;
 
 	public Threshold(Similarity similarity, double threshold) {
 		this.similarity = similarity;
@@ -16,6 +16,13 @@ public class Threshold extends MemoryBased {
 	
 	public UserNeighborhood getNeighborhood(UserSimilarity similarityObject, DataModel dataModel) {
 		return new ThresholdUserNeighborhood(threshold, similarityObject, dataModel);
+	}
+	
+	public String toString(boolean min) {
+		if(!min) return this.toString();
+		// get uppercase letters in similarity
+		String similarityIntitials = this.similarity.toString().replaceAll("[a-z]", "");
+		return String.format("%.2fTh/%s", threshold, similarityIntitials);
 	}
 	
 	public String toString() {

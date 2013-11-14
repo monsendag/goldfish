@@ -12,7 +12,9 @@ import org.apache.mahout.cf.taste.impl.eval.GenericRecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluator;
 import org.apache.mahout.cf.taste.model.DataModel;
 
-public class Evaluator extends ArrayList<Recommender> {
+import edu.ntnu.idi.goldfish.MemoryBased.Similarity;
+
+public class Evaluator extends ArrayList<RecommenderWrapper> {
 	
 	private static final long serialVersionUID = -167230272254792689L;
 

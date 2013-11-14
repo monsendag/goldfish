@@ -2,8 +2,10 @@ package edu.ntnu.idi.goldfish;
 
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 
-public interface Recommender {
+public interface RecommenderWrapper {
 	
 	
 	public RecommenderBuilder getBuilder();
+	
+	public String toString(boolean min);
 }

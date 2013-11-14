@@ -19,4 +19,14 @@ public class SVD extends ModelBased {
 		};
 	}
 
+	public String toString(boolean min) {
+
+		return "SVD";
+	}
+	
+	public String toString() {
+		return "SVD";
+		
+	}
+
 }

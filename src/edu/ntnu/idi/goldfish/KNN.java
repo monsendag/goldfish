@@ -25,6 +25,13 @@ public class KNN extends MemoryBased {
 		return null;
 	}
 	
+	public String toString(boolean min) {
+		if(!min) return this.toString();
+		// get uppercase letters in similarity
+		String similarityIntitials = this.similarity.toString().replaceAll("[a-z]", "");
+		return String.format("%dNN/%s", neighborhoodSize, similarityIntitials);
+	}
+	
 	public String toString() {
 		return String.format("%d Nearest Neighbor (%s)", neighborhoodSize, this.similarity.toString());
 	}
