@@ -30,4 +30,9 @@ public class BayesianNetwork extends ModelBased {
 	public String toString() {
 		return "BayesianNetwork";
 	}
+
+	public double getKTL() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

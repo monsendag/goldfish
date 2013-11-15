@@ -28,5 +28,10 @@ public class Threshold extends MemoryBased {
 	public String toString() {
 		return String.format("%.2f Threshold (%s)", threshold, this.similarity.toString());
 	}
+
+	public double getKTL() {
+		// TODO Auto-generated method stub
+		return threshold;
+	}
 }
 

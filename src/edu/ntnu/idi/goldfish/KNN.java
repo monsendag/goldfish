@@ -8,17 +8,17 @@ import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
 public class KNN extends MemoryBased {
 	
-	int neighborhoodSize = 1;
+	int K = 1;
 
 	public KNN(Similarity similarity, int neighborhoodSize) {
 		this.similarity = similarity;
-		this.neighborhoodSize = neighborhoodSize;
+		this.K = neighborhoodSize;
 		
 	}
 	
 	public UserNeighborhood getNeighborhood(UserSimilarity similarityObject, DataModel dataModel) {
 		try {
-			return new NearestNUserNeighborhood(neighborhoodSize, similarityObject, dataModel);
+			return new NearestNUserNeighborhood(K, similarityObject, dataModel);
 		} catch (TasteException e) {
 			e.printStackTrace();
 		}
@@ -29,10 +29,15 @@ public class KNN extends MemoryBased {
 		if(!min) return this.toString();
 		// get uppercase letters in similarity
 		String similarityIntitials = this.similarity.toString().replaceAll("[a-z]", "");
-		return String.format("%dNN/%s", neighborhoodSize, similarityIntitials);
+		return String.format("%dNN/%s", K, similarityIntitials);
 	}
 	
 	public String toString() {
-		return String.format("%d Nearest Neighbor (%s)", neighborhoodSize, this.similarity.toString());
+		return String.format("%d Nearest Neighbor (%s)", K, this.similarity.toString());
+	}
+
+	public double getKTL() {
+		// TODO Auto-generated method stub
+		return K;
 	}
 }
