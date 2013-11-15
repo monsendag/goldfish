@@ -2,12 +2,17 @@ package edu.ntnu.idi.goldfish;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.common.distance.EuclideanDistanceMeasure;
+
+import edu.ntnu.idi.goldfish.MemoryBased.Similarity;
 
 public class Main {
 	
@@ -32,44 +37,43 @@ public class Main {
 		set = DataSet.VTT36k;
 		
 		DataModel dataModel = getDataModel(set);
-		EvaluationResults results = Evaluator.evaluateMemoryBased(dataModel);
+		Evaluator evaluator = new Evaluator();
+		List<Evaluation> evaluations = new ArrayList<Evaluation>();
+		EvaluationResults results = new EvaluationResults();
 		
-	 	
+		int topN = 20;
 		
-		// irstats: precision at X, amount of recommendations to consider, threshold
+		// kNN
+		int[] Ks = new int[] {2,3,5,7,9,15,20,25};
+		for(int K : Ks) {
+            evaluations.add(new KNN(topN, Similarity.TanimotoCoefficient, K));      
+            evaluations.add(new KNN(topN, Similarity.LogLikelihood, K));                        
+        }
 		
+		// Threshold
+		double lowT = 0.05;
+		double highT = 0.40;
+		double incrT = 0.05;
+		for(double T = lowT; T <= highT; T += incrT) {
+			evaluations.add(new Threshold(topN, Similarity.TanimotoCoefficient, T));
+			evaluations.add(new Threshold(topN, Similarity.LogLikelihood, T));
+		}
 		
+		// matrix factorization
+		int[] factors = new int[] {10};
+		for(int L : factors) {
+//			evaluations.add(new SVD(topN, L, 0.05, 10));	
+		}
 		
+//		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.1);
 		
+		// cluster dataset, then run evaluations on each cluster and get average metrics
+		
+
+		evaluator.evaluateClustered(15, new EuclideanDistanceMeasure(), evaluations, results, dataModel, 0.1);
+	
 		results.print();
 		results.save(set);
-		
-//		
-		/**
-		 * MODEL-based evaluation
-		 */
-		
-		// clustering models (KMeans ... EM?)
-//		
-//		DataModel[] dataModels = UserClusterer.clusterUsers(dataModel, 5, new EuclideanDistanceMeasure());
-//		
-//		for(DataModel model : dataModels) {
-//			
-//		}
-//		
-//		for(EvaluationResult re : results) {
-//			System.out.println(re);
-//		}
-//		
-//		
-		/*List<EvaluationResult> res;
-		for(DataModel clusteredModel : dataModels) {
-			res = evaluateMemoryBased(clusteredModel);
-		}
-		*/
-		// latent semantic models (Matrix Factorizations, etc..)
-		
-		
 	}
 	
 

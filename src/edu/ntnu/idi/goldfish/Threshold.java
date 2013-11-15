@@ -6,32 +6,27 @@ import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
 public class Threshold extends MemoryBased {
-		
-        double threshold = 1;
 
-	public Threshold(Similarity similarity, double threshold) {
+	public Threshold(int topN, Similarity similarity, double threshold) {
+		this.topN = topN;
 		this.similarity = similarity;
-		this.threshold = threshold;
+		this.KTL = threshold;
 	}
 	
 	public UserNeighborhood getNeighborhood(UserSimilarity similarityObject, DataModel dataModel) {
-		return new ThresholdUserNeighborhood(threshold, similarityObject, dataModel);
+		return new ThresholdUserNeighborhood(KTL, similarityObject, dataModel);
 	}
 	
 	public String toString(boolean min) {
 		if(!min) return this.toString();
 		// get uppercase letters in similarity
 		String similarityIntitials = this.similarity.toString().replaceAll("[a-z]", "");
-		return String.format("%.2fTh/%s", threshold, similarityIntitials);
+		return String.format("%.2fTh/%s", KTL, similarityIntitials);
 	}
 	
 	public String toString() {
-		return String.format("%.2f Threshold (%s)", threshold, this.similarity.toString());
+		return "Threshold";
 	}
 
-	public double getKTL() {
-		// TODO Auto-generated method stub
-		return threshold;
-	}
 }
 

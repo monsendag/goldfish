@@ -27,8 +27,8 @@ public class EvaluationResults extends ArrayList<Result> {
 				switch(option) {
 					case RMSE: a = self.RMSE; b = other.RMSE; break;
 					case AAD: a = self.AAD; b = other.AAD; break; 
-					case Precision: a = self.getPrecision(); b = other.getPrecision(); break;
-					case Recall: a = self.getRecall(); b = other.getRecall(); break;
+					case Precision: a = self.precision; b = other.precision; break;
+					case Recall: a = self.recall; b = other.recall; break;
 				}
 				return (a > b) ? -1 : (a < b) ? 1 : 0;
 			}

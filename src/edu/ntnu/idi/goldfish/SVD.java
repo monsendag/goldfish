@@ -7,14 +7,14 @@ import org.apache.mahout.cf.taste.impl.recommender.svd.SVDRecommender;
 import org.apache.mahout.cf.taste.impl.recommender.svd.ALSWRFactorizer;
 import org.apache.mahout.cf.taste.model.DataModel;
 
-public class SVD extends ModelBased {
+public class SVD extends Evaluation {
 	
-	int numFeatures = 10;
 	double lambda = 0.05;
 	int iterations = 10;
 	
-	public SVD(int numFeatures, double lambda, int iterations) {
-		this.numFeatures = numFeatures;
+	public SVD(int topN, int numFeatures, double lambda, int iterations) {
+		this.topN = topN;
+		this.KTL = numFeatures;
 		this.lambda = lambda;
 		this.iterations = iterations;
 	}
@@ -22,28 +22,12 @@ public class SVD extends ModelBased {
 	public RecommenderBuilder getBuilder() {
 		return new RecommenderBuilder() {
 			public org.apache.mahout.cf.taste.recommender.Recommender buildRecommender(DataModel dataModel) throws TasteException {	
-
-				// num features, 
-				// lambda
-				// numiterations
-				return new SVDRecommender(dataModel, new ALSWRFactorizer(dataModel, numFeatures, lambda, iterations));
-			
+				return new SVDRecommender(dataModel, new ALSWRFactorizer(dataModel, (int) KTL, lambda, iterations));
 			}
 		};
-	}
-
-	public String toString(boolean min) {
-		return "SVD";
 	}
 	
 	public String toString() {
 		return "SVD";
-		
 	}
-
-	public double getKTL() {
-		// TODO Auto-generated method stub
-		return numFeatures;
-	}
-
 }

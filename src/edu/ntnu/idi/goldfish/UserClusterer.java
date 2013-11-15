@@ -56,22 +56,31 @@ public class UserClusterer {
 		File testData = new File("clusterdata/users/");
 		testData.mkdirs();
 		
+		StopWatch.start("get_user_vectors");
 		List<NamedVector> users = getUserVectors(dataModel);
+		StopWatch.print("get_user_vectors");
 		
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
-		
+
+		StopWatch.start("write_user_vectors");
 		// store users in sequence file
 		writeUsers(users, new Path("clusterdata/users/part-00000"), conf);
+		StopWatch.print("write_user_vectors");
 		
+
+		StopWatch.start("write_cluster_centers");
 		// write initial cluster centers
 		writeClusterCenters(users, fs, conf, N, dm);
+		StopWatch.print("write_cluster_centers");
 		
 		Path output = new Path("clusterdata/output");
 
 		// clean
 		HadoopUtil.delete(conf, output);
 		
+
+		StopWatch.start("run_kmeans");
 		// Run k-means algorithm
 		KMeansDriver.run(
 				conf, 								// configuration
@@ -85,8 +94,13 @@ public class UserClusterer {
 				0.0, 							// clustering strictness/ outlier removal parameter. 
 				true							// if true execute sequental algorithm
 			);
-		
-		return readClusters(new Path("clusterdata/output/clusteredPoints/part-m-0"), fs, conf, N);
+
+		StopWatch.print("run_kmeans");
+
+		StopWatch.start("read_clusters");
+		DataModel[] models = readClusters(new Path("clusterdata/output/clusteredPoints/part-m-0"), fs, conf, N);
+		StopWatch.print("read_clusters");
+		return models;
 	}
 	
 	/**
@@ -164,7 +178,7 @@ public class UserClusterer {
 	}
 
 	public static NamedVector preferenceArrToNamedVec(PreferenceArray prefs, int cardinality) {
-		RandomAccessSparseVector ratings = new RandomAccessSparseVector((int)10e5);
+		RandomAccessSparseVector ratings = new RandomAccessSparseVector((int)10e10);
 	    for (Preference preference : prefs) {
 	      ratings.set((int) preference.getItemID(), preference.getValue());
 	    }    
@@ -176,9 +190,11 @@ public class UserClusterer {
 		VectorView view = new VectorView(vec, 0, vec.getNumNondefaultElements());
 		List<Preference> prefs = new ArrayList<Preference>();
 		long userId = (long) Integer.parseInt(vec.getName());
-		Iterator<Element> iter = view.iterateNonZero();
+		Iterator<Element> iter = view.iterator();
+		
 		Element next;
 		Preference pref;
+		
 		while(iter.hasNext()) {
 			next = iter.next();
 			pref = new GenericPreference(userId, next.index(), (float) next.get());
