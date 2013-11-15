@@ -34,19 +34,8 @@ public class Main {
 		DataModel dataModel = getDataModel(set);
 		EvaluationResults results = Evaluator.evaluateMemoryBased(dataModel);
 		
-		// configuration options
-		// memory based
-		// (k) NN, (x) Threshold, Similarity metric
+	 	
 		
-		// model based
-		// (k) clusters
-		// SVD: (x) latent factors ..
-		
-		
-		// evaluation
-		// training %, test %
-		
-		// (n) avg timing, (x) timed recs
 		// irstats: precision at X, amount of recommendations to consider, threshold
 		
 		

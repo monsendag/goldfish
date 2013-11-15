@@ -59,7 +59,7 @@ public class Evaluator extends ArrayList<RecommenderWrapper> {
 			long recTime = getRecommendationTiming(rec, 20, 10, userThree);
 			
 			
-			results.add(new Result(recommender, rmse, aad, stats, buildTime, recTime));
+			results.add(new Result(recommender, topN,  rmse, aad, stats, buildTime, recTime));
 		}
 		
 		

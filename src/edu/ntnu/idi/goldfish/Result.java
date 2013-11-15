@@ -1,7 +1,5 @@
 package edu.ntnu.idi.goldfish;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.mahout.cf.taste.eval.IRStatistics;
 
 
@@ -15,6 +13,8 @@ public class Result {
 	// AAD/MAE 
 	double AAD;
 	
+	int topN;
+	
 	// IR stats (precision, recall)
 	IRStatistics irStats;
 	
@@ -24,11 +24,13 @@ public class Result {
 	// recommendation timing
 	long recTime;
 	
-	public Result(RecommenderWrapper recommender, double RMSE, double AAD, IRStatistics irStats, long buildTime, long recTime) {
+	public Result(RecommenderWrapper recommender, int topN, double RMSE, double AAD, IRStatistics irStats, long buildTime, long recTime) {
 		this.recommender = recommender;
 
 		// NaN is messing up sorting, so we overwrite it
-		if(Double.isNaN(RMSE)) RMSE = 10;
+//		if(Double.isNaN(RMSE)) RMSE = 10;
+		
+		this.topN = topN;
 		
 		this.RMSE = RMSE;
 		this.AAD = AAD;
@@ -38,25 +40,35 @@ public class Result {
 		this.recTime = recTime;
 	}
 	
+	public int getTopN() {
+		return topN;
+	}
+	
+	public double getKTL() {
+		return recommender.getKTL();
+	}
+	
+	public String getSimilarity() {
+		return recommender instanceof MemoryBased ? ((MemoryBased) recommender).similarity.toString() : "";
+	}
 	
 	public String toString() {
-		return String.format("%-40s | RMSE: %6.3f | AAD: %6.3f | Precision: %6.3f | Recall %6.3f | Build time %7d | Rec time %7d", 
-				recommender, RMSE, AAD, getPrecision(), getRecall(), getBuildTime(), getRecTime());
+		return String.format(
+			"%-40s | %19s | %6.2f | RMSE %6.3f | AAD: %6.3f | Precision: %6.3f | Recall %6.3f | Build time %7d | Rec time %7d", 
+				recommender, getSimilarity(), getKTL(), getTopN(), RMSE, AAD, getPrecision(), getRecall(), getBuildTime(), getRecTime());
 	}
 	
 	public String toCSV() {
 		return String.format("%s,%.3f,%.3f,%.3f,%.3f,%d,%d", 
-				recommender.toString(true), RMSE, AAD, getPrecision(), getRecall(), getBuildTime(), getRecTime());
+				recommender.toString(true), getSimilarity(), getKTL(), getTopN(), RMSE, AAD, getPrecision(), getRecall(), getBuildTime(), getRecTime());
 	}
 	
 	public long getBuildTime() {
 		return buildTime;
-		//return TimeUnit.MILLISECONDS.convert(buildTime, TimeUnit.NANOSECONDS);
 	}
 	
 	public long getRecTime() {
 		return recTime;
-//		return TimeUnit.MILLISECONDS.convert(recTime, TimeUnit.NANOSECONDS);
 	}
 	
 	public double getPrecision() {

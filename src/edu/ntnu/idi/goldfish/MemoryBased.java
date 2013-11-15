@@ -17,7 +17,7 @@ import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
 public abstract class MemoryBased implements RecommenderWrapper {
 
-	Similarity similarity;
+	public Similarity similarity;
 
 	public static enum Similarity {
 		PearsonCorrelation, EuclideanDistance, SpearmanCorrelation, TanimotoCoefficient, LogLikelihood
