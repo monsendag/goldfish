@@ -140,18 +140,16 @@ public class UserClusterer {
 		// read clusters from Hadoop Sequence File
 		SequenceFile.Reader reader = new SequenceFile.Reader(fs, path, conf);
 		// store objects
-		IntWritable clusterText = new IntWritable();
+                IntWritable clusterId = new IntWritable();
 		WeightedVectorWritable value = new WeightedVectorWritable();
 		
+                NamedVector vector;
 		long userId;
-		int clusterId;
-		
-		while (reader.next(clusterText, value)) {
+                while (reader.next(clusterId, value)) {
 			// Read output, print vector, cluster ID 
-			NamedVector vector = (NamedVector) value.getVector();
-			userId = (long) Integer.parseInt(vector.getName());
-			clusterId = clusterText.get(); 
-			maps[clusterId].put(userId, namedVecToPreferenceArr(vector));
+                        vector = (NamedVector) value.getVector();
+                        userId = Long.parseLong(vector.getName());
+                        maps[clusterId.get()].put(userId, namedVecToPreferenceArr(vector));
 		}
 		reader.close();
 		
