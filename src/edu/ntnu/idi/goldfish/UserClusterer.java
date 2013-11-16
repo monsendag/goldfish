@@ -56,23 +56,17 @@ public class UserClusterer {
 		File testData = new File("clusterdata/users/");
 		testData.mkdirs();
 		
-		StopWatch.start("get_user_vectors");
 		List<NamedVector> users = getUserVectors(dataModel);
-		StopWatch.print("get_user_vectors");
 		
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
 
-		StopWatch.start("write_user_vectors");
 		// store users in sequence file
 		writeUsers(users, new Path("clusterdata/users/part-00000"), conf);
-		StopWatch.print("write_user_vectors");
 		
 
-		StopWatch.start("write_cluster_centers");
 		// write initial cluster centers
 		writeClusterCenters(users, fs, conf, N, dm);
-		StopWatch.print("write_cluster_centers");
 		
 		Path output = new Path("clusterdata/output");
 
@@ -80,7 +74,6 @@ public class UserClusterer {
 		HadoopUtil.delete(conf, output);
 		
 
-		StopWatch.start("run_kmeans");
 		// Run k-means algorithm
 		KMeansDriver.run(
 				conf, 								// configuration
@@ -95,12 +88,7 @@ public class UserClusterer {
 				true							// if true execute sequental algorithm
 			);
 
-		StopWatch.print("run_kmeans");
-
-		StopWatch.start("read_clusters");
-		DataModel[] models = readClusters(new Path("clusterdata/output/clusteredPoints/part-m-0"), fs, conf, N);
-		StopWatch.print("read_clusters");
-		return models;
+		return readClusters(new Path("clusterdata/output/clusteredPoints/part-m-0"), fs, conf, N);
 	}
 	
 	/**
@@ -140,16 +128,16 @@ public class UserClusterer {
 		// read clusters from Hadoop Sequence File
 		SequenceFile.Reader reader = new SequenceFile.Reader(fs, path, conf);
 		// store objects
-                IntWritable clusterId = new IntWritable();
+		IntWritable clusterId = new IntWritable();
 		WeightedVectorWritable value = new WeightedVectorWritable();
 		
-                NamedVector vector;
+		NamedVector vector;
 		long userId;
-                while (reader.next(clusterId, value)) {
+		while (reader.next(clusterId, value)) {
 			// Read output, print vector, cluster ID 
-                        vector = (NamedVector) value.getVector();
-                        userId = Long.parseLong(vector.getName());
-                        maps[clusterId.get()].put(userId, namedVecToPreferenceArr(vector));
+			vector = (NamedVector) value.getVector();
+			userId = Long.parseLong(vector.getName());
+			maps[clusterId.get()].put(userId, namedVecToPreferenceArr(vector));
 		}
 		reader.close();
 		
@@ -182,17 +170,18 @@ public class UserClusterer {
 	    }    
 		return new NamedVector(ratings, ""+prefs.getUserID(0));
 	}
-
 	
-	public static PreferenceArray namedVecToPreferenceArr(NamedVector vec) {
-		VectorView view = new VectorView(vec, 0, vec.getNumNondefaultElements());
-		List<Preference> prefs = new ArrayList<Preference>();
-		long userId = (long) Integer.parseInt(vec.getName());
-		Iterator<Element> iter = view.iterator();
+	public static PreferenceArray namedVecToPreferenceArr(NamedVector vector) {
+		long userId = Long.parseLong(vector.getName());
 		
+		// help for iterating over the sparse named vector
+		RandomAccessSparseVector sparseVector = new RandomAccessSparseVector(vector);
+		Iterator<Element> iter = sparseVector.iterateNonZero();
+
+		// list for storing preferences
+		List<Preference> prefs = new ArrayList<Preference>();
 		Element next;
 		Preference pref;
-		
 		while(iter.hasNext()) {
 			next = iter.next();
 			pref = new GenericPreference(userId, next.index(), (float) next.get());
