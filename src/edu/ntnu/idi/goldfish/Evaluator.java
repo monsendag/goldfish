@@ -36,25 +36,24 @@ public class Evaluator {
 			clusterSizes[i] = dataModels[i].getNumUsers();
 		}
 		
-		System.out.format("Clustered data set in %dms. %d clusters: %s \n", StopWatch.str("clustering"), Arrays.toString(clusterSizes));
+		System.out.format("Clustered in %s. %d clusters: %s \n", StopWatch.str("clustering"), numClusters, Arrays.toString(clusterSizes));
 		
 		StopWatch.start("clustereval");
-		EvaluationResults clusterResults = new EvaluationResults();
+//		EvaluationResults clusterResults = new EvaluationResults();
 		for(int i=0; i<dataModels.length; i++) {
-			evaluateUnclustered(evaluations, clusterResults, dataModels[i], test);
-			results.add(Result.getAverage(clusterResults));
+			evaluateUnclustered(evaluations, results, dataModels[i], test);
+//			results.add(Result.getAverage(clusterResults));
 		}
 		System.out.format("Evaluated %d configurations in %s \n", evaluations.size(), StopWatch.str("clustereval"));
 	}
 	
 	public void evaluateUnclustered(List<Evaluation> evaluations, EvaluationResults results, DataModel dataModel, double test) throws IOException, TasteException {
-		System.out.format("Starting evaluation of %d configurations (%d users, %d items)\n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
+		System.out.format("Starting evaluation with %d configurations (%d users, %d items)\n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
 		
 		StopWatch.start("totaleval");
 		for(Evaluation evaluation : evaluations) {
 			results.add(evaluate(evaluation, dataModel, test, getRandomUser(dataModel)));
 		}
-
 		System.out.format("Evaluated %d configurations in %s \n", evaluations.size(), StopWatch.str("totaleval"));
 		
 	}
