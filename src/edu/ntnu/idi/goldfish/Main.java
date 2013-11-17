@@ -41,36 +41,35 @@ public class Main {
 		List<Evaluation> evaluations = new ArrayList<Evaluation>();
 		EvaluationResults results = new EvaluationResults();
 		
-		int topN = 20;
-		
-		// kNN
-		int[] Ks = new int[] {2,3,5,7,9,15,20,25};
-		for(int K : Ks) {
-            evaluations.add(new KNN(topN, Similarity.TanimotoCoefficient, K));      
-            evaluations.add(new KNN(topN, Similarity.LogLikelihood, K));                        
-        }
-		
-		// Threshold
-		double lowT = 0.05;
-		double highT = 0.40;
-		double incrT = 0.05;
-		for(double T = lowT; T <= highT; T += incrT) {
-			evaluations.add(new Threshold(topN, Similarity.TanimotoCoefficient, T));
-			evaluations.add(new Threshold(topN, Similarity.LogLikelihood, T));
+		for(int topN = 1; topN <= 30; topN += 1) {
+			// kNN
+			int[] Ks = new int[] {2,3,5,7,9,15,20,25};
+			for(int K : Ks) {
+	            evaluations.add(new KNN(topN, Similarity.TanimotoCoefficient, K));      
+	            evaluations.add(new KNN(topN, Similarity.LogLikelihood, K));                        
+	        }
+			
+			// Threshold
+			double lowT = 0.05;
+			double highT = 0.40;
+			double incrT = 0.05;
+			for(double T = lowT; T <= highT; T += incrT) {
+				evaluations.add(new Threshold(topN, Similarity.TanimotoCoefficient, T));
+				evaluations.add(new Threshold(topN, Similarity.LogLikelihood, T));
+			}
 		}
 		
 		// matrix factorization
-		int[] factors = new int[] {10};
+		int[] factors = new int[] {10, 20, 30};
 		for(int L : factors) {
 //			evaluations.add(new SVD(topN, L, 0.05, 10));	
 		}
 		
-//		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.1);
+		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.1);
 		
 		// cluster dataset, then run evaluations on each cluster and get average metrics
-		
 
-		evaluator.evaluateClustered(15, new EuclideanDistanceMeasure(), evaluations, results, dataModel, 0.1);
+//		evaluator.evaluateClustered(10, new EuclideanDistanceMeasure(), evaluations, results, dataModel, 0.1);
 	
 		results.print();
 		results.save(set);
