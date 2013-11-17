@@ -28,7 +28,7 @@ public class Evaluator {
 	public void evaluateClustered(int numClusters, DistanceMeasure dm, List<Evaluation> evaluations, EvaluationResults results, DataModel dataModel, double test) throws TasteException, IOException, InterruptedException, ClassNotFoundException {
 
 		StopWatch.start("clustering");
-		DataModel[] dataModels = UserClusterer.clusterUsers(dataModel, numClusters, dm);
+		DataModel[] dataModels = KMeansWrapper.clusterUsers(dataModel, numClusters, dm);
 		StopWatch.stop("clustering");
 		
 		int[] clusterSizes = new int[numClusters];
@@ -44,18 +44,15 @@ public class Evaluator {
 			evaluateUnclustered(evaluations, results, dataModels[i], test);
 //			results.add(Result.getAverage(clusterResults));
 		}
-		System.out.format("Evaluated %d configurations in %s \n", evaluations.size(), StopWatch.str("clustereval"));
 	}
 	
 	public void evaluateUnclustered(List<Evaluation> evaluations, EvaluationResults results, DataModel dataModel, double test) throws IOException, TasteException {
-		System.out.format("Starting evaluation with %d configurations (%d users, %d items)\n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
 		
 		StopWatch.start("totaleval");
 		for(Evaluation evaluation : evaluations) {
 			results.add(evaluate(evaluation, dataModel, test, getRandomUser(dataModel)));
 		}
-		System.out.format("Evaluated %d configurations in %s \n", evaluations.size(), StopWatch.str("totaleval"));
-		
+		System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems(), StopWatch.str("totaleval"));
 	}
 	
 	Result evaluate(Evaluation evaluation, DataModel dataModel, double testFrac, long userID) throws TasteException {
@@ -80,7 +77,7 @@ public class Evaluator {
 		
 		recTime = getRecommendationTiming(recommender, 20, 10, userID);
 
-//		System.out.format("%3ds: %s/%.2f (%s)\n", StopWatch.str("evaluate"), evaluation.toString(), evaluation.getKTL(), evaluation.getSimilarity());
+		System.out.format("%s: %s/%.2f %s\n", StopWatch.str("evaluate"), evaluation.toString(), evaluation.getKTL(), evaluation.getSimilarity());
 		return new Result(evaluation, rmse, aad, stats.getPrecision(), stats.getRecall(), StopWatch.get("build"), recTime);
 	}
 	
