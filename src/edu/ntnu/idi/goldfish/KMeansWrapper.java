@@ -34,7 +34,7 @@ import org.apache.mahout.math.Vector.Element;
 import org.apache.mahout.math.VectorView;
 import org.apache.mahout.math.VectorWritable;
 
-public class UserClusterer {
+public class KMeansWrapper {
 	
 	
 	public static Map<Long, Integer> getItemIndices(DataModel dataModel) throws TasteException {
