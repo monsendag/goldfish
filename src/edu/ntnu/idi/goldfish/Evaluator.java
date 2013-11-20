@@ -1,7 +1,6 @@
 package edu.ntnu.idi.goldfish;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,32 +24,36 @@ public class Evaluator {
 	public Evaluator() {	
 	}
 	
-	public void evaluateClustered(int numClusters, DistanceMeasure dm, List<Evaluation> evaluations, EvaluationResults results, DataModel dataModel, double test) throws TasteException, IOException, InterruptedException, ClassNotFoundException {
+	public void evaluateClustered(int numClusters, DistanceMeasure measure, List<Evaluation> evaluations, EvaluationResults results, DataModel dataModel, double test) throws TasteException, IOException, InterruptedException, ClassNotFoundException {
 
-		StopWatch.start("clustering");
-		DataModel[] dataModels = KMeansWrapper.clusterUsers(dataModel, numClusters, dm);
-		StopWatch.stop("clustering");
+		DataModel[] dataModels = KMeansWrapper.clusterUsers(dataModel, numClusters, measure, 0.5, 10, true, 0.0, true);
 		
-		int[] clusterSizes = new int[numClusters];
-		for(int i=0; i<numClusters; i++) {
-			clusterSizes[i] = dataModels[i].getNumUsers();
+		StopWatch.start("totaleval");
+		EvaluationResults clusterResults;
+		for(Evaluation evaluation : evaluations) {
+			long user = getRandomUser(dataModel);
+			clusterResults = new EvaluationResults();
+			StopWatch.start("cluster-evaluation");
+			for(int i=0; i<dataModels.length; i++) {
+				Result res  = evaluate(evaluation, dataModel, test, user);
+				System.out.println(res);
+				clusterResults.add(res);
+			}
+			Result average = Result.getAverage(clusterResults);
+			System.err.format(average+" (in %s) \n", StopWatch.str("cluster-evaluation"));
+			results.add(average);
 		}
-		
-		System.out.format("Clustered in %s. %d clusters: %s \n", StopWatch.str("clustering"), numClusters, Arrays.toString(clusterSizes));
-		
-		StopWatch.start("clustereval");
-//		EvaluationResults clusterResults = new EvaluationResults();
-		for(int i=0; i<dataModels.length; i++) {
-			evaluateUnclustered(evaluations, results, dataModels[i], test);
-//			results.add(Result.getAverage(clusterResults));
-		}
+		System.out.format("Evaluated %d clusters with %d configurations in %s\n", numClusters, evaluations.size(), StopWatch.str("totaleval"));
 	}
 	
 	public void evaluateUnclustered(List<Evaluation> evaluations, EvaluationResults results, DataModel dataModel, double test) throws IOException, TasteException {
-		
+		System.out.format("Starting evaluation of %d configurations (%d users, %d items) \n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
 		StopWatch.start("totaleval");
 		for(Evaluation evaluation : evaluations) {
-			results.add(evaluate(evaluation, dataModel, test, getRandomUser(dataModel)));
+			StopWatch.start("evaluate");
+			Result res = evaluate(evaluation, dataModel, test, getRandomUser(dataModel));
+			System.out.format("%s in %s \n", res, StopWatch.str("evaluate"));
+			results.add(res);
 		}
 		System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems(), StopWatch.str("totaleval"));
 	}
@@ -66,7 +69,6 @@ public class Evaluator {
 		// recTime
 		long recTime;
 		
-		StopWatch.start("evaluate");
 //		rmse = RMSE.evaluate(recommender.getBuilder(), null, dataModel, 1 - testFrac, test);
 //		aad = AAD.evaluate(recommender.getBuilder(), null, dataModel, 1 - testFrac, test);
 		IRStatistics stats = irEvaluator.evaluate(evaluation.getBuilder(), null, dataModel, null, evaluation.getTopN(), relevanceThreshold, testFrac);
@@ -77,7 +79,6 @@ public class Evaluator {
 		
 		recTime = getRecommendationTiming(recommender, 20, 10, userID);
 
-		System.out.format("%s: %s/%.2f %s\n", StopWatch.str("evaluate"), evaluation.toString(), evaluation.getKTL(), evaluation.getSimilarity());
 		return new Result(evaluation, rmse, aad, stats.getPrecision(), stats.getRecall(), StopWatch.get("build"), recTime);
 	}
 	
