@@ -8,9 +8,7 @@ import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 public class Threshold extends MemoryBased {
 
 	public Threshold(int topN, Similarity similarity, double threshold) {
-		this.topN = topN;
-		this.similarity = similarity;
-		this.KTL = threshold;
+		super(topN, threshold, similarity);
 	}
 	
 	public UserNeighborhood getNeighborhood(UserSimilarity similarityObject, DataModel dataModel) {

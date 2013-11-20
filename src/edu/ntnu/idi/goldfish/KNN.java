@@ -9,10 +9,7 @@ import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 public class KNN extends MemoryBased {
 
 	public KNN(int topN, Similarity similarity, int neighborhoodSize) {
-		this.topN = topN;
-		this.similarity = similarity;
-		this.KTL = neighborhoodSize;
-		
+		super(topN, neighborhoodSize, similarity);
 	}
 	
 	public UserNeighborhood getNeighborhood(UserSimilarity similarityObject, DataModel dataModel) {

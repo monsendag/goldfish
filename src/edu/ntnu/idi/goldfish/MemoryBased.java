@@ -18,6 +18,11 @@ import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 public abstract class MemoryBased extends Evaluation {
 
 	public Similarity similarity;
+	
+	public MemoryBased(int topN, double KTL, Similarity similarity) {
+		super(topN, KTL);
+		this.similarity = similarity;
+	}
 
 	public static enum Similarity {
 		PearsonCorrelation, EuclideanDistance, SpearmanCorrelation, TanimotoCoefficient, LogLikelihood
