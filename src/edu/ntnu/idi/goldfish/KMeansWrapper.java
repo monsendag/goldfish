@@ -3,11 +3,13 @@ package edu.ntnu.idi.goldfish;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -31,7 +33,6 @@ import org.apache.mahout.common.distance.DistanceMeasure;
 import org.apache.mahout.math.NamedVector;
 import org.apache.mahout.math.RandomAccessSparseVector;
 import org.apache.mahout.math.Vector.Element;
-import org.apache.mahout.math.VectorView;
 import org.apache.mahout.math.VectorWritable;
 
 public class KMeansWrapper {
@@ -51,11 +52,12 @@ public class KMeansWrapper {
 	 * Split the dataModel into a set of datamodels based on a kMeans clustering of the users
 	 * @throws TasteException 
 	 */
-	public static DataModel[] clusterUsers(DataModel dataModel, int N, DistanceMeasure dm) throws IOException, InterruptedException, ClassNotFoundException, TasteException {
+	public static DataModel[] clusterUsers(DataModel dataModel, int N, DistanceMeasure measure, double convergenceDelta, int maxIterations, boolean runClustering, double clusterClassificationThreshold, boolean runSequential) throws IOException, InterruptedException, ClassNotFoundException, TasteException {
+		
+		StopWatch.start("clustering");
 		
 		File testData = new File("clusterdata/users/");
 		testData.mkdirs();
-		
 		List<NamedVector> users = getUserVectors(dataModel);
 		
 		Configuration conf = new Configuration();
@@ -66,7 +68,7 @@ public class KMeansWrapper {
 		
 
 		// write initial cluster centers
-		writeClusterCenters(users, fs, conf, N, dm);
+		writeClusterCenters(users, fs, conf, N, measure);
 		
 		Path output = new Path("clusterdata/output");
 
@@ -80,15 +82,27 @@ public class KMeansWrapper {
 				new Path("clusterdata/users"), 		// the directory pathname for input points
 				new Path("clusterdata/clusters"),	// the directory pathname for initial & computed clusters
 				output, 							// the directory pathname for output points
-				dm, 		// the DistanceMeasure to use
-				0.5, 							// the convergence delta value
-				10, 							// the maximum number of iterations
-				true, 							// true if points are to be clustered after iterations are completed
-				0.0, 							// clustering strictness/ outlier removal parameter. 
-				true							// if true execute sequental algorithm
+				measure, 							// the DistanceMeasure to use
+				convergenceDelta, 					// the convergence delta value
+				maxIterations, 						// the maximum number of iterations
+				runClustering, 						// true if points are to be clustered after iterations are completed
+				clusterClassificationThreshold, 	// clustering strictness/ outlier removal parameter. 
+				runSequential						// if true execute sequental algorithm
 			);
+		
+		DataModel[] dataModels = readClusters(new Path("clusterdata/output/clusteredPoints/part-m-0"), fs, conf, N);
+		
+		int[] clusterSizes = new int[N];
+		for(int i=0; i<N; i++) {
+			clusterSizes[i] = dataModels[i].getNumUsers();
+		}
+		
+		Arrays.sort(clusterSizes);
+		ArrayUtils.reverse(clusterSizes);
+		
+		System.out.format("Delta: %.2f Threshold: %.2f %d clusters: %s \n", convergenceDelta, clusterClassificationThreshold, N, Arrays.toString(clusterSizes));
 
-		return readClusters(new Path("clusterdata/output/clusteredPoints/part-m-0"), fs, conf, N);
+		return dataModels;
 	}
 	
 	/**
