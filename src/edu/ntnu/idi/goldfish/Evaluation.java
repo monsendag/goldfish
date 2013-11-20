@@ -7,6 +7,11 @@ public abstract class Evaluation {
 	public int topN;
 	public double KTL;
 	
+	public Evaluation(int topN, double KTL) {
+		this.topN = topN;
+		this.KTL = KTL;
+	}
+	
 	public abstract RecommenderBuilder getBuilder();
 	
 	public double getKTL() {
