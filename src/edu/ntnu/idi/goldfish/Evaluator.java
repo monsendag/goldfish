@@ -35,9 +35,7 @@ public class Evaluator {
 			clusterResults = new EvaluationResults();
 			StopWatch.start("cluster-evaluation");
 			for(int i=0; i<dataModels.length; i++) {
-				Result res  = evaluate(evaluation, dataModel, test, user);
-				System.out.println(res);
-				clusterResults.add(res);
+				clusterResults.add(evaluate(evaluation, dataModel, test, user));
 			}
 			Result average = Result.getAverage(clusterResults);
 			System.err.format(average+" (in %s) \n", StopWatch.str("cluster-evaluation"));
@@ -50,15 +48,14 @@ public class Evaluator {
 		System.out.format("Starting evaluation of %d configurations (%d users, %d items) \n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
 		StopWatch.start("totaleval");
 		for(Evaluation evaluation : evaluations) {
-			StopWatch.start("evaluate");
-			Result res = evaluate(evaluation, dataModel, test, getRandomUser(dataModel));
-			System.out.format("%s in %s \n", res, StopWatch.str("evaluate"));
-			results.add(res);
+			results.add(evaluate(evaluation, dataModel, test, getRandomUser(dataModel)));
 		}
 		System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems(), StopWatch.str("totaleval"));
 	}
 	
 	Result evaluate(Evaluation evaluation, DataModel dataModel, double testFrac, long userID) throws TasteException {
+		StopWatch.start("evaluate");
+		
 //		RMSE = new RMSRecommenderEvaluator();
 //		AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
 		RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
@@ -79,7 +76,10 @@ public class Evaluator {
 		
 		recTime = getRecommendationTiming(recommender, 20, 10, userID);
 
-		return new Result(evaluation, rmse, aad, stats.getPrecision(), stats.getRecall(), StopWatch.get("build"), recTime);
+		Result result = new Result(evaluation, rmse, aad, stats.getPrecision(), stats.getRecall(), StopWatch.get("build"), recTime);
+
+		System.out.format("%s | Evaluated in %s \n", result, StopWatch.str("evaluate"));
+		return result;
 	}
 	
 	public long getRecommendationTiming(org.apache.mahout.cf.taste.recommender.Recommender rec, int N, int howMany, long userID) throws TasteException {
