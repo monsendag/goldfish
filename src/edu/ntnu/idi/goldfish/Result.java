@@ -1,12 +1,6 @@
 package edu.ntnu.idi.goldfish;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.benchmark.quality.QualityStats.RecallPoint;
-import org.apache.mahout.cf.taste.eval.IRStatistics;
-
 
 public class Result {
 
@@ -56,7 +50,7 @@ public class Result {
 	public String toString() {
 		
 		Formatter formats = new Formatter();
-		formats.put("%-9s", evaluation.toString());
+		formats.put("%-11s", evaluation.toString());
 		formats.put("%19s", getSimilarity());
 		formats.put("K/T/L: %5.2f", getKTL());
 		formats.put("Top-N: %3d", getTopN());
@@ -64,8 +58,8 @@ public class Result {
 //		formats.put("AAD: %6.3f", AAD);
 		formats.put("Precision: %6.3f", precision);
 		formats.put("Recall: %6.3f", recall);
-		formats.put("Build time: %3d", buildTime);
-		formats.put("Rec time: %3d", recTime);
+		formats.put("Build time: %4d", buildTime);
+		formats.put("Rec time: %2d", recTime);
 
 		return formats.join(" | ");
 	}
