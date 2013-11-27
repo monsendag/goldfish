@@ -63,12 +63,16 @@ public class EvaluationResults extends ArrayList<Result> {
 	}
 	
 	public void save(DataSet set) {
+		save(set, "");
+	}
+	
+	public void save(DataSet set, String append) {
 		Writer writer = null;
 		 
         try {
         	String dateTime = String.format("%1$tY-%1$tm-%1$td-%1$tH%1$tM%1$tS", new Date());
         	String output = toCSV();
-            String fileName = String.format("results/%s-%s.csv", dateTime, set.toString());
+            String fileName = String.format("results/%s-%s-%s.csv", dateTime, set.toString(), append);
             File file = new File(fileName);
             writer = new BufferedWriter(new FileWriter(file));
             writer.write(output);
