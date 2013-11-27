@@ -11,6 +11,7 @@ import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.common.distance.EuclideanDistanceMeasure;
+import org.apache.mahout.common.distance.TanimotoDistanceMeasure;
 
 import edu.ntnu.idi.goldfish.MemoryBased.Similarity;
 
@@ -41,7 +42,7 @@ public class Main {
 		List<Evaluation> evaluations = new ArrayList<Evaluation>();
 		EvaluationResults results = new EvaluationResults();
 		
-		for(int topN = 1; topN <= 30; topN += 1) {
+		for(int topN = 10; topN <= 10; topN += 1) {
 			// kNN
 			int[] Ks = new int[] {2,3,5,7,9,15,20,25};
 			for(int K : Ks) {
@@ -57,22 +58,43 @@ public class Main {
 				evaluations.add(new Threshold(topN, Similarity.TanimotoCoefficient, T));
 				evaluations.add(new Threshold(topN, Similarity.LogLikelihood, T));
 			}
+		
+//			// matrix factorization
+//			int[] numFeatures = new int[] {10, 20, 30};
+//			int numIterations = 10;
+//			double lambda = 2;
+//			boolean usesImplicitFeedback = true;
+//			double alpha = 40;
+//			double mu0 = 0.0;
+//			double decayFactor = 0.0;
+//			int stepOffset = 1;
+//			double forgettingExponent = 0.0;
+//			double biasMuRatio = 0.0;
+//			double biasLambdaRatio = 0.0;
+//			double learningRate = 1.0;
+//			double preventOverfitting = 1.0;
+//			double randomNoise = 1.0;
+//			double learningRateDecay = 0.5;
+//			
+//			for(int L : numFeatures) {
+//				evaluations.add(new ALSWR(topN, L, numIterations, lambda, usesImplicitFeedback, alpha));
+//				evaluations.add(new ParallelSGD(topN, L, numIterations, lambda, mu0, decayFactor, stepOffset, forgettingExponent, biasMuRatio, biasLambdaRatio));
+//				evaluations.add(new RatingSGD(topN, L, numIterations, learningRate, preventOverfitting, randomNoise, learningRateDecay));
+//				evaluations.add(new SVDPlusPlus(topN, L, numIterations, learningRate, preventOverfitting, randomNoise, learningRateDecay));
+//			}
 		}
-		
-		// matrix factorization
-		int[] factors = new int[] {10, 20, 30};
-		for(int L : factors) {
-//			evaluations.add(new SVD(topN, L, 0.05, 10));	
+		int[] clusterSizes = new int[] {2,3,5,7,9,11};
+		StopWatch.start("total evaluation");
+		for(int size : clusterSizes) {
+			results = new EvaluationResults();
+			evaluator.evaluateClustered(size, new TanimotoDistanceMeasure(), evaluations, results, dataModel, 0.1);		
+			results.print();
+			results.save(set,String.format("clusters-%d", size));
 		}
+		System.out.format("Completed evaluation in %s\n", StopWatch.str("total evaluation"));
 		
-		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.1);
+//		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.1);
 		
-		// cluster dataset, then run evaluations on each cluster and get average metrics
-
-//		evaluator.evaluateClustered(10, new EuclideanDistanceMeasure(), evaluations, results, dataModel, 0.1);
-	
-		results.print();
-		results.save(set);
 	}
 	
 
