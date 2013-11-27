@@ -4,7 +4,15 @@ import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 
 public abstract class Evaluation {
 
+	/**
+	 * Used for calculating Precision and Recall metrics
+	 */
 	public int topN;
+	/**
+	 * K as in kNN
+	 * T as in Threshold 
+	 * L as in Latent factors
+	 */
 	public double KTL;
 	
 	public Evaluation(int topN, double KTL) {
