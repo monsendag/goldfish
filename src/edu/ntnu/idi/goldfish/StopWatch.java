@@ -27,10 +27,11 @@ public class StopWatch {
 	public static String str(String name) {
 		stop(name);
 		long time = timings.get(name);
-		return String.format("%d min, %d sec", 
+		return String.format("%d min, %d sec, (%d ms)", 
 			    TimeUnit.MILLISECONDS.toMinutes(time),
 			    TimeUnit.MILLISECONDS.toSeconds(time) - 
-			    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time))
+			    TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time)),
+			    time
 		);
 	}
 	
