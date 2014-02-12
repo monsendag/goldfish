@@ -56,9 +56,9 @@ public class Evaluator {
 	Result evaluate(Evaluation evaluation, DataModel dataModel, double testFrac, long userID) throws TasteException {
 		StopWatch.start("evaluate");
 		
-//		RMSE = new RMSRecommenderEvaluator();
+//		RMSRecommenderEvaluator RMSE = new RMSRecommenderEvaluator();
 //		AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
-		RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
+        RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
 		
 		double rmse = 0;
 		double aad = 0;
@@ -68,7 +68,7 @@ public class Evaluator {
 		
 //		rmse = RMSE.evaluate(recommender.getBuilder(), null, dataModel, 1 - testFrac, test);
 //		aad = AAD.evaluate(recommender.getBuilder(), null, dataModel, 1 - testFrac, test);
-		IRStatistics stats = irEvaluator.evaluate(evaluation.getBuilder(), null, dataModel, null, evaluation.getTopN(), relevanceThreshold, testFrac);
+        IRStatistics stats = irEvaluator.evaluate(evaluation.getBuilder(), null, dataModel, null, evaluation.getTopN(), relevanceThreshold, testFrac);
 
 		StopWatch.start("build");
 		Recommender recommender = evaluation.getBuilder().buildRecommender(dataModel);
