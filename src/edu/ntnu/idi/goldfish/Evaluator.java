@@ -10,13 +10,22 @@ import org.apache.mahout.cf.taste.eval.RecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.GenericRecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.Recommender;
+import org.apache.mahout.common.RandomUtils;
+import org.apache.mahout.common.RandomWrapper;
 import org.apache.mahout.common.distance.DistanceMeasure;
 
 public class Evaluator {
 
 	static long getRandomUser(DataModel dataModel) throws TasteException {
+		RandomWrapper random = RandomUtils.getRandom();
 		Iterator<Long> it = dataModel.getUserIDs();
-		return it.next();
+		while (it.hasNext()) {
+			if (random.nextDouble() >= 0.1) {
+				continue;
+			}
+			return it.next();
+		}
+		return 0;
 	}
 	
 	double relevanceThreshold = GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD;
