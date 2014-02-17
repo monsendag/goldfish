@@ -1,6 +1,6 @@
 tic
 
-M = csvread('ratings-synthesized-small.csv');
+M = csvread('../datasets/movielens-synthesized/ratings-synthesized.csv');
 %X = sptensor;
 
 % M: user id, movie id, rating, read-rating 
