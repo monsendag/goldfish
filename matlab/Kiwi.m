@@ -52,7 +52,7 @@ classdef Kiwi
         % constructor
         function self=Kiwi()
             
-            self.sparse_tensor = self.generate_random_sparse_tensor();
+            self.sparse_tensor = self.generate_sparse_tensor();
             disp(self.sparse_tensor);
             
             self.tucker_tensor = tucker_als(self.sparse_tensor, 2);
