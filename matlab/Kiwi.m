@@ -5,15 +5,18 @@ classdef Kiwi
         right
     end
     properties
-        color
-        val
+        sparse_tensor
+        tucker_tensor
+        dense_tensor
     end
-
-    methods
-        % constructor
-        function self=Kiwi()
-            tic
+    
+    methods (Access='private')
+        function sparse_tensor = generate_sparse_tensor(obj)
+            %tic
+            
+            % read dataset from file
             M = csvread('../datasets/movielens-synthesized/ratings-synthesized.csv');
+            
             %X = sptensor;
 
             % M: user id, movie id, rating, read-rating 
@@ -27,15 +30,45 @@ classdef Kiwi
 
             vals = vertcat(M(:,3), M(:,4));
 
-            X = sptensor(subs,vals);
+            sparse_tensor = sptensor(subs,vals);
+            
+            
             toc
+            
             %for i=1:size(M,1);
              %   X(M(i,1),M(i,2),1) = M(i,3);
              %   X(M(i,1),M(i,2),2) = M(i,4);
             %end
             %toc
         end
+        
+        function sparse_tensor = generate_random_sparse_tensor(obj)
+            sparse_tensor = sptenrand([3 3 2],10); %<-- Create random testtensor.
+        end
+        
+    end
 
+    methods
+        % constructor
+        function self=Kiwi()
+            
+            self.sparse_tensor = self.generate_random_sparse_tensor();
+            disp(self.sparse_tensor);
+            
+            self.tucker_tensor = tucker_als(self.sparse_tensor, 2);
+            
+            
+            self.dense_tensor = full(self.tucker_tensor);
+            disp(self.dense_tensor);
+            
+            
+        end
+
+        function tucker_tensor = tensor_factorization(obj)
+            
+            tucker_tensor = 1;
+        end
+            
         %public void refresh(Collection<Refreshable> alreadyRefreshed) {
         function refresh()
             x = 0;
@@ -43,7 +76,46 @@ classdef Kiwi
 
         %public List<RecommendedItem> recommend(long userID, int howMany,
         function items = recommend(obj, userID, howMany)
-            items = [0, 1, 2, 3];
+            d = size(obj.dense_tensor);
+            number_of_items = d(1);
+            number_of_users = d(2);
+            
+            recommendations = zeros(2, howMany);
+            disp(recommendations);
+            
+            % retrieve the rating for all items for user with userID
+            user_item_row = [double(obj.dense_tensor(:,userID,1))'];
+            disp(user_item_row);
+            
+            % sort the user_item_row in order to find the items with 
+            % highest values and recommend those
+            % sorted_user_item_row: user_item_row sorted in descending
+            % order
+            % sorted_index: the index of the sorted values in the original
+            % matrix
+            [sorted_user_item_row sorted_index] = sort(user_item_row,2,'descend');
+            disp(sorted_user_item_row);
+            disp(sorted_index);
+            
+            counter = 1;
+            for i = 1:length(sorted_user_item_row)
+                if obj.sparse_tensor(sorted_index(i),userID,1)
+                    % the user have read the article
+                    continue
+                else
+                    % add recommendations to the recommendation list
+                    recommendations(1,counter) = sorted_index(i);
+                    recommendations(2,counter) = sorted_user_item_row(i);
+                    counter = counter + 1;
+                    
+                    % check if we have enough recommendations
+                    if counter > howMany
+                        break;
+                    end
+                end
+            end
+            
+            items = recommendations;
             
         end
 
