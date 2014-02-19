@@ -83,8 +83,8 @@ classdef Kiwi
             % user with userID 
             % the ratings retrieved is a column, in order to make it 
             % row it is transposed 
-            explicit_rating_row = double(self.dense_tensor(:,userID,1))';
-            implicit_rating_row = double(self.dense_tensor(:,userID,2))';
+            explicit_rating_row = double(self.dense_tensor(userID,:,1))';
+            implicit_rating_row = double(self.dense_tensor(userID,:,2))';
           %  self.print_array('Explicit ratings: ', explicit_rating_row);
           %  self.print_array('Implicit ratings: ', implicit_rating_row);
           
