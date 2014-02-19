@@ -7,6 +7,7 @@ classdef Kiwi
         sparse_tensor
         tucker_tensor
         dense_tensor
+        kruskal_tensor
     end
     
     methods (Access='private')
@@ -49,23 +50,18 @@ classdef Kiwi
 
     methods
         % constructor
-        function self=Kiwi(dataset)
+        function self = Kiwi(dataset)
             
-            self.sparse_tensor = self.generate_sparse_tensor(dataset);
-          % disp(self.sparse_tensor);
+          %  self.sparse_tensor = self.generate_sparse_tensor(dataset);
+            self.sparse_tensor = self.generate_random_sparse_tensor();
             
             self.tucker_tensor = tucker_als(self.sparse_tensor, 2);
-            
+          %  self.kruskal_tensor = parafac_als(self.sparse_tensor,2);
             
             self.dense_tensor = full(self.tucker_tensor);
-           % disp(self.dense_tensor);
+          %  self.dense_tensor = full(self.kruskal_tensor);
             
             
-        end
-
-        function tucker_tensor = tensor_factorization(self)
-            
-            tucker_tensor = 1;
         end
             
         %public void refresh(Collection<Refreshable> alreadyRefreshed) {
@@ -88,16 +84,18 @@ classdef Kiwi
           %  self.print_array('Explicit ratings: ', explicit_rating_row);
           %  self.print_array('Implicit ratings: ', implicit_rating_row);
           
+            % Ratings are combined with the formula: 2 * explicit ratings +
+            % implicit ratings
             combined_ratings = self.weights(1)*explicit_rating_row ...
                 + self.weights(2)*implicit_rating_row;
           %  self.print_array('Combined ratings: ', combined_ratings);
             
-            % sort the explicit_rating_row in order to find the items with 
+            % sort the combined ratings in order to find the items with 
             % highest values and recommend those
-            % sorted_combined_ratings: explicit_rating_row sorted in descending
+            % sorted_combined_ratings: combined_ratings sorted in descending
             % order
             % sorted_index: the index of the sorted values in the original
-            % matrix
+            % array
             [sorted_combined_ratings, sorted_index] = sort(combined_ratings,2,'descend');
           %  disp(sorted_combined_ratings);
           %  disp(sorted_index);
