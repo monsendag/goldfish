@@ -259,16 +259,14 @@ public class SMDataModel extends AbstractDataModel {
 		lastUpdateFileModified = newLastUpdateFileModified;
 
 		FastByIDMap<Collection<Preference>> data = new FastByIDMap<Collection<Preference>>();
-		FileLineIterator iterator = new FileLineIterator(dataFile,
-				false);
+		FileLineIterator iterator = new FileLineIterator(dataFile, false);
 		processFile(iterator, data, false);
 
 		for (File updateFile : findUpdateFilesAfter(newLastModified)) {
-			processFile(new FileLineIterator(updateFile, false), data,
-					false);
+			processFile(new FileLineIterator(updateFile, false), data, false);
 		}
 
-		return new GenericDataModel(GenericDataModel.toDataMap(data,true));
+		return new GenericDataModel(GenericDataModel.toDataMap(data, true));
 
 	}
 
@@ -366,40 +364,39 @@ public class SMDataModel extends AbstractDataModel {
 	 *            it's reading fresh data. Subclasses must be prepared to handle
 	 *            this wrinkle.
 	 */
-	protected void processLine(String line,
-                             FastByIDMap<?> data, 
-                             boolean fromPriorData) {
+	protected void processLine(String line, FastByIDMap<?> data,
+			boolean fromPriorData) {
 
-    // Ignore empty lines and comments
-    if (line.isEmpty() || line.charAt(0) == COMMENT_CHAR) {
-      return;
-    }
-    
-    Iterator<String> tokens = delimiterPattern.split(line).iterator();
-    
-    long userID = Long.parseLong(tokens.next());
-    long itemID = Long.parseLong(tokens.next());
+		// Ignore empty lines and comments
+		if (line.isEmpty() || line.charAt(0) == COMMENT_CHAR) {
+			return;
+		}
 
-    // store preference values in array
-    float[] preferenceValues = new float[getNumValues(tokens)];
-    
-    int t=0;
-    while(tokens.hasNext()) {
-    	preferenceValues[t++] = Float.parseFloat(tokens.next());
-    }
-    
-    if (transpose) {
-      long tmp = userID;
-      userID = itemID;
-      itemID = tmp;
-    }
+		Iterator<String> tokens = delimiterPattern.split(line).iterator();
 
-    // This is kind of gross but need to handle two types of storage
-    Collection<Preference> prefs = Lists.newArrayListWithCapacity(2);
-    ((FastByIDMap<Collection<Preference>>) data).put(userID, prefs);
-    prefs.add(new SMPreference(userID, itemID, preferenceValues));
+		long userID = Long.parseLong(tokens.next());
+		long itemID = Long.parseLong(tokens.next());
 
-  }
+		// store preference values in array
+		float[] preferenceValues = new float[getNumValues(tokens)];
+
+		int t = 0;
+		while (tokens.hasNext()) {
+			preferenceValues[t++] = Float.parseFloat(tokens.next());
+		}
+
+		if (transpose) {
+			long tmp = userID;
+			userID = itemID;
+			itemID = tmp;
+		}
+
+		// This is kind of gross but need to handle two types of storage
+		Collection<Preference> prefs = Lists.newArrayListWithCapacity(2);
+		((FastByIDMap<Collection<Preference>>) data).put(userID, prefs);
+		prefs.add(new SMPreference(userID, itemID, preferenceValues));
+
+	}
 
 	/**
 	 * Subclasses may wish to override this if ID values in the file are not
@@ -518,7 +515,8 @@ public class SMDataModel extends AbstractDataModel {
 
 	protected int getNumValues(Iterator<String> lineTokens) {
 		int count = 0;
-		for ( ; lineTokens.hasNext() ; count++ ) lineTokens.next();
+		for (; lineTokens.hasNext(); count++)
+			lineTokens.next();
 		return count;
 	}
 
