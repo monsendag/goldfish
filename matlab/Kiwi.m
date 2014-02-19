@@ -12,7 +12,7 @@ classdef Kiwi
     
     methods (Access='private')
         function sparse_tensor = generate_sparse_tensor(obj)
-            %tic
+            tic
             
             % read dataset from file
             M = csvread('../datasets/movielens-synthesized/ratings-synthesized.csv');
@@ -53,13 +53,13 @@ classdef Kiwi
         function self=Kiwi()
             
             self.sparse_tensor = self.generate_sparse_tensor();
-            disp(self.sparse_tensor);
+          % disp(self.sparse_tensor);
             
             self.tucker_tensor = tucker_als(self.sparse_tensor, 2);
             
             
             self.dense_tensor = full(self.tucker_tensor);
-            disp(self.dense_tensor);
+           % disp(self.dense_tensor);
             
             
         end
@@ -81,11 +81,11 @@ classdef Kiwi
             number_of_users = d(2);
             
             recommendations = zeros(2, howMany);
-            disp(recommendations);
+          %  disp(recommendations);
             
             % retrieve the rating for all items for user with userID
             user_item_row = [double(obj.dense_tensor(:,userID,1))'];
-            disp(user_item_row);
+          %  disp(user_item_row);
             
             % sort the user_item_row in order to find the items with 
             % highest values and recommend those
@@ -94,8 +94,8 @@ classdef Kiwi
             % sorted_index: the index of the sorted values in the original
             % matrix
             [sorted_user_item_row sorted_index] = sort(user_item_row,2,'descend');
-            disp(sorted_user_item_row);
-            disp(sorted_index);
+          %  disp(sorted_user_item_row);
+          %  disp(sorted_index);
             
             counter = 1;
             for i = 1:length(sorted_user_item_row)
