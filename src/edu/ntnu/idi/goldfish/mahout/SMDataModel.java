@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -257,70 +258,18 @@ public class SMDataModel extends AbstractDataModel {
 		lastModified = newLastModified;
 		lastUpdateFileModified = newLastUpdateFileModified;
 
-		if (hasPrefValues) {
+		FastByIDMap<Collection<Preference>> data = new FastByIDMap<Collection<Preference>>();
+		FileLineIterator iterator = new FileLineIterator(dataFile,
+				false);
+		processFile(iterator, data, false);
 
-			if (loadFreshData) {
-
-				FastByIDMap<Collection<Preference>> data = new FastByIDMap<Collection<Preference>>();
-				FileLineIterator iterator = new FileLineIterator(dataFile,
-						false);
-				processFile(iterator, data, false);
-
-				for (File updateFile : findUpdateFilesAfter(newLastModified)) {
-					processFile(new FileLineIterator(updateFile, false), data,
-							false);
-				}
-
-				return new GenericDataModel(GenericDataModel.toDataMap(data,
-						true));
-
-			} else {
-
-				FastByIDMap<PreferenceArray> rawData = ((GenericDataModel) delegate)
-						.getRawUserData();
-
-				for (File updateFile : findUpdateFilesAfter(Math.max(
-						oldLastUpdateFileModifieid, newLastModified))) {
-					processFile(new FileLineIterator(updateFile, false),
-							rawData, true);
-				}
-
-				return new GenericDataModel(rawData);
-
-			}
-
-		} else {
-
-			if (loadFreshData) {
-
-				FastByIDMap<FastIDSet> data = new FastByIDMap<FastIDSet>();
-				FileLineIterator iterator = new FileLineIterator(dataFile,
-						false);
-				processFileWithoutID(iterator, data);
-
-				for (File updateFile : findUpdateFilesAfter(newLastModified)) {
-					processFileWithoutID(
-							new FileLineIterator(updateFile, false), data);
-				}
-
-				return new GenericBooleanPrefDataModel(data);
-
-			} else {
-
-				FastByIDMap<FastIDSet> rawData = ((GenericBooleanPrefDataModel) delegate)
-						.getRawUserData();
-
-				for (File updateFile : findUpdateFilesAfter(Math.max(
-						oldLastUpdateFileModifieid, newLastModified))) {
-					processFileWithoutID(
-							new FileLineIterator(updateFile, false), rawData);
-				}
-
-				return new GenericBooleanPrefDataModel(rawData);
-
-			}
-
+		for (File updateFile : findUpdateFilesAfter(newLastModified)) {
+			processFile(new FileLineIterator(updateFile, false), data,
+					false);
 		}
+
+		return new GenericDataModel(GenericDataModel.toDataMap(data,true));
+
 	}
 
 	/**
@@ -445,33 +394,11 @@ public class SMDataModel extends AbstractDataModel {
       itemID = tmp;
     }
 
+    // This is kind of gross but need to handle two types of storage
+    Collection<Preference> prefs = Lists.newArrayListWithCapacity(2);
+    ((FastByIDMap<Collection<Preference>>) data).put(userID, prefs);
+    prefs.add(new SMPreference(userID, itemID, preferenceValues));
 
-    boolean exists = false;
-    if (prefs != null) {
-      for (int i = 0; i < prefs.length(); i++) {
-        if (prefs.getItemID(i) == itemID) {
-          exists = true;
-          prefs.setValue(i, preferenceValue);
-          break;
-        }
-      }
-    }
-
-    if (!exists) {
-      if (prefs == null) {
-        prefs = new GenericUserPreferenceArray(1);
-      } else {
-        PreferenceArray newPrefs = new GenericUserPreferenceArray(prefs.length() + 1);
-        for (int i = 0, j = 1; i < prefs.length(); i++, j++) {
-          newPrefs.set(j, prefs.get(i));
-        }
-        prefs = newPrefs;
-      }
-      prefs.setUserID(0, userID);
-      prefs.setItemID(0, itemID);
-      prefs.setValue(0, preferenceValue);
-      ((FastByIDMap<PreferenceArray>) data).put(userID, prefs);          
-    }
   }
 
 	/**
