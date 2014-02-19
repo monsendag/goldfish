@@ -1,8 +1,7 @@
 classdef Kiwi
 
     properties (GetAccess='private',SetAccess='private')
-        left
-        right
+        weights = [2 1]
     end
     properties
         sparse_tensor
@@ -34,12 +33,6 @@ classdef Kiwi
             
             
             toc
-            
-            %for i=1:size(M,1);
-             %   X(M(i,1),M(i,2),1) = M(i,3);
-             %   X(M(i,1),M(i,2),2) = M(i,4);
-            %end
-            %toc
         end
         
         function sparse_tensor = generate_random_sparse_tensor(obj)
@@ -52,7 +45,7 @@ classdef Kiwi
         % constructor
         function self=Kiwi()
             
-            self.sparse_tensor = self.generate_sparse_tensor();
+            self.sparse_tensor = self.generate_random_sparse_tensor();
           % disp(self.sparse_tensor);
             
             self.tucker_tensor = tucker_als(self.sparse_tensor, 2);
@@ -76,15 +69,14 @@ classdef Kiwi
 
         %public List<RecommendedItem> recommend(long userID, int howMany,
         function items = recommend(obj, userID, howMany)
-            d = size(obj.dense_tensor);
-            number_of_items = d(1);
-            number_of_users = d(2);
             
             recommendations = zeros(2, howMany);
           %  disp(recommendations);
             
             % retrieve the rating for all items for user with userID
-            user_item_row = [double(obj.dense_tensor(:,userID,1))'];
+            % the ratings retrieved is a column, in order to make it row it
+            % is transposed 
+            user_item_row = double(obj.dense_tensor(:,userID,1))';
           %  disp(user_item_row);
             
             % sort the user_item_row in order to find the items with 
@@ -93,14 +85,14 @@ classdef Kiwi
             % order
             % sorted_index: the index of the sorted values in the original
             % matrix
-            [sorted_user_item_row sorted_index] = sort(user_item_row,2,'descend');
+            [sorted_user_item_row, sorted_index] = sort(user_item_row,2,'descend');
           %  disp(sorted_user_item_row);
           %  disp(sorted_index);
             
             counter = 1;
             for i = 1:length(sorted_user_item_row)
                 if obj.sparse_tensor(sorted_index(i),userID,1)
-                    % the user have read the article
+                    % the user have read the article so don't recommend it
                     continue
                 else
                     % add recommendations to the recommendation list
