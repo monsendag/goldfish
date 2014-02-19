@@ -4,6 +4,8 @@ clusterdata
 results
 graphs
 
+!lib/*.jar
+
 *.class
 
 .settings/
@@ -11,7 +13,7 @@ target/
 .metadata/
 
 # Package Files #
-*.jar
+#*.jar
 *.war
 *.ear
 
