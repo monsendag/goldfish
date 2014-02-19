@@ -3,6 +3,7 @@ package edu.ntnu.idi.goldfish.mahout;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -593,6 +594,40 @@ public class SMDataModel extends AbstractDataModel {
 		int count = 0;
 		for ( ; lineTokens.hasNext() ; count++ ) lineTokens.next();
 		return count;
+	}
+	
+	/**
+	 * Write dataset to file with csv format
+	 * @param filename
+	 * 					url with location and filename
+	 */
+	public void writeDatasetToFile(String filename) {
+		try {
+			FileWriter writer = new FileWriter(filename);
+			
+			writer.append("# UserID,ItemID,Rating,Time \n");
+			
+			Iterator users = delegate.getUserIDs();
+			while(users.hasNext()){
+				long userId = (Long) users.next();
+				PreferenceArray preferences = delegate.getPreferencesFromUser(userId);
+				Iterator it = preferences.iterator();
+				while(it.hasNext()) {
+					SMPreference p = (SMPreference)
+				}
+				
+			}
+			
+			
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TasteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
