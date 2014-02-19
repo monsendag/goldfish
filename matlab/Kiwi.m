@@ -10,11 +10,12 @@ classdef Kiwi
     end
     
     methods (Access='private')
-        function sparse_tensor = generate_sparse_tensor(obj)
+        function sparse_tensor = generate_sparse_tensor(self, dataset)
             tic
             
             % read dataset from file
-            M = csvread('../datasets/movielens-synthesized/ratings-synthesized.csv');
+            %M = csvread('../datasets/movielens-synthesized/ratings-synthesized.csv');
+            M = csvread(dataset);
             
             %X = sptensor;
 
@@ -35,17 +36,22 @@ classdef Kiwi
             toc
         end
         
-        function sparse_tensor = generate_random_sparse_tensor(obj)
+        function sparse_tensor = generate_random_sparse_tensor(self)
             sparse_tensor = sptenrand([3 3 2],10); %<-- Create random testtensor.
         end
         
+        function print_array(self, text, array)
+            fprintf('%s', text);
+            fprintf('%7.4f ',array);
+            fprintf('\n');
+        end
     end
 
     methods
         % constructor
-        function self=Kiwi()
+        function self=Kiwi(dataset)
             
-            self.sparse_tensor = self.generate_random_sparse_tensor();
+            self.sparse_tensor = self.generate_sparse_tensor(dataset);
           % disp(self.sparse_tensor);
             
             self.tucker_tensor = tucker_als(self.sparse_tensor, 2);
@@ -57,47 +63,54 @@ classdef Kiwi
             
         end
 
-        function tucker_tensor = tensor_factorization(obj)
+        function tucker_tensor = tensor_factorization(self)
             
             tucker_tensor = 1;
         end
             
         %public void refresh(Collection<Refreshable> alreadyRefreshed) {
         function refresh()
-            x = 0;
+            x = 'FUNCTION: refresh() is used';
         end
 
         %public List<RecommendedItem> recommend(long userID, int howMany,
-        function items = recommend(obj, userID, howMany)
+        function items = recommend(self, userID, howMany)
             
             recommendations = zeros(2, howMany);
           %  disp(recommendations);
             
-            % retrieve the rating for all items for user with userID
-            % the ratings retrieved is a column, in order to make it row it
-            % is transposed 
-            user_item_row = double(obj.dense_tensor(:,userID,1))';
-          %  disp(user_item_row);
+            % retrieve all explicit and implicit ratings for all items for 
+            % user with userID 
+            % the ratings retrieved is a column, in order to make it 
+            % row it is transposed 
+            explicit_rating_row = double(self.dense_tensor(:,userID,1))';
+            implicit_rating_row = double(self.dense_tensor(:,userID,2))';
+          %  self.print_array('Explicit ratings: ', explicit_rating_row);
+          %  self.print_array('Implicit ratings: ', implicit_rating_row);
+          
+            combined_ratings = self.weights(1)*explicit_rating_row ...
+                + self.weights(2)*implicit_rating_row;
+          %  self.print_array('Combined ratings: ', combined_ratings);
             
-            % sort the user_item_row in order to find the items with 
+            % sort the explicit_rating_row in order to find the items with 
             % highest values and recommend those
-            % sorted_user_item_row: user_item_row sorted in descending
+            % sorted_combined_ratings: explicit_rating_row sorted in descending
             % order
             % sorted_index: the index of the sorted values in the original
             % matrix
-            [sorted_user_item_row, sorted_index] = sort(user_item_row,2,'descend');
-          %  disp(sorted_user_item_row);
+            [sorted_combined_ratings, sorted_index] = sort(combined_ratings,2,'descend');
+          %  disp(sorted_combined_ratings);
           %  disp(sorted_index);
             
             counter = 1;
-            for i = 1:length(sorted_user_item_row)
-                if obj.sparse_tensor(sorted_index(i),userID,1)
+            for i = 1:length(sorted_combined_ratings)
+                if self.sparse_tensor(sorted_index(i),userID,1)
                     % the user have read the article so don't recommend it
                     continue
                 else
                     % add recommendations to the recommendation list
                     recommendations(1,counter) = sorted_index(i);
-                    recommendations(2,counter) = sorted_user_item_row(i);
+                    recommendations(2,counter) = sorted_combined_ratings(i);
                     counter = counter + 1;
                     
                     % check if we have enough recommendations
@@ -112,23 +125,23 @@ classdef Kiwi
         end
 
         %public float estimatePreference(long userID, long itemID)
-        function x = estimatePreference(obj, userID, itemID)
-            x = 0;
+        function x = estimatePreference(self, userID, itemID)
+            x = 'FUNCTION: estimatePrefence() is used';
         end
 
         %public void setPreference(long userID, long itemID, float value)
-        function x = setPreference(obj, userID, itemID, value)
-            x = 0;
+        function x = setPreference(self, userID, itemID, value)
+            x = 'FUNCTION: setPrefence() is used';
         end
 
         %public void removePreference(long userID, long itemID)
-        function x = removePreference(obj, userID, itemID)
-            x = 0;
+        function x = removePreference(self, userID, itemID)
+            x = 'FUNCTION: removePreference() is used';
         end
 
         %public DataModel getDataModel() {
         function x = getDataModel() 
-            x = 0;
+            x = 'FUNCTION: getDataModel() is used';
         end
     end
 end
