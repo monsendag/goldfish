@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
@@ -255,12 +256,29 @@ public final class SMUserPreferenceArray implements PreferenceArray {
     return result.toString();
   }
 
-  private final class PreferenceView implements Preference {
+  private final class PreferenceView implements SMPreference {
 
     private final int i;
 
     private PreferenceView(int i) {
       this.i = i;
+    }
+    
+    public float getValue(int i) {
+      return values[i];
+    }
+  
+    public void setValue(float value, int i) {
+      Preconditions.checkArgument(!Float.isNaN(value), "NaN value");
+      values[i] = value;
+    }
+    
+    public float getValue() {
+      float sum = 0;
+      for(float f : values) {
+          sum += f;
+      }
+      return sum;
     }
 
     public long getUserID() {
@@ -271,9 +289,6 @@ public final class SMUserPreferenceArray implements PreferenceArray {
       return SMUserPreferenceArray.this.getItemID(i);
     }
 
-    public float getValue() {
-      return values[i];
-    }
 
     public void setValue(float value) {
       values[i] = value;
