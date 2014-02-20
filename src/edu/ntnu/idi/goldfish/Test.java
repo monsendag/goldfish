@@ -12,7 +12,8 @@ public class Test {
 
 	public static void main(String[] args) throws IOException, TasteException {
 		
-		DataModel model = new SMDataModel(new File("datasets/movielens-synthesized/ratings.csv"));
+		SMDataModel model = new SMDataModel(new File("datasets/movielens-synthesized/ratings.csv"));
+		model.writeDatasetToFile("/tmp/ratings-synthesized.csv");
 		System.out.println(String.format("users: %d, items: %d", model.getNumUsers(), model.getNumItems()));
 		
 	}
