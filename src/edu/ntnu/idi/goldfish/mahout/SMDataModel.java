@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -13,14 +14,18 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.mahout.cf.taste.common.NoSuchItemException;
+import org.apache.mahout.cf.taste.common.NoSuchUserException;
 import org.apache.mahout.cf.taste.common.Refreshable;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
 import org.apache.mahout.cf.taste.impl.common.FastIDSet;
+import org.apache.mahout.cf.taste.impl.common.LongPrimitiveArrayIterator;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
 import org.apache.mahout.cf.taste.impl.model.AbstractDataModel;
 import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
 import org.apache.mahout.cf.taste.impl.model.GenericDataModel;
+import org.apache.mahout.cf.taste.impl.model.GenericItemPreferenceArray;
 import org.apache.mahout.cf.taste.impl.model.GenericPreference;
 import org.apache.mahout.cf.taste.impl.model.GenericUserPreferenceArray;
 import org.apache.mahout.cf.taste.model.DataModel;
@@ -117,13 +122,12 @@ import com.google.common.io.Closeables;
  */
 public class SMDataModel extends AbstractDataModel {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(SMDataModel.class);
+	private static final Logger log = LoggerFactory.getLogger(SMDataModel.class);
 
 	public static final long DEFAULT_MIN_RELOAD_INTERVAL_MS = 60 * 1000L; // 1
 																			// minute?
 	private static final char COMMENT_CHAR = '#';
-	private static final char[] DELIMIETERS = { ',', '\t' };
+	private static final char[] DELIMIETERS = {',', '\t'};
 
 	private final File dataFile;
 	private long lastModified;
@@ -131,10 +135,14 @@ public class SMDataModel extends AbstractDataModel {
 	private final char delimiter;
 	private final Splitter delimiterPattern;
 	private final boolean hasPrefValues;
-	private DataModel delegate;
 	private final ReentrantLock reloadLock;
 	private final boolean transpose;
 	private final long minReloadIntervalMS;
+
+	private long[] userIDs;
+	private long[] itemIDs;
+	private FastByIDMap<PreferenceArray> preferenceFromUsers;
+	private FastByIDMap<PreferenceArray> preferenceForItems;
 
 	/**
 	 * @param dataFile
@@ -168,8 +176,8 @@ public class SMDataModel extends AbstractDataModel {
 	 *            of the original datafile is done when refresh() is called
 	 * @see #FileDataModel(File)
 	 */
-	public SMDataModel(File dataFile, boolean transpose,
-			long minReloadIntervalMS) throws IOException {
+	public SMDataModel(File dataFile, boolean transpose, long minReloadIntervalMS)
+			throws IOException {
 		this(dataFile, transpose, minReloadIntervalMS, null);
 	}
 
@@ -179,19 +187,15 @@ public class SMDataModel extends AbstractDataModel {
 	 *            specify user own using regex pattern.
 	 * @throws IOException
 	 */
-	public SMDataModel(File dataFile, boolean transpose,
-			long minReloadIntervalMS, String delimiterRegex) throws IOException {
+	public SMDataModel(File dataFile, boolean transpose, long minReloadIntervalMS, String delimiterRegex) throws IOException {
 
 		this.dataFile = Preconditions.checkNotNull(dataFile.getAbsoluteFile());
 		if (!dataFile.exists() || dataFile.isDirectory()) {
 			throw new FileNotFoundException(dataFile.toString());
 		}
-		Preconditions
-				.checkArgument(dataFile.length() > 0L, "dataFile is empty");
-		Preconditions.checkArgument(minReloadIntervalMS >= 0L,
-				"minReloadIntervalMs must be non-negative");
-
-		log.info("Creating FileDataModel for file {}", dataFile);
+		
+		Preconditions.checkArgument(dataFile.length() > 0L, "dataFile is empty");
+		Preconditions.checkArgument(minReloadIntervalMS >= 0L, "minReloadIntervalMs must be non-negative");
 
 		this.lastModified = dataFile.lastModified();
 		this.lastUpdateFileModified = readLastUpdateFileModified();
@@ -221,8 +225,7 @@ public class SMDataModel extends AbstractDataModel {
 		}
 		// If preference value exists and isn't empty then the file is
 		// specifying pref values
-		hasPrefValues = firstLineSplit.size() >= 3
-				&& !firstLineSplit.get(2).isEmpty();
+		hasPrefValues = firstLineSplit.size() >= 3 && !firstLineSplit.get(2).isEmpty();
 
 		this.reloadLock = new ReentrantLock();
 		this.transpose = transpose;
@@ -238,7 +241,7 @@ public class SMDataModel extends AbstractDataModel {
 	protected void reload() {
 		if (reloadLock.tryLock()) {
 			try {
-				delegate = buildModel();
+				buildModel();
 			} catch (IOException ioe) {
 				log.warn("Exception while reloading", ioe);
 			} finally {
@@ -247,27 +250,82 @@ public class SMDataModel extends AbstractDataModel {
 		}
 	}
 
-	protected DataModel buildModel() throws IOException {
+	/**
+	 * Swaps, in-place, {@link List}s for arrays in {@link Map} values .
+	 * 
+	 * @return input value
+	 */
+	public static FastByIDMap<PreferenceArray> toDataMap(FastByIDMap<Collection<Preference>> data, boolean byUser) {
+		for (Map.Entry<Long, Object> entry : ((FastByIDMap<Object>) (FastByIDMap<?>) data).entrySet()) {
+			List<Preference> prefList = (List<Preference>) entry.getValue();
+			entry.setValue(new SMUserPreferenceArray(prefList));
+		}
+		return (FastByIDMap<PreferenceArray>) (FastByIDMap<?>) data;
+	}
 
-		long newLastModified = dataFile.lastModified();
-		long newLastUpdateFileModified = readLastUpdateFileModified();
-
-		boolean loadFreshData = delegate == null
-				|| newLastModified > lastModified + minReloadIntervalMS;
-
-		long oldLastUpdateFileModifieid = lastUpdateFileModified;
-		lastModified = newLastModified;
-		lastUpdateFileModified = newLastUpdateFileModified;
+	protected void buildModel() throws IOException {
+		lastModified = dataFile.lastModified();
+		lastUpdateFileModified = readLastUpdateFileModified();
 
 		FastByIDMap<Collection<Preference>> data = new FastByIDMap<Collection<Preference>>();
 		FileLineIterator iterator = new FileLineIterator(dataFile, false);
-		processFile(iterator, data, false);
 
-		for (File updateFile : findUpdateFilesAfter(newLastModified)) {
-			processFile(new FileLineIterator(updateFile, false), data, false);
+		processFile(iterator, data);
+
+		this.preferenceFromUsers = toDataMap(data, true);
+		FastByIDMap<Collection<Preference>> prefsForItems = new FastByIDMap<Collection<Preference>>();
+		FastIDSet itemIDSet = new FastIDSet();
+		int currentCount = 0;
+		float maxPrefValue = Float.NEGATIVE_INFINITY;
+		float minPrefValue = Float.POSITIVE_INFINITY;
+		
+		// create list prefs for items
+		// record max and min
+		for (Map.Entry<Long, PreferenceArray> entry : preferenceFromUsers.entrySet()) {
+			PreferenceArray prefs = entry.getValue();
+			prefs.sortByItem();
+			for (Preference preference : prefs) {
+				long itemID = preference.getItemID();
+				itemIDSet.add(itemID);
+				Collection<Preference> prefsForItem = prefsForItems.get(itemID);
+				if (prefsForItem == null) {
+					prefsForItem = Lists.newArrayListWithCapacity(2);
+					prefsForItems.put(itemID, prefsForItem);
+				}
+				prefsForItem.add(preference);
+				float value = preference.getValue();
+				if (value > maxPrefValue) {
+					maxPrefValue = value;
+				}
+				if (value < minPrefValue) {
+					minPrefValue = value;
+				}
+			}
+			if (++currentCount % 10000 == 0) {
+				log.info("Processed {} users", currentCount);
+			}
 		}
 
-		return new GenericDataModel(GenericDataModel.toDataMap(data, true));
+		setMinPreference(minPrefValue);
+		setMaxPreference(maxPrefValue);
+
+		this.itemIDs = itemIDSet.toArray();
+		itemIDSet = null; // Might help GC -- this is big
+		Arrays.sort(itemIDs);
+
+		this.preferenceForItems = toDataMap(prefsForItems, false);
+
+		for (Map.Entry<Long, PreferenceArray> entry : preferenceForItems.entrySet()) {
+			entry.getValue().sortByUser();
+		}
+
+		this.userIDs = new long[preferenceFromUsers.size()];
+		int i = 0;
+		LongPrimitiveIterator it = preferenceFromUsers.keySetIterator();
+		while (it.hasNext()) {
+			userIDs[i++] = it.next();
+		}
+		Arrays.sort(userIDs);
 
 	}
 
@@ -281,8 +339,7 @@ public class SMDataModel extends AbstractDataModel {
 	private Iterable<File> findUpdateFilesAfter(long minimumLastModified) {
 		String dataFileName = dataFile.getName();
 		int period = dataFileName.indexOf('.');
-		String startName = period < 0 ? dataFileName : dataFileName.substring(
-				0, period);
+		String startName = period < 0 ? dataFileName : dataFileName.substring(0, period);
 		File parentDir = dataFile.getParentFile();
 		Map<Long, File> modTimeToUpdateFile = new TreeMap<Long, File>();
 		FileFilter onlyFiles = new FileFilter() {
@@ -292,8 +349,7 @@ public class SMDataModel extends AbstractDataModel {
 		};
 		for (File updateFile : parentDir.listFiles(onlyFiles)) {
 			String updateFileName = updateFile.getName();
-			if (updateFileName.startsWith(startName)
-					&& !updateFileName.equals(dataFileName)
+			if (updateFileName.startsWith(startName) && !updateFileName.equals(dataFileName)
 					&& updateFile.lastModified() >= minimumLastModified) {
 				modTimeToUpdateFile.put(updateFile.lastModified(), updateFile);
 			}
@@ -304,8 +360,7 @@ public class SMDataModel extends AbstractDataModel {
 	private long readLastUpdateFileModified() {
 		long mostRecentModification = Long.MIN_VALUE;
 		for (File updateFile : findUpdateFilesAfter(0L)) {
-			mostRecentModification = Math.max(mostRecentModification,
-					updateFile.lastModified());
+			mostRecentModification = Math.max(mostRecentModification, updateFile.lastModified());
 		}
 		return mostRecentModification;
 	}
@@ -316,24 +371,13 @@ public class SMDataModel extends AbstractDataModel {
 				return possibleDelimieter;
 			}
 		}
-		throw new IllegalArgumentException(
-				"Did not find a delimiter in first line");
+		throw new IllegalArgumentException("Did not find a delimiter in first line");
 	}
 
-	protected void processFile(FileLineIterator dataOrUpdateFileIterator,
-			FastByIDMap<?> data, boolean fromPriorData) {
-		log.info("Reading file info...");
-		int count = 0;
+	protected void processFile(FileLineIterator dataOrUpdateFileIterator, FastByIDMap<?> data) {
 		while (dataOrUpdateFileIterator.hasNext()) {
-			String line = dataOrUpdateFileIterator.next();
-			if (!line.isEmpty()) {
-				processLine(line, data, fromPriorData);
-				if (++count % 1000000 == 0) {
-					log.info("Processed {} lines", count);
-				}
-			}
+			processLine(dataOrUpdateFileIterator.next(), data);	
 		}
-		log.info("Read lines: {}", count);
 	}
 
 	/**
@@ -354,7 +398,7 @@ public class SMDataModel extends AbstractDataModel {
 	 * 
 	 * @param line
 	 *            line from input data file
-	 * @param data
+	 * @param userData
 	 *            all data read so far, as a mapping from user IDs to
 	 *            preferences
 	 * @param fromPriorData
@@ -365,8 +409,7 @@ public class SMDataModel extends AbstractDataModel {
 	 *            it's reading fresh data. Subclasses must be prepared to handle
 	 *            this wrinkle.
 	 */
-	protected void processLine(String line, FastByIDMap<?> data,
-			boolean fromPriorData) {
+	protected void processLine(String line, FastByIDMap<?> userData) {
 
 		// Ignore empty lines and comments
 		if (line.isEmpty() || line.charAt(0) == COMMENT_CHAR) {
@@ -379,13 +422,13 @@ public class SMDataModel extends AbstractDataModel {
 		long itemID = Long.parseLong(tokens.next());
 
 		// store preference values in array
-		float[] preferenceValues = new float[getNumValues(tokens)];
+		float[] values = new float[2];
 
 		int t = 0;
 		while (tokens.hasNext()) {
-			preferenceValues[t++] = Float.parseFloat(tokens.next());
+			values[t++] = Float.parseFloat(tokens.next());
 		}
-
+		
 		if (transpose) {
 			long tmp = userID;
 			userID = itemID;
@@ -393,10 +436,9 @@ public class SMDataModel extends AbstractDataModel {
 		}
 
 		// This is kind of gross but need to handle two types of storage
-		Collection<Preference> prefs = Lists.newArrayListWithCapacity(2);
-		((FastByIDMap<Collection<Preference>>) data).put(userID, prefs);
-		prefs.add(new SMPreference(userID, itemID, preferenceValues));
-
+		Collection<SMPreference> prefs = Lists.newArrayListWithCapacity(2);
+		prefs.add(new GenericSMPreference(userID, itemID, values));
+		((FastByIDMap<Collection<SMPreference>>) userData).put(userID, prefs);
 	}
 
 	/**
@@ -420,93 +462,114 @@ public class SMDataModel extends AbstractDataModel {
 	}
 
 	public LongPrimitiveIterator getUserIDs() throws TasteException {
-		return delegate.getUserIDs();
+		return new LongPrimitiveArrayIterator(userIDs);
 	}
 
-	public PreferenceArray getPreferencesFromUser(long userID)
-			throws TasteException {
-		return delegate.getPreferencesFromUser(userID);
+	public PreferenceArray getPreferencesFromUser(long userID) throws NoSuchUserException {
+		PreferenceArray prefs = preferenceFromUsers.get(userID);
+		if (prefs == null) {
+			throw new NoSuchUserException(userID);
+		}
+		return prefs;
 	}
 
 	public FastIDSet getItemIDsFromUser(long userID) throws TasteException {
-		return delegate.getItemIDsFromUser(userID);
+		PreferenceArray prefs = getPreferencesFromUser(userID);
+		int size = prefs.length();
+		FastIDSet result = new FastIDSet(size);
+		for (int i = 0; i < size; i++) {
+			result.add(prefs.getItemID(i));
+		}
+		return result;
 	}
 
 	public LongPrimitiveIterator getItemIDs() throws TasteException {
-		return delegate.getItemIDs();
+		return new LongPrimitiveArrayIterator(itemIDs);
 	}
 
-	public PreferenceArray getPreferencesForItem(long itemID)
-			throws TasteException {
-		return delegate.getPreferencesForItem(itemID);
+	public PreferenceArray getPreferencesForItem(long itemID) throws TasteException {
+		PreferenceArray prefs = preferenceForItems.get(itemID);
+		if (prefs == null) {
+			throw new NoSuchItemException(itemID);
+		}
+		return prefs;
 	}
 
-	public Float getPreferenceValue(long userID, long itemID)
-			throws TasteException {
-		return delegate.getPreferenceValue(userID, itemID);
-	}
+	public Float getPreferenceValue(long userID, long itemID) throws TasteException {
+		PreferenceArray prefs = getPreferencesFromUser(userID);
+		int size = prefs.length();
+		for (int i = 0; i < size; i++) {
+			if (prefs.getItemID(i) == itemID) {
+				return prefs.getValue(i);
+			}
+		}
+		return null;
 
-	public Long getPreferenceTime(long userID, long itemID)
-			throws TasteException {
-		return delegate.getPreferenceTime(userID, itemID);
 	}
 
 	public int getNumItems() throws TasteException {
-		return delegate.getNumItems();
+		return itemIDs.length;
 	}
 
 	public int getNumUsers() throws TasteException {
-		return delegate.getNumUsers();
+		return userIDs.length;
 	}
 
 	public int getNumUsersWithPreferenceFor(long itemID) throws TasteException {
-		return delegate.getNumUsersWithPreferenceFor(itemID);
+		PreferenceArray prefs1 = preferenceForItems.get(itemID);
+		return prefs1 == null ? 0 : prefs1.length();
 	}
 
-	public int getNumUsersWithPreferenceFor(long itemID1, long itemID2)
-			throws TasteException {
-		return delegate.getNumUsersWithPreferenceFor(itemID1, itemID2);
-	}
+	public int getNumUsersWithPreferenceFor(long itemID1, long itemID2) throws TasteException {
+		PreferenceArray prefs1 = preferenceForItems.get(itemID1);
+		if (prefs1 == null) {
+			return 0;
+		}
+		PreferenceArray prefs2 = preferenceForItems.get(itemID2);
+		if (prefs2 == null) {
+			return 0;
+		}
 
-	/**
-	 * Note that this method only updates the in-memory preference data that
-	 * this {@link FileDataModel} maintains; it does not modify any data on
-	 * disk. Therefore any updates from this method are only temporary, and lost
-	 * when data is reloaded from a file. This method should also be considered
-	 * relatively slow.
-	 */
-	public void setPreference(long userID, long itemID, float value)
-			throws TasteException {
-		delegate.setPreference(userID, itemID, value);
-	}
-
-	/** See the warning at {@link #setPreference(long, long, float)}. */
-	public void removePreference(long userID, long itemID)
-			throws TasteException {
-		delegate.removePreference(userID, itemID);
+		int size1 = prefs1.length();
+		int size2 = prefs2.length();
+		int count = 0;
+		int i = 0;
+		int j = 0;
+		long userID1 = prefs1.getUserID(0);
+		long userID2 = prefs2.getUserID(0);
+		while (true) {
+			if (userID1 < userID2) {
+				if (++i == size1) {
+					break;
+				}
+				userID1 = prefs1.getUserID(i);
+			} else if (userID1 > userID2) {
+				if (++j == size2) {
+					break;
+				}
+				userID2 = prefs2.getUserID(j);
+			} else {
+				count++;
+				if (++i == size1 || ++j == size2) {
+					break;
+				}
+				userID1 = prefs1.getUserID(i);
+				userID2 = prefs2.getUserID(j);
+			}
+		}
+		return count;
 	}
 
 	public void refresh(Collection<Refreshable> alreadyRefreshed) {
 		if (dataFile.lastModified() > lastModified + minReloadIntervalMS
-				|| readLastUpdateFileModified() > lastUpdateFileModified
-						+ minReloadIntervalMS) {
+				|| readLastUpdateFileModified() > lastUpdateFileModified + minReloadIntervalMS) {
 			log.debug("File has changed; reloading...");
 			reload();
 		}
 	}
 
 	public boolean hasPreferenceValues() {
-		return delegate.hasPreferenceValues();
-	}
-
-	@Override
-	public float getMaxPreference() {
-		return delegate.getMaxPreference();
-	}
-
-	@Override
-	public float getMinPreference() {
-		return delegate.getMinPreference();
+		return true;
 	}
 
 	@Override
@@ -514,50 +577,40 @@ public class SMDataModel extends AbstractDataModel {
 		return "SMDataModel[dataFile:" + dataFile + ']';
 	}
 
-	protected int getNumValues(Iterator<String> lineTokens) {
-		int count = 0;
-		for (; lineTokens.hasNext(); count++)
-			lineTokens.next();
-		return count;
-	}
-	
 	/**
 	 * Write dataset to file with csv format
+	 * 
 	 * @param filename
-	 * 					url with location and filename
+	 *            url with location and filename
 	 */
 	public void writeDatasetToFile(String filename) {
 		try {
 			FileWriter writer = new FileWriter(filename);
-			
+
 			writer.append("# UserID,ItemID,Rating,ReadIndex \n");
-			
-			Iterator users = delegate.getUserIDs();
-			while(users.hasNext()){
-				long userId = (Long) users.next();
-				PreferenceArray preferences = delegate.getPreferencesFromUser(userId);
-				Iterator it = preferences.iterator();
-				
+
+			Iterator<Long> users = getUserIDs();
+			while (users.hasNext()) {
+				long userId = users.next();
+				PreferenceArray preferences = getPreferencesFromUser(userId);
+				Iterator<Preference> it = preferences.iterator();
+
 				float rating = 0;
 				float readIndex = 0;
 				float itemId = 0;
-				while(it.hasNext()) {
+				while (it.hasNext()) {
 					SMPreference p = (SMPreference) it.next();
-					rating = p.getValue(1); // explicit
-					readIndex = p.getValue(2); // readindex
+					rating = p.getValue(0); // explicit
+					readIndex = p.getValue(1); // readindex
 					itemId = p.getItemID(); // item
+					writer.append(userId + "," + itemId + "," + rating + "," + readIndex);
+					writer.append("\n");
 				}
-				
-				writer.append(userId + "," + itemId + "," + rating + "," + readIndex);
-				writer.append("\n");
-				
+
 				writer.flush();
 				writer.close();
 			}
-			
-			
-			
-			
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -565,6 +618,20 @@ public class SMDataModel extends AbstractDataModel {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public Long getPreferenceTime(long userID, long itemID) throws TasteException {
+		return null;
+	}
+
+	public void setPreference(long userID, long itemID, float value) throws TasteException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void removePreference(long userID, long itemID) throws TasteException {
+		// TODO Auto-generated method stub
+
 	}
 
 }
