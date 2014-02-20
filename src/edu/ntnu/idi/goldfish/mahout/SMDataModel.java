@@ -530,17 +530,29 @@ public class SMDataModel extends AbstractDataModel {
 		try {
 			FileWriter writer = new FileWriter(filename);
 			
-			writer.append("# UserID,ItemID,Rating,Time \n");
+			writer.append("# UserID,ItemID,Rating,ReadIndex \n");
 			
 			Iterator users = delegate.getUserIDs();
 			while(users.hasNext()){
 				long userId = (Long) users.next();
 				PreferenceArray preferences = delegate.getPreferencesFromUser(userId);
 				Iterator it = preferences.iterator();
+				
+				float rating = 0;
+				float readIndex = 0;
+				float itemId = 0;
 				while(it.hasNext()) {
-					SMPreference p = (SMPreference)
+					SMPreference p = (SMPreference) it.next();
+					rating = p.getValue(1); // explicit
+					readIndex = p.getValue(2); // readindex
+					itemId = p.getItemID(); // item
 				}
 				
+				writer.append(userId + "," + itemId + "," + rating + "," + readIndex);
+				writer.append("\n");
+				
+				writer.flush();
+				writer.close();
 			}
 			
 			
