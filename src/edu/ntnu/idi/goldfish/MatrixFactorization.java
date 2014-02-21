@@ -17,7 +17,7 @@ public abstract class MatrixFactorization extends Evaluation {
 		this.numIterations = numIterations;
 	}
 
-	public RecommenderBuilder getBuilder() {
+	public RecommenderBuilder getRecommenderBuilder() {
 		return new RecommenderBuilder() {
 			public Recommender buildRecommender(DataModel dataModel) throws TasteException {	
 				return new SVDRecommender(dataModel, getFactorizer(dataModel));			
