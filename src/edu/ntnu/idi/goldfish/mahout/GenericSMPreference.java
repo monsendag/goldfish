@@ -29,7 +29,7 @@ import com.google.common.base.Preconditions;
  * A simple {@link Preference} encapsulating an item and preference value.
  * </p>
  */
-public class GenericSMPreference implements SMPreference {
+public class GenericSMPreference extends SMPreference {
   
   private final long userID;
   private final long itemID;
@@ -50,11 +50,7 @@ public class GenericSMPreference implements SMPreference {
   }
   
   public float getValue() {
-    float sum = 0;
-    for(float f : values) {
-        sum += f;
-    }
-    return sum;
+    return combineValues(values);
   }
   
   public void setValue(float value) {
@@ -74,5 +70,9 @@ public class GenericSMPreference implements SMPreference {
   public float getValue(int i) {
     return values[i];
   }
-  
+
+	public float[] getValues() {
+		return values;
+	}
+
 }

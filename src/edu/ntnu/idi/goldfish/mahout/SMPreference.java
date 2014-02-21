@@ -11,11 +11,24 @@ import com.google.common.base.Preconditions;
  * A simple {@link Preference} encapsulating an item and preference value.
  * </p>
  */
-public interface SMPreference extends Preference, Serializable {
+public abstract class SMPreference implements Preference, Serializable {
   
+	public static final int NUM_VALUES = 2;
+    public static float[] weights = {2, 1};
+	
+    public abstract void setValue(float value, int i);
     
-    public void setValue(float value, int i);
+    public abstract float getValue(int i);
     
-    public float getValue(int i);
+    public abstract float[] getValues();
+    
+	public static float combineValues(float[] values) {
+		Preconditions.checkArgument(values.length == weights.length, "Values and weights arrays are of different size");
+		float result = 0;
+		for(int i=0; i<values.length; i++) {
+			result += values[i] * weights[i];
+		}
+		return result;
+	}
     
 }
