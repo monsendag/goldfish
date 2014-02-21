@@ -26,6 +26,7 @@ public class KiwiRecommender implements Recommender {
 	
 	private static MatlabProxyFactory factory = null;
 	private static MatlabProxy proxy = null;
+	private SMDataModel model;
 	
 	static MatlabProxy getProxy() {
 		
@@ -36,11 +37,7 @@ public class KiwiRecommender implements Recommender {
 				b.setMatlabStartingDirectory(new File("matlab"));
 				factory = new MatlabProxyFactory(b.build());
 				proxy = factory.getProxy();
-			    proxy.eval("kiwi = Kiwi();");
 			} catch (MatlabConnectionException e) {
-				e.printStackTrace();
-			} catch (MatlabInvocationException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -49,16 +46,27 @@ public class KiwiRecommender implements Recommender {
 		
 	MatlabTypeConverter processor;
 
-	public KiwiRecommender() {
-		
+	public KiwiRecommender(DataModel model) {
+		this.model = (SMDataModel) model;
 		//Create a proxy, which we will use to control MATLAB
 		processor = new MatlabTypeConverter(getProxy());
-		// Build Matlab class
-		MatlabProxy p = getProxy();
+		
+		 try {
+			 // Build Matlab class
+			MatlabProxy p = getProxy();
+			File file = new File("/tmp/ratings-synthesized.csv");
+			this.model.writeDatasetToFile(file);
+			p.eval(String.format("kiwi = Kiwi('%s');", file.getAbsolutePath()));
+			
+			
+			
+		} catch (MatlabInvocationException e) {
+			e.printStackTrace();
+		}
 	}
 	
 
-	public void refresh(Collection<Refreshable> alreadyRefreshed) {
+	public void refresh(Collection<Refreshable> alreadyRefreshed) {	
 		try {
 			getProxy().eval("kiwi.refresh()");
 		} catch (MatlabInvocationException e) {
