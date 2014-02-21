@@ -129,20 +129,20 @@ public class SMDataModel extends AbstractDataModel {
 	private static final char COMMENT_CHAR = '#';
 	private static final char[] DELIMIETERS = {',', '\t'};
 
-	private final File dataFile;
+	private File dataFile;
 	private long lastModified;
 	private long lastUpdateFileModified;
-	private final char delimiter;
-	private final Splitter delimiterPattern;
-	private final boolean hasPrefValues;
-	private final ReentrantLock reloadLock;
-	private final boolean transpose;
-	private final long minReloadIntervalMS;
+	private char delimiter;
+	private Splitter delimiterPattern;
+	private boolean hasPrefValues;
+	private ReentrantLock reloadLock;
+	private boolean transpose;
+	private long minReloadIntervalMS;
 
 	private long[] userIDs;
 	private long[] itemIDs;
-	private FastByIDMap<PreferenceArray> preferenceFromUsers;
-	private FastByIDMap<PreferenceArray> preferenceForItems;
+	private FastByIDMap<? extends PreferenceArray> preferenceFromUsers;
+	private FastByIDMap<? extends PreferenceArray> preferenceForItems;
 
 	/**
 	 * @param dataFile
@@ -165,6 +165,10 @@ public class SMDataModel extends AbstractDataModel {
 	 */
 	public SMDataModel(File dataFile, String delimiterRegex) throws IOException {
 		this(dataFile, false, DEFAULT_MIN_RELOAD_INTERVAL_MS, delimiterRegex);
+	}
+	
+	public SMDataModel(FastByIDMap<PreferenceArray> data) {
+		processByIdMap(data);
 	}
 
 	/**
@@ -255,25 +259,32 @@ public class SMDataModel extends AbstractDataModel {
 	 * 
 	 * @return input value
 	 */
-	public static FastByIDMap<PreferenceArray> toDataMap(FastByIDMap<Collection<Preference>> data, boolean byUser) {
-		for (Map.Entry<Long, Object> entry : ((FastByIDMap<Object>) (FastByIDMap<?>) data).entrySet()) {
-			List<Preference> prefList = (List<Preference>) entry.getValue();
-			entry.setValue(new SMUserPreferenceArray(prefList));
+	  public static FastByIDMap<SMPreferenceArray> toDataMap(FastByIDMap<List<SMPreference>> data, boolean byUser) {
+		for (Map.Entry<Long,Object> entry : ((FastByIDMap<Object>) (FastByIDMap<?>) data).entrySet()) {
+		List<SMPreference> prefList = (List<SMPreference>) entry.getValue();
+		entry.setValue(byUser ? new SMUserPreferenceArray(prefList) : new SMItemPreferenceArray(
+		prefList));
 		}
-		return (FastByIDMap<PreferenceArray>) (FastByIDMap<?>) data;
-	}
+		return (FastByIDMap<SMPreferenceArray>) (FastByIDMap<?>) data;
+	  }
+
 
 	protected void buildModel() throws IOException {
 		lastModified = dataFile.lastModified();
 		lastUpdateFileModified = readLastUpdateFileModified();
 
-		FastByIDMap<Collection<Preference>> data = new FastByIDMap<Collection<Preference>>();
+		FastByIDMap<List<SMPreference>> data = new FastByIDMap<List<SMPreference>>();
 		FileLineIterator iterator = new FileLineIterator(dataFile, false);
 
 		processFile(iterator, data);
-
-		this.preferenceFromUsers = toDataMap(data, true);
-		FastByIDMap<Collection<Preference>> prefsForItems = new FastByIDMap<Collection<Preference>>();
+		processByIdMap(toDataMap(data, true));
+		
+	}
+	
+	protected void processByIdMap(FastByIDMap<? extends PreferenceArray> data) {
+		this.preferenceFromUsers = data;
+		
+		FastByIDMap<List<SMPreference>> prefsForItems = new FastByIDMap<List<SMPreference>>();
 		FastIDSet itemIDSet = new FastIDSet();
 		int currentCount = 0;
 		float maxPrefValue = Float.NEGATIVE_INFINITY;
@@ -281,18 +292,18 @@ public class SMDataModel extends AbstractDataModel {
 		
 		// create list prefs for items
 		// record max and min
-		for (Map.Entry<Long, PreferenceArray> entry : preferenceFromUsers.entrySet()) {
-			PreferenceArray prefs = entry.getValue();
+		for (Map.Entry<Long, ? extends PreferenceArray> entry : preferenceFromUsers.entrySet()) {
+			SMPreferenceArray prefs = (SMPreferenceArray) entry.getValue();
 			prefs.sortByItem();
 			for (Preference preference : prefs) {
 				long itemID = preference.getItemID();
 				itemIDSet.add(itemID);
-				Collection<Preference> prefsForItem = prefsForItems.get(itemID);
+				List<SMPreference> prefsForItem = prefsForItems.get(itemID);
 				if (prefsForItem == null) {
 					prefsForItem = Lists.newArrayListWithCapacity(2);
 					prefsForItems.put(itemID, prefsForItem);
 				}
-				prefsForItem.add(preference);
+				prefsForItem.add((SMPreference) preference);
 				float value = preference.getValue();
 				if (value > maxPrefValue) {
 					maxPrefValue = value;
@@ -315,7 +326,7 @@ public class SMDataModel extends AbstractDataModel {
 
 		this.preferenceForItems = toDataMap(prefsForItems, false);
 
-		for (Map.Entry<Long, PreferenceArray> entry : preferenceForItems.entrySet()) {
+		for (Map.Entry<Long, ? extends PreferenceArray> entry : preferenceForItems.entrySet()) {
 			entry.getValue().sortByUser();
 		}
 
@@ -326,7 +337,6 @@ public class SMDataModel extends AbstractDataModel {
 			userIDs[i++] = it.next();
 		}
 		Arrays.sort(userIDs);
-
 	}
 
 	/**
@@ -374,9 +384,9 @@ public class SMDataModel extends AbstractDataModel {
 		throw new IllegalArgumentException("Did not find a delimiter in first line");
 	}
 
-	protected void processFile(FileLineIterator dataOrUpdateFileIterator, FastByIDMap<?> data) {
+	protected void processFile(FileLineIterator dataOrUpdateFileIterator, FastByIDMap<List<SMPreference>> userData) {
 		while (dataOrUpdateFileIterator.hasNext()) {
-			processLine(dataOrUpdateFileIterator.next(), data);	
+			processLine(dataOrUpdateFileIterator.next(), userData);	
 		}
 	}
 
@@ -409,7 +419,7 @@ public class SMDataModel extends AbstractDataModel {
 	 *            it's reading fresh data. Subclasses must be prepared to handle
 	 *            this wrinkle.
 	 */
-	protected void processLine(String line, FastByIDMap<?> userData) {
+	protected void processLine(String line, FastByIDMap<List<SMPreference>> userData) {
 
 		// Ignore empty lines and comments
 		if (line.isEmpty() || line.charAt(0) == COMMENT_CHAR) {
@@ -422,7 +432,7 @@ public class SMDataModel extends AbstractDataModel {
 		long itemID = Long.parseLong(tokens.next());
 
 		// store preference values in array
-		float[] values = new float[2];
+		float[] values = new float[SMPreference.NUM_VALUES];
 
 		int t = 0;
 		while (tokens.hasNext()) {
@@ -434,11 +444,11 @@ public class SMDataModel extends AbstractDataModel {
 			userID = itemID;
 			itemID = tmp;
 		}
-
-		// This is kind of gross but need to handle two types of storage
-		Collection<SMPreference> prefs = Lists.newArrayListWithCapacity(2);
+		
+		List<SMPreference> prefs = userData.get(userID);
+		if(prefs == null) prefs = Lists.newArrayList();
 		prefs.add(new GenericSMPreference(userID, itemID, values));
-		((FastByIDMap<Collection<SMPreference>>) userData).put(userID, prefs);
+		userData.put(userID, prefs);
 	}
 
 	/**
@@ -465,7 +475,16 @@ public class SMDataModel extends AbstractDataModel {
 		return new LongPrimitiveArrayIterator(userIDs);
 	}
 
-	public PreferenceArray getPreferencesFromUser(long userID) throws NoSuchUserException {
+	public SMPreferenceArray getSMPreferencesFromUser(long userID) throws NoSuchUserException {
+		PreferenceArray prefs = preferenceFromUsers.get(userID);
+		if (prefs == null) {
+			throw new NoSuchUserException(userID);
+		}
+		return (SMPreferenceArray) prefs;
+	}
+	
+	public PreferenceArray getPreferencesFromUser(long userID)
+			throws TasteException {
 		PreferenceArray prefs = preferenceFromUsers.get(userID);
 		if (prefs == null) {
 			throw new NoSuchUserException(userID);
@@ -474,7 +493,7 @@ public class SMDataModel extends AbstractDataModel {
 	}
 
 	public FastIDSet getItemIDsFromUser(long userID) throws TasteException {
-		PreferenceArray prefs = getPreferencesFromUser(userID);
+		SMPreferenceArray prefs = getSMPreferencesFromUser(userID);
 		int size = prefs.length();
 		FastIDSet result = new FastIDSet(size);
 		for (int i = 0; i < size; i++) {
@@ -482,12 +501,8 @@ public class SMDataModel extends AbstractDataModel {
 		}
 		return result;
 	}
-
-	public LongPrimitiveIterator getItemIDs() throws TasteException {
-		return new LongPrimitiveArrayIterator(itemIDs);
-	}
-
-	public PreferenceArray getPreferencesForItem(long itemID) throws TasteException {
+	
+	public PreferenceArray getPreferencesForItem(long itemID) throws NoSuchItemException {
 		PreferenceArray prefs = preferenceForItems.get(itemID);
 		if (prefs == null) {
 			throw new NoSuchItemException(itemID);
@@ -495,8 +510,20 @@ public class SMDataModel extends AbstractDataModel {
 		return prefs;
 	}
 
+	public LongPrimitiveIterator getItemIDs() throws TasteException {
+		return new LongPrimitiveArrayIterator(itemIDs);
+	}
+
+	public SMPreferenceArray getSMPreferencesForItem(long itemID) throws TasteException {
+		PreferenceArray prefs = preferenceForItems.get(itemID);
+		if (prefs == null) {
+			throw new NoSuchItemException(itemID);
+		}
+		return (SMPreferenceArray) prefs;
+	}
+
 	public Float getPreferenceValue(long userID, long itemID) throws TasteException {
-		PreferenceArray prefs = getPreferencesFromUser(userID);
+		SMPreferenceArray prefs = getSMPreferencesFromUser(userID);
 		int size = prefs.length();
 		for (int i = 0; i < size; i++) {
 			if (prefs.getItemID(i) == itemID) {
@@ -577,45 +604,44 @@ public class SMDataModel extends AbstractDataModel {
 		return "SMDataModel[dataFile:" + dataFile + ']';
 	}
 
+
+	public void writeDatasetToFile(String filename) {
+		writeDatasetToFile(new File(filename));
+	}
 	/**
 	 * Write dataset to file with csv format
 	 * 
 	 * @param filename
 	 *            url with location and filename
 	 */
-	public void writeDatasetToFile(String filename) {
+	public void writeDatasetToFile(File file) {
 		try {
-			FileWriter writer = new FileWriter(filename);
-
-			writer.append("# UserID,ItemID,Rating,ReadIndex \n");
+			FileWriter writer = new FileWriter(file);
 
 			Iterator<Long> users = getUserIDs();
 			while (users.hasNext()) {
 				long userId = users.next();
-				PreferenceArray preferences = getPreferencesFromUser(userId);
+				SMPreferenceArray preferences = getSMPreferencesFromUser(userId);
 				Iterator<Preference> it = preferences.iterator();
 
 				float rating = 0;
 				float readIndex = 0;
-				float itemId = 0;
+				long itemId = 0;
 				while (it.hasNext()) {
 					SMPreference p = (SMPreference) it.next();
 					rating = p.getValue(0); // explicit
 					readIndex = p.getValue(1); // readindex
 					itemId = p.getItemID(); // item
-					writer.append(userId + "," + itemId + "," + rating + "," + readIndex);
+					writer.append(String.format("%d,%d,%.0f,%.1f", userId, itemId, rating, readIndex));
 					writer.append("\n");
 				}
-
 				writer.flush();
-				writer.close();
 			}
+			writer.close();
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (TasteException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -625,12 +651,10 @@ public class SMDataModel extends AbstractDataModel {
 	}
 
 	public void setPreference(long userID, long itemID, float value) throws TasteException {
-		// TODO Auto-generated method stub
 
 	}
 
 	public void removePreference(long userID, long itemID) throws TasteException {
-		// TODO Auto-generated method stub
 
 	}
 
