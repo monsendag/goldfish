@@ -34,7 +34,7 @@ public class Main {
 //		set = DataSet.Movielens1Mbinary;
 //		set = DataSet.Movielens50kbinary;
 //		set = DataSet.Movielens50k;
-		set = DataSet.MovielensSynthesized50k;
+		set = DataSet.MovielensSynthesized1M;
 //		set = DataSet.Movielens1M;
 		
 		DataModel dataModel = getDataModel(set);
@@ -75,7 +75,7 @@ public class Main {
 		}
 
 		StopWatch.start("total evaluation");
-		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.1);
+		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.000001);
 //		results.save(set);
 //		results.print();
 		System.out.format("Completed evaluation in %s\n", StopWatch.str("total evaluation"));
@@ -86,6 +86,7 @@ public class Main {
 		Movielens1Mbinary,
 		Movielens50k,
 		Movielens50kbinary,
+		MovielensSynthesized1M,
 		MovielensSynthesized50k,
 		Sample100,
 		VTT36k
@@ -104,6 +105,9 @@ public class Main {
 		case Movielens50kbinary:
 			dataModel = new FileDataModel(new File("datasets/movielens-1m/ratings-binary-50k.csv"));
 			return new GenericBooleanPrefDataModel(GenericBooleanPrefDataModel.toDataMap(dataModel));
+		case MovielensSynthesized1M:
+			dataModel = new SMDataModel(new File("datasets/movielens-synthesized/ratings-synthesized.csv"));
+			return dataModel;
 		case MovielensSynthesized50k:
 			dataModel = new SMDataModel(new File("datasets/movielens-synthesized/ratings-synthesized-50k.csv"));
 			return dataModel;
