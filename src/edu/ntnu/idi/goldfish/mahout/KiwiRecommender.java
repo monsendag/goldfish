@@ -43,6 +43,10 @@ public class KiwiRecommender implements Recommender {
 		}
 		return proxy;
 	}
+	
+	public static void close() {
+		proxy.disconnect();	
+	}
 		
 	MatlabTypeConverter processor;
 
