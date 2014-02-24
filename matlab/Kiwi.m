@@ -1,7 +1,7 @@
 classdef Kiwi
 
     properties (GetAccess='private',SetAccess='private')
-        weights = [1 2.5]; % needs to be reflected in SMPreference Java class
+        weights;
     end
     properties
         sparse_tensor;
@@ -50,13 +50,15 @@ classdef Kiwi
 
     methods
         % constructor
-        function self = Kiwi(dataset)
+        function self = Kiwi(dataset, weights, latentFactors)
+            
+            self.weights = weights;
             
             self.sparse_tensor = self.generate_sparse_tensor(dataset);
           %  self.sparse_tensor = self.generate_random_sparse_tensor();
             
             tic
-            self.tucker_tensor = tucker_als(self.sparse_tensor, [100 100 2]);
+            self.tucker_tensor = tucker_als(self.sparse_tensor, latentFactors);
           %  self.kruskal_tensor = parafac_als(self.sparse_tensor,5);
             toc
           

@@ -45,17 +45,17 @@ public class Main {
 		List<Evaluation> evaluations = new ArrayList<Evaluation>();
 		EvaluationResults results = new EvaluationResults();
 	
-		int[] topNvals = {3, 5};
+		int[] topNvals = {10};
 		for(int topN : topNvals) {
 	
 //			evaluations.add(new KNN(topN, MemoryBased.Similarity.EuclideanDistance, 2));
-			evaluations.add(new KiwiEvaluation(topN, 10));			
+			evaluations.add(new KiwiEvaluation(topN, new double[]{2, 1}, new double[]{10, 10, 2}));			
 
 		}
 		
 
 		StopWatch.start("total evaluation");
-		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.001);
+		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.01);
 //		results.save(set);
 //		results.print();
 		System.out.format("Completed evaluation in %s\n", StopWatch.str("total evaluation"));

@@ -13,15 +13,19 @@ import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 
 public class KiwiEvaluation extends Evaluation{
 
+	private double[] weights;
+	private double[] latentFactors;
 	
-	public KiwiEvaluation(int topN, int numFeatures) {
-		super(topN, numFeatures);
+	public KiwiEvaluation(int topN, double[] weights, double[] latentFactors) {
+		super(topN, 0);
+		this.weights = weights;
+		this.latentFactors = latentFactors;
 	}
 
 	public RecommenderBuilder getRecommenderBuilder() {
 		return new RecommenderBuilder() {
 			public Recommender buildRecommender(DataModel dataModel) throws TasteException {	
-				return new KiwiRecommender(dataModel);			
+				return new KiwiRecommender(dataModel, weights, latentFactors);			
 			}
 		};
 	}

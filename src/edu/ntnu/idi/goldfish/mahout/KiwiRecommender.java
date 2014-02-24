@@ -1,8 +1,6 @@
 package edu.ntnu.idi.goldfish.mahout;
 
 import java.io.File;
-
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +19,7 @@ import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.IDRescorer;
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.recommender.Recommender;
+import org.apache.mahout.math.Arrays;
 
 public class KiwiRecommender implements Recommender {
 	
@@ -50,7 +49,7 @@ public class KiwiRecommender implements Recommender {
 		
 	MatlabTypeConverter processor;
 
-	public KiwiRecommender(DataModel model) {
+	public KiwiRecommender(DataModel model, double[] weights, double[] latentFactors) {
 		this.model = (SMDataModel) model;
 		//Create a proxy, which we will use to control MATLAB
 		processor = new MatlabTypeConverter(getProxy());
@@ -60,7 +59,7 @@ public class KiwiRecommender implements Recommender {
 			MatlabProxy p = getProxy();
 			File file = new File("/tmp/ratings-synthesized.csv");
 			this.model.writeDatasetToFile(file);
-			p.eval(String.format("kiwi = Kiwi('%s');", file.getAbsolutePath()));
+			p.eval(String.format("kiwi = Kiwi('%s', %s, %s);", file.getAbsolutePath(), Arrays.toString(weights), Arrays.toString(latentFactors)));
 			
 			
 			
