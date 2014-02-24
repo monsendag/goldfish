@@ -14,7 +14,7 @@ import com.google.common.base.Preconditions;
 public abstract class SMPreference implements Preference, Serializable {
   
 	public static final int NUM_VALUES = 2;
-    public static float[] weights = {2, 1};
+    public static float[] weights = {1, 2.5f};  // needs to be reflected in Matlab code (Kiwi.m)
 	
     public abstract void setValue(float value, int i);
     
