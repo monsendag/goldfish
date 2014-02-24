@@ -11,52 +11,24 @@ import com.google.common.base.Preconditions;
  * A simple {@link Preference} encapsulating an item and preference value.
  * </p>
  */
-public class SMPreference implements Preference, Serializable {
+public abstract class SMPreference implements Preference, Serializable {
   
-  private final long userID;
-  private final long itemID;
-  private float[] values;
-  
-  public SMPreference(long userID, long itemID, float[] values) {
-    this.userID = userID;
-    this.itemID = itemID;
-    this.values = values;
-  }
-  
-  public long getUserID() {
-    return userID;
-  }
-  
-  public long getItemID() {
-    return itemID;
-  }
-  
-  public float getValue(int i) {
-	  return values[i];
-  }
-  
-  public void setValue(float value, int i) {
-    Preconditions.checkArgument(!Float.isNaN(value), "NaN value");
-    this.values[i] = value;
-  }
-  
-  public float getValue() {
-	float sum = 0;
-	for(float f : values) {
-		sum += f;
+	public static final int NUM_VALUES = 2;
+    public static float[] weights = {1, 2.5f};  // needs to be reflected in Matlab code (Kiwi.m)
+	
+    public abstract void setValue(float value, int i);
+    
+    public abstract float getValue(int i);
+    
+    public abstract float[] getValues();
+    
+	public static float combineValues(float[] values) {
+		Preconditions.checkArgument(values.length == weights.length, "Values and weights arrays are of different size");
+		float result = 0;
+		for(int i=0; i<values.length; i++) {
+			result += values[i] * weights[i];
+		}
+		return result;
 	}
-	return sum;
-  }
-
-	public void setValue(float value) {
-		
-	}
-  
-  
-  public String toString() {
-    return "SMPreference[userID: " + userID + ", itemID:" + itemID + ", value:" + values + ']';
-  }
-
-
-  
+    
 }

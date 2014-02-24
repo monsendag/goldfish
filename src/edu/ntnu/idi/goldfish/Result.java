@@ -54,7 +54,7 @@ public class Result {
 		formats.put("%19s", getSimilarity());
 		formats.put("K/T/L: %5.2f", getKTL());
 		formats.put("Top-N: %3d", getTopN());
-//		formats.put("RMSE: %6.3f", RMSE);
+		formats.put("RMSE: %6.3f", RMSE);
 //		formats.put("AAD: %6.3f", AAD);
 		formats.put("Precision: %6.3f", precision);
 		formats.put("Recall: %6.3f", recall);

@@ -8,11 +8,14 @@ import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.IRStatistics;
 import org.apache.mahout.cf.taste.eval.RecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.GenericRecommenderIRStatsEvaluator;
+import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluator;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.Recommender;
 import org.apache.mahout.common.RandomUtils;
 import org.apache.mahout.common.RandomWrapper;
 import org.apache.mahout.common.distance.DistanceMeasure;
+
+import edu.ntnu.idi.goldfish.mahout.SMDataSplitter;
 
 public class Evaluator {
 
@@ -65,9 +68,9 @@ public class Evaluator {
 	Result evaluate(Evaluation evaluation, DataModel dataModel, double testFrac, long userID) throws TasteException {
 		StopWatch.start("evaluate");
 		
-//		RMSRecommenderEvaluator RMSE = new RMSRecommenderEvaluator();
+		RMSRecommenderEvaluator RMSE = new RMSRecommenderEvaluator();
 //		AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
-        RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
+        RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator(new SMDataSplitter());
 		
 		double rmse = 0;
 		double aad = 0;
@@ -75,15 +78,15 @@ public class Evaluator {
 		// recTime
 		long recTime;
 		
-//		rmse = RMSE.evaluate(recommender.getBuilder(), null, dataModel, 1 - testFrac, test);
+//		rmse = RMSE.evaluate(evaluation.getBuilder(), null, dataModel, 1 - testFrac, testFrac);
 //		aad = AAD.evaluate(recommender.getBuilder(), null, dataModel, 1 - testFrac, test);
-        IRStatistics stats = irEvaluator.evaluate(evaluation.getBuilder(), null, dataModel, null, evaluation.getTopN(), relevanceThreshold, testFrac);
+        IRStatistics stats = irEvaluator.evaluate(evaluation.getRecommenderBuilder(), evaluation.getModelBuilder(), dataModel, null, evaluation.getTopN(), relevanceThreshold, testFrac);
 
 		StopWatch.start("build");
-		Recommender recommender = evaluation.getBuilder().buildRecommender(dataModel);
+		Recommender recommender = evaluation.getRecommenderBuilder().buildRecommender(dataModel);
 		StopWatch.stop("build");
 		
-		recTime = getRecommendationTiming(recommender, 20, 10, userID);
+		recTime = 0; //getRecommendationTiming(recommender, 20, 10, userID);
 
 		Result result = new Result(evaluation, rmse, aad, stats.getPrecision(), stats.getRecall(), StopWatch.get("build"), recTime);
 

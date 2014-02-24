@@ -1,5 +1,6 @@
 package edu.ntnu.idi.goldfish;
 
+import org.apache.mahout.cf.taste.eval.DataModelBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 
 public abstract class Evaluation {
@@ -20,7 +21,12 @@ public abstract class Evaluation {
 		this.KTL = KTL;
 	}
 	
-	public abstract RecommenderBuilder getBuilder();
+	public abstract RecommenderBuilder getRecommenderBuilder();
+	
+	public DataModelBuilder getModelBuilder() {
+		return null;
+	}
+	
 	
 	public double getKTL() {
 		return KTL;

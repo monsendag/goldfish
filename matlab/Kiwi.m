@@ -1,13 +1,13 @@
 classdef Kiwi
 
     properties (GetAccess='private',SetAccess='private')
-        weights = [2 1]
+        weights = [1 2.5]; % needs to be reflected in SMPreference Java class
     end
     properties
-        sparse_tensor
-        tucker_tensor
-        dense_tensor
-        kruskal_tensor
+        sparse_tensor;
+        tucker_tensor;
+        dense_tensor;
+        kruskal_tensor;
     end
     
     methods (Access='private')

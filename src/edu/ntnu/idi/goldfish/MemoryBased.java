@@ -45,7 +45,7 @@ public abstract class MemoryBased extends Evaluation {
 		return null;
 	}
 
-	public RecommenderBuilder getBuilder() {
+	public RecommenderBuilder getRecommenderBuilder() {
 		return new RecommenderBuilder() {
 			public Recommender buildRecommender(DataModel dataModel) throws TasteException {
 				UserSimilarity similarityObject = getSimilarityObject(similarity, dataModel);
