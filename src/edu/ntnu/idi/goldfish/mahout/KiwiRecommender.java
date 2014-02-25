@@ -82,9 +82,16 @@ public class KiwiRecommender implements Recommender {
 			List<RecommendedItem> recommended = new ArrayList<RecommendedItem>(	);
 			getProxy().eval(String.format("results = kiwi.recommend(%d, %d)", userID, howMany));
 			double[][] arr = processor.getNumericArray("results").getRealArray2D();
-			for(double val : arr[0]) {
-				recommended.add(new GenericRecommendedItem((long) val, -10));
+			float rating = 0;
+			long id = 0;
+			for (int i = 0; i < arr[0].length; i++) {
+				rating = (float) arr[1][i];
+				id = (long) arr[0][i];
+				recommended.add(new GenericRecommendedItem(id, rating));
 			}
+//			for(double val : arr[0]) {
+//				recommended.add(new GenericRecommendedItem((long) val, -10));
+//			}
 			return recommended;
 		} catch (MatlabInvocationException e) {
 			e.printStackTrace();
