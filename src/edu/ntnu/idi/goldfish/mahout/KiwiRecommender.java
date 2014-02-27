@@ -1,8 +1,6 @@
 package edu.ntnu.idi.goldfish.mahout;
 
 import java.io.File;
-
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,6 +19,7 @@ import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.IDRescorer;
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.recommender.Recommender;
+import org.apache.mahout.math.Arrays;
 
 public class KiwiRecommender implements Recommender {
 	
@@ -50,7 +49,7 @@ public class KiwiRecommender implements Recommender {
 		
 	MatlabTypeConverter processor;
 
-	public KiwiRecommender(DataModel model) {
+	public KiwiRecommender(DataModel model, double[] weights, double[] latentFactors) {
 		this.model = (SMDataModel) model;
 		//Create a proxy, which we will use to control MATLAB
 		processor = new MatlabTypeConverter(getProxy());
@@ -60,7 +59,7 @@ public class KiwiRecommender implements Recommender {
 			MatlabProxy p = getProxy();
 			File file = new File("/tmp/ratings-synthesized.csv");
 			this.model.writeDatasetToFile(file);
-			p.eval(String.format("kiwi = Kiwi('%s');", file.getAbsolutePath()));
+			p.eval(String.format("kiwi = Kiwi('%s', %s, %s);", file.getAbsolutePath(), Arrays.toString(weights), Arrays.toString(latentFactors)));
 			
 			
 			
@@ -83,9 +82,16 @@ public class KiwiRecommender implements Recommender {
 			List<RecommendedItem> recommended = new ArrayList<RecommendedItem>(	);
 			getProxy().eval(String.format("results = kiwi.recommend(%d, %d)", userID, howMany));
 			double[][] arr = processor.getNumericArray("results").getRealArray2D();
-			for(double val : arr[0]) {
-				recommended.add(new GenericRecommendedItem((long) val, -10));
+			float rating = 0;
+			long id = 0;
+			for (int i = 0; i < arr[0].length; i++) {
+				rating = (float) arr[1][i];
+				id = (long) arr[0][i];
+				recommended.add(new GenericRecommendedItem(id, rating));
 			}
+//			for(double val : arr[0]) {
+//				recommended.add(new GenericRecommendedItem((long) val, -10));
+//			}
 			return recommended;
 		} catch (MatlabInvocationException e) {
 			e.printStackTrace();
