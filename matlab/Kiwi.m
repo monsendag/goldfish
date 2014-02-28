@@ -12,13 +12,10 @@ classdef Kiwi
     
     methods (Access='private')
         function sparse_tensor = generate_sparse_tensor(self, dataset)
-            tic
+            tic;
             
             % read dataset from file
-            %M = csvread('../datasets/movielens-synthesized/ratings-synthesized.csv');
             M = csvread(dataset);
-            
-            %X = sptensor;
 
             % M: user id, movie id, rating, read-rating 
 
@@ -34,7 +31,7 @@ classdef Kiwi
             sparse_tensor = sptensor(subs,vals);
             
             
-            toc
+            toc;
         end
         
         function sparse_tensor = generate_random_sparse_tensor(self)
@@ -64,13 +61,16 @@ classdef Kiwi
           
             self.dense_tensor = full(self.tucker_tensor);
           %  self.dense_tensor = full(self.kruskal_tensor);
-            
-            
+          
         end
             
         %public void refresh(Collection<Refreshable> alreadyRefreshed) {
         function refresh()
             x = 'FUNCTION: refresh() is used';
+        end
+        
+        function rating = get_rating(self, user, item, preference)
+            rating = self.dense_tensor(user,item,preference);
         end
 
         %public List<RecommendedItem> recommend(long userID, int howMany,
