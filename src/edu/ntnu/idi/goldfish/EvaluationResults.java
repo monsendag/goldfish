@@ -11,11 +11,21 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.model.DataModel;
+
 import edu.ntnu.idi.goldfish.Main.DataSet;
 
 public class EvaluationResults extends ArrayList<Result> {
 	private static final long serialVersionUID = 7410339309503861432L;
 
+	private DataModel model;
+	
+	public EvaluationResults(DataModel model) {
+		this.model = model;
+	}
+	
 	public static enum SortOption {
 		RMSE, AAD, Precision, Recall
 	}
@@ -41,38 +51,51 @@ public class EvaluationResults extends ArrayList<Result> {
 	}
 	
 	public void print() {
-//			System.out.format("%-40s | RMSE: %6s | AAD: %6f | Precision: %6.3f | Recall %6.3f | Build time %7.4f | Rec time %7.4f");
 		for (Result res : this) {
 			System.out.println(res);
 		}
 	}
 	
-	public String toCSV(SortOption sortOn) {
+	public String toTSV(SortOption sortOn) {
 		sortOn(sortOn);
-		return toCSV();
+		return toTSV();
 		
 	}
 	
-	public String toCSV() {
+	public String toTSV() {
+		
 		String out = "";
-		out += "Recommender,Similarity,KTL,TopN,Precision,Recall,Build time,Rec time\n";
+		String[] headers = {"Recommender", "Similarity", "KTL", "TopN", "RMSE", "AAD", "Precision", "Recall", "Build time", "Rec time", "Eval time"};
+
+		out += StringUtils.join(headers,"\t") +"\n";
 		for (Result res : this) {
-			out += res.toCSV()+"\n";
+			out += res.toTSV()+"\n";
 		}
 		return out;
 	}
 	
-	public void save(DataSet set) {
-		save(set, "");
+	public void save() {
+		try {
+			String prepend = ""; 
+			Result total = Result.getTotal(this);
+			prepend += String.format("# Dataset: %s  (%d users, %d items) \n", Main.set.toString(), model.getNumUsers(), model.getNumItems());
+			prepend += String.format("# Evaluated %d configurations in %s \n", size(), StopWatch.getString(total.evalTime));
+			save(prepend, "");
+		} catch (TasteException e) {
+			e.printStackTrace();
+		}
 	}
-	
-	public void save(DataSet set, String append) {
+	public void save(String prependToFile, String appendToFileName) {
 		Writer writer = null;
+		
+		// prepend "-" to append if it's not empty
+		appendToFileName = appendToFileName.length() > 0 ? "-"+appendToFileName : "";
 		 
         try {
         	String dateTime = String.format("%1$tY-%1$tm-%1$td-%1$tH%1$tM%1$tS", new Date());
-        	String output = toCSV();
-            String fileName = String.format("results/%s-%s-%s.csv", dateTime, set.toString(), append);
+        	
+        	String output = prependToFile + toTSV();
+            String fileName = String.format("results/%s-%s%s.tsv", dateTime, Main.set.toString(), appendToFileName);
             File file = new File(fileName);
             writer = new BufferedWriter(new FileWriter(file));
             writer.write(output);

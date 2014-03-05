@@ -6,6 +6,8 @@ public class Result {
 
 	Evaluation evaluation;
 	
+	
+	
 	// RMSE
 	double RMSE;
 	
@@ -22,7 +24,10 @@ public class Result {
 	// recommendation timing
 	long recTime;
 	
-	public Result(Evaluation evaluation, double RMSE, double AAD, double precision, double recall, long buildTime, long recTime) {
+	// evaluation time
+	long evalTime;
+	
+	public Result(Evaluation evaluation, double RMSE, double AAD, double precision, double recall, long buildTime, long recTime, long evalTime) {
 		this.evaluation = evaluation;
 
 		this.RMSE = RMSE;
@@ -33,6 +38,7 @@ public class Result {
 		
 		this.buildTime = buildTime;
 		this.recTime = recTime;
+		this.evalTime = evalTime;
 	}
 	
 	public int getTopN() {
@@ -55,35 +61,36 @@ public class Result {
 		formats.put("K/T/L: %5.2f", getKTL());
 		formats.put("Top-N: %3d", getTopN());
 		formats.put("RMSE: %6.3f", RMSE);
-//		formats.put("AAD: %6.3f", AAD);
+		formats.put("AAD: %6.3f", AAD);
 		formats.put("Precision: %6.3f", precision);
 		formats.put("Recall: %6.3f", recall);
 		formats.put("Build time: %4d", buildTime);
 		formats.put("Rec time: %2d", recTime);
+		formats.put("Eval time: %2d", evalTime);
 
 		return formats.join(" | ");
 	}
 	
-	public String toCSV() {
+	public String toTSV() {
 		Formatter formats = new Formatter();
 		formats.put("%s", evaluation.toString());
 		formats.put("%s", getSimilarity());
 		formats.put("%.2f", getKTL());
 		formats.put("%d", getTopN());
 		formats.put("%.3f", RMSE);
-//		formats.put("%.3f", AAD);
+		formats.put("%.3f", AAD);
 		formats.put("%.3f", precision);
 		formats.put("%.3f", recall);
 		formats.put("%d", buildTime);
 		formats.put("%d", recTime);
+		formats.put("%d", evalTime);
 		
-		return formats.join(",");
+		return formats.join("\t");
 	}
 	
-	public static Result getAverage(List<Result> results) {
-		int N = results.size();
+	public static Result getTotal(List<Result> results) {
 		double totalRMSE = 0, totalAAD = 0, totalPrecision = 0, totalRecall = 0;
-		long totalBuildTime = 0, totalRecTime = 0;  
+		long totalBuildTime = 0, totalRecTime = 0, totalEvalTime = 0;
 		for(Result res : results) {
 			totalRMSE += res.RMSE;
 			totalAAD += res.AAD;
@@ -91,7 +98,14 @@ public class Result {
 			totalRecall += res.recall;
 			totalBuildTime += res.buildTime;
 			totalRecTime += res.recTime;
+			totalEvalTime += res.evalTime;
 		}
-		return new Result(results.get(0).evaluation, totalRMSE / N, totalAAD / N, totalPrecision / N, totalRecall / N, totalBuildTime / N, totalRecTime / N);
+		return new Result(results.get(0).evaluation, totalRMSE, totalAAD, totalPrecision, totalRecall, totalBuildTime, totalRecTime, totalEvalTime);
+	}
+	
+	public static Result getAverage(List<Result> results) {
+		int N = results.size();
+		Result total = getTotal(results);
+		return new Result(results.get(0).evaluation, total.RMSE / N, total.AAD / N, total.precision / N, total.recall / N, total.buildTime / N, total.recTime / N, total.evalTime / N);
 	}
 }

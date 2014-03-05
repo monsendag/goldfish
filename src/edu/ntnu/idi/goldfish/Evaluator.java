@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.IRStatistics;
 import org.apache.mahout.cf.taste.eval.RecommenderIRStatsEvaluator;
+import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.GenericRecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluator;
 import org.apache.mahout.cf.taste.model.DataModel;
@@ -44,7 +45,7 @@ public class Evaluator {
 		EvaluationResults clusterResults;
 		for(Evaluation evaluation : evaluations) {
 			long user = getRandomUser(dataModel);
-			clusterResults = new EvaluationResults();
+			clusterResults = new EvaluationResults(dataModel);
 			StopWatch.start("cluster-evaluation");
 			for(int i=0; i<dataModels.length; i++) {
 				clusterResults.add(evaluate(evaluation, dataModel, test, user));
@@ -66,31 +67,41 @@ public class Evaluator {
 	}
 	
 	Result evaluate(Evaluation evaluation, DataModel dataModel, double testFrac, long userID) throws TasteException {
-		StopWatch.start("evaluate");
+		StopWatch.start("evalTime");
 		
-		RMSRecommenderEvaluator RMSE = new RMSRecommenderEvaluator();
-//		AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
-        RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
-		
+		// initialize variables
 		double rmse = 0;
 		double aad = 0;
+		double precision = 0;
+		double recall = 0;
+
+		// initialize evaluators
+		RMSRecommenderEvaluator RMSE = new RMSRecommenderEvaluator();
+		AverageAbsoluteDifferenceRecommenderEvaluator AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
+        RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
 		
-		// recTime
-		long recTime;
-		
+        // do evaluations
+        // NOTE: when a result is not needed, the respective line may be commented out here for increased evaluation speed
 		rmse = RMSE.evaluate(evaluation.getRecommenderBuilder(), null, dataModel, 1 - testFrac, testFrac);
-//		aad = AAD.evaluate(recommender.getBuilder(), null, dataModel, 1 - testFrac, test);
+		aad = AAD.evaluate(evaluation.getRecommenderBuilder(), null, dataModel, 1 - testFrac, testFrac);
         IRStatistics stats = irEvaluator.evaluate(evaluation.getRecommenderBuilder(), evaluation.getModelBuilder(), dataModel, null, evaluation.getTopN(), relevanceThreshold, testFrac);
-
-		StopWatch.start("build");
-		Recommender recommender = evaluation.getRecommenderBuilder().buildRecommender(dataModel);
-		StopWatch.stop("build");
+        precision = stats.getPrecision();
+        recall = stats.getRecall();
+        
+        // calculate build time
+		StopWatch.start("buildTime");
+		evaluation.getRecommenderBuilder().buildRecommender(dataModel);
+		long buildTime = StopWatch.get("buildTime");
 		
-		recTime = 0; //getRecommendationTiming(recommender, 20, 10, userID);
+		// calculate recommendation time
+		long recTime = 0; //getRecommendationTiming(recommender, 20, 10, userID);
 
-		Result result = new Result(evaluation, rmse, aad, stats.getPrecision(), stats.getRecall(), StopWatch.get("build"), recTime);
+		// get time of total evaluation
+        long evalTime = StopWatch.get("evalTime");
+		Result result = new Result(evaluation, rmse, aad, precision, recall, buildTime, recTime, evalTime);
 
-		System.out.format("%s | Evaluated in %s \n", result, StopWatch.str("evaluate"));
+		// print each result to show progress
+		System.out.format("%s \n", result);
 		return result;
 	}
 	

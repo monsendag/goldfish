@@ -16,10 +16,12 @@ import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 
 public class Main {
 
+	
+	public static DataSet set;
 	// disable Mahout logging output
 	static {
-		// System.setProperty("org.apache.commons.logging.Log",
-		// "org.apache.commons.logging.impl.NoOpLog");
+		 System.setProperty("org.apache.commons.logging.Log",
+		 "org.apache.commons.logging.impl.NoOpLog");
 	}
 
 	/**
@@ -32,21 +34,21 @@ public class Main {
 	public static void main(String[] args) throws IOException, TasteException, InterruptedException,
 			ClassNotFoundException {
 
-		DataSet set;
-		// set = DataSet.Movielens1M;
-		// set = DataSet.Sample100;
-		// set = DataSet.Movielens1Mbinary;
-		// set = DataSet.Movielens50kbinary;
-		// set = DataSet.Movielens50k;
-		// set = DataSet.MovielensSynthesized1M;
-		// set = DataSet.MovielensSynthesized200k;
-		set = DataSet.Movielens1M;
+//		 set = DataSet.Movielens1M;
+//		 set = DataSet.Sample100;
+//		 set = DataSet.Movielens1Mbinary;
+//		 set = DataSet.Movielens50kbinary;
+
+//		 set = DataSet.MovielensSynthesized1M;
+//		 set = DataSet.MovielensSynthesized200k;
+//		set = DataSet.Movielens1M;
+		 set = DataSet.Movielens50k;
 		// set = DataSet.food;
 
 		DataModel dataModel = getDataModel(set);
 		Evaluator evaluator = new Evaluator();
 		List<Evaluation> evaluations = new ArrayList<Evaluation>();
-		EvaluationResults results = new EvaluationResults();
+		EvaluationResults results = new EvaluationResults(dataModel);
 
 		int[] topNvals = { 10 };
 		for (int topN : topNvals) {
@@ -94,7 +96,7 @@ public class Main {
 
 		StopWatch.start("total evaluation");
 		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.1);
-		results.save(set);
+		results.save();
 		// results.print();
 		System.out.format("Completed evaluation in %s\n", StopWatch.str("total evaluation"));
 	}
