@@ -18,8 +18,8 @@ public class Main {
 
 	// disable Mahout logging output
 	static {
-		System.setProperty("org.apache.commons.logging.Log",
-				"org.apache.commons.logging.impl.NoOpLog");
+		// System.setProperty("org.apache.commons.logging.Log",
+		// "org.apache.commons.logging.impl.NoOpLog");
 	}
 
 	/**
@@ -29,40 +29,42 @@ public class Main {
 	 * @throws ClassNotFoundException
 	 * @throws InterruptedException
 	 */
-	public static void main(String[] args) throws IOException, TasteException, InterruptedException, ClassNotFoundException {
-		
-		DataSet set;
+	public static void main(String[] args) throws IOException, TasteException, InterruptedException,
+			ClassNotFoundException {
 
-//		set = DataSet.Movielens1M;
-//		set = DataSet.Sample100;
-//		set = DataSet.Movielens1Mbinary;
-//		set = DataSet.Movielens50kbinary;
-//		set = DataSet.Movielens50k;
-//		set = DataSet.MovielensSynthesized1M;
-//		set = DataSet.MovielensSynthesized200k;
+		DataSet set;
+		// set = DataSet.Movielens1M;
+		// set = DataSet.Sample100;
+		// set = DataSet.Movielens1Mbinary;
+		// set = DataSet.Movielens50kbinary;
+		// set = DataSet.Movielens50k;
+		// set = DataSet.MovielensSynthesized1M;
+		// set = DataSet.MovielensSynthesized200k;
 		set = DataSet.Movielens1M;
-//		set = DataSet.food;
-		
+		// set = DataSet.food;
+
 		DataModel dataModel = getDataModel(set);
 		Evaluator evaluator = new Evaluator();
 		List<Evaluation> evaluations = new ArrayList<Evaluation>();
 		EvaluationResults results = new EvaluationResults();
-	
-		int[] topNvals = {10};
-		for(int topN : topNvals) {
-	
+
+		int[] topNvals = { 10 };
+		for (int topN : topNvals) {
+
 			int numFeatures = 10;
 			int numIterations = 20;
 			double lambda = 0.01;
-			// these next two control decayFactor^steps exponential type of annealing learning rate and decay factor
+			// these next two control decayFactor^steps exponential type of
+			// annealing learning rate and decay factor
 			double mu0 = 0.01;
 			double decayFactor = 1;
-			
+
 			// these next two control 1/steps^forget type annealing
 			int stepOffset = 0;
-			// -1 equals even weighting of all examples, 0 means only use exponential annealing
+			// -1 equals even weighting of all examples, 0 means only use
+			// exponential annealing
 			double forgettingExponent = 0;
-			
+
 			// The following two should be inversely proportional :)
 			double biasMuRatio = 0.5;
 			double biasLambdaRatio = 0.1;
@@ -74,71 +76,65 @@ public class Main {
 			double randomNoise = 0.01;
 			// Multiplicative decay factor for learning_rate
 			double learningRateDecay = 1.0;
-			
-			evaluations.add(new ParallelSGD(topN, numFeatures, numIterations, lambda, mu0, decayFactor, stepOffset, forgettingExponent, biasMuRatio, biasLambdaRatio)); 
-//			evaluations.add(new RatingSGD(topN, numFeatures, numIterations, learningRate, preventOverfitting, randomNoise, learningRateDecay));
-//			
-//			evaluations.add(new KNN(topN, MemoryBased.Similarity.EuclideanDistance, 2));
-//			evaluations.add(new KiwiEvaluation(topN, new double[]{2, 1}, new double[]{10, 10, 2}));			
-//			evaluations.add(new SVDPlusPlus(topN, numFeatures, numIterations, learningRate, preventOverfitting, randomNoise, learningRateDecay));
+
+			evaluations.add(new Lynx(topN, numFeatures, numIterations, lambda, mu0, decayFactor, stepOffset,
+					forgettingExponent, biasMuRatio, biasLambdaRatio));
+			// evaluations.add(new RatingSGD(topN, numFeatures, numIterations,
+			// learningRate, preventOverfitting, randomNoise,
+			// learningRateDecay));
+			//
+			// evaluations.add(new KNN(topN,
+			// MemoryBased.Similarity.EuclideanDistance, 2));
+			// evaluations.add(new KiwiEvaluation(topN, new double[]{2, 1}, new
+			// double[]{10, 10, 2}));
+			// evaluations.add(new SVDPlusPlus(topN, numFeatures, numIterations,
+			// learningRate, preventOverfitting, randomNoise,
+			// learningRateDecay));
 		}
-		
 
 		StopWatch.start("total evaluation");
 		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.1);
 		results.save(set);
-//		results.print();
+		// results.print();
 		System.out.format("Completed evaluation in %s\n", StopWatch.str("total evaluation"));
-//		KiwiRecommender.close();
-
 	}
 
 	public static enum DataSet {
-		Movielens1M, Movielens1Mbinary, Movielens50k, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, Sample100, VTT36k, food
+		Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food
 	}
 
-	public static DataModel getDataModel(DataSet set) throws IOException,
-			TasteException {
-		DataModel dataModel;
+	public static DataModel getDataModel(DataSet set) throws IOException, TasteException {
+		DataModel model;
 		switch (set) {
+		
+		// regular models
+		case Netflix100M:
+			return new FileDataModel(new File("datasets/netflix-100m/ratings.tsv.gz"));
 		case Movielens1M:
-			return new GroupLensDataModel(new File(
-					"datasets/movielens-1m/ratings.dat.gz"));
-		case Movielens1Mbinary:
-			dataModel = new FileDataModel(new File(
-					"datasets/movielens-1m/ratings-binary.csv"));
-			return new GenericBooleanPrefDataModel(
-					GenericBooleanPrefDataModel.toDataMap(dataModel));
+			return new FileDataModel(new File("datasets/movielens-1m/ratings.tsv.gz"));
 		case Movielens50k:
-			return new GroupLensDataModel(new File(
-					"datasets/movielens-1m/ratings-50k.dat"));
-		case Movielens50kbinary:
-			dataModel = new FileDataModel(new File(
-					"datasets/movielens-1m/ratings-binary-50k.csv"));
-			return new GenericBooleanPrefDataModel(
-					GenericBooleanPrefDataModel.toDataMap(dataModel));
+			return new FileDataModel(new File("datasets/movielens-1m/ratings-50k.tsv.gz"));
+
+		// synthesized models (initialized with SMDataModel
 		case MovielensSynthesized1M:
-			return new SMDataModel(new File(
-					"datasets/movielens-synthesized/ratings-synthesized.csv"));
+			return new SMDataModel(new File("datasets/movielens-synthesized/ratings-synthesized.tsv"));
 		case MovielensSynthesized200k:
-			return new SMDataModel(
-					new File(
-							"datasets/movielens-synthesized/ratings-synthesized-200k.csv"));
+			return new SMDataModel(new File("datasets/movielens-synthesized/ratings-200k.tsv"));
 		case MovielensSynthesized50k:
-			return new SMDataModel(
-					new File(
-							"datasets/movielens-synthesized/ratings-synthesized-50k.csv"));
-		case Sample100:
-			return new GroupLensDataModel(new File(
-					"datasets/sample100/ratings.dat.gz"));
-		case VTT36k:
-			dataModel = new FileDataModel(new File(
-					"datasets/vtt-36k/VTT_I_data.csv"));
-			return new GenericBooleanPrefDataModel(
-					GenericBooleanPrefDataModel.toDataMap(dataModel));
+			return new SMDataModel(new File("datasets/movielens-synthesized/ratings-50k.tsv"));
 		case food:
-			return new SMDataModel(new File(
-					"datasets/FOOD_Dataset/food-ettellerannet.csv"));
+			return new SMDataModel(new File("datasets/FOOD_Dataset/food-ettellerannet.csv"));
+		
+		// binary models
+		case VTT36k:
+			model = new FileDataModel(new File("datasets/vtt-36k/VTT_I_data.csv"));
+			return new GenericBooleanPrefDataModel(GenericBooleanPrefDataModel.toDataMap(model));
+		case Movielens1Mbinary:
+			model = new FileDataModel(new File("datasets/movielens-1m/ratings-binary.csv"));
+			return new GenericBooleanPrefDataModel(GenericBooleanPrefDataModel.toDataMap(model));
+		case Movielens50kbinary:
+			model = new FileDataModel(new File("datasets/movielens-1m/ratings-binary-50k.csv"));
+			return new GenericBooleanPrefDataModel(GenericBooleanPrefDataModel.toDataMap(model));
 		}
 		return null;
 	}
