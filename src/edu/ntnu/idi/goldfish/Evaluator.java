@@ -70,7 +70,7 @@ public class Evaluator {
 		
 		RMSRecommenderEvaluator RMSE = new RMSRecommenderEvaluator();
 //		AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
-        RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator(new SMDataSplitter());
+        RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
 		
 		double rmse = 0;
 		double aad = 0;
@@ -78,7 +78,7 @@ public class Evaluator {
 		// recTime
 		long recTime;
 		
-//		rmse = RMSE.evaluate(evaluation.getBuilder(), null, dataModel, 1 - testFrac, testFrac);
+		rmse = RMSE.evaluate(evaluation.getRecommenderBuilder(), null, dataModel, 1 - testFrac, testFrac);
 //		aad = AAD.evaluate(recommender.getBuilder(), null, dataModel, 1 - testFrac, test);
         IRStatistics stats = irEvaluator.evaluate(evaluation.getRecommenderBuilder(), evaluation.getModelBuilder(), dataModel, null, evaluation.getTopN(), relevanceThreshold, testFrac);
 
