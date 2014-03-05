@@ -70,7 +70,7 @@ public class Result {
 		formats.put("%s", getSimilarity());
 		formats.put("%.2f", getKTL());
 		formats.put("%d", getTopN());
-//		formats.put("%.3f", RMSE);
+		formats.put("%.3f", RMSE);
 //		formats.put("%.3f", AAD);
 		formats.put("%.3f", precision);
 		formats.put("%.3f", recall);
