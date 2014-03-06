@@ -95,7 +95,7 @@ public class Main {
 		}
 
 		StopWatch.start("total evaluation");
-		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.1);
+		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.5);
 		results.save();
 		// results.print();
 		System.out.format("Completed evaluation in %s\n", StopWatch.str("total evaluation"));
