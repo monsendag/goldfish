@@ -3,48 +3,54 @@
 library(data.table)
 library(ggplot2)
 
-##
 # returns top k evaluations for each group
 get_top <- function(df, type, k) {
 
+    # get top K results based on sum of Precision and Recall
     if(type=="Precision/Recall") {
       top <- df[,sum(get("Precision") + get("Recall")), by=grp]
     }
+
+    # get top K results based on Recall
     else if(type=="Recall") {
       top <- df[,sum(get("Recall")), by=grp]
     }
+
+    # get top K results based on Precision
     else {
       top <- df[,sum(get("Precision")), by=grp]
     }
 
+    # order by V1
     top <- top[order(V1, decreasing=TRUE)]
+    # select top K values
     top <- head(top, k)
-
+    # return selection
     return(df[top])
 }
 
 ##
 # does the actual plotting work
 # if k>0 we select the top k configurations in terms of type selected
-irPlot <- function(dataset, type, k=0, f=3) {
+irPlot <- function(dataset, type, k=0, legendPos='topLeft', save_path) {
 
-    # determine axis by type
+    # determine axis identifiers by type
     yaxis <- ifelse(type=="Precision_Recall", "Precision", type)
     xaxis <- ifelse(type=="Precision_Recall", "Recall", "TopN")
 
+    # rename axis title: TopN to N
     xtitle <- ifelse(xaxis=="TopN", "N", xaxis)
 
-
+    # list dataset parts
     df <- dataset$data
     name <- dataset$name
 
-
-    legendpos <- ifelse(f==1, c(0,1), ifelse(f==2, c(1,1), c(1,0)))
-
-    # only select top k if k >= 1
+    # only select top k if k >= 1, otherwise use all values
     if(k >= 1) {
       df <- get_top(df, type, k)
     }
+
+    legends <- getLegendPos(legendPos)
 
     plot <- ggplot(df, aes_string(x=xaxis,y=yaxis, group="grp",  color="grp"))
     plot <- plot + stat_smooth(method = "loess",formula = y ~ x, size = 0.9, se=F, level=0.95)
@@ -61,17 +67,14 @@ irPlot <- function(dataset, type, k=0, f=3) {
       text = element_text(size=13),
       legend.title = element_blank(),
       legend.text = element_text(colour="black", size = 13),
-      legend.position = c(1,0),
-      #legend.position="none",
+      legend.position = getLegendPos(legendPos),
       legend.justification = c(1,0),
       legend.background = element_rect(colour = NA, fill = "white")
     )
     plot <- plot + labs(x=xtitle)
 
-  #  quartz()
-   # plot
-
-    file <- paste("~/Projects/goldfish/graphs/pdf/", paste(name, type, sep="-"), sep="")
+    # store plot to file
+    file <- paste(save_path, "/", paste(name, type, sep="-"), sep="")
     file <- gsub(" ", "-", file)
     file <- gsub("[.]", "", file)
     file <- paste(file, ".pdf", sep="")
@@ -88,12 +91,12 @@ get_name <- function(filename) {
   return(name)
 }
 
+# returns list(name=, data=) containing name and dataset
+get_dataset <- function(folder, filename) {
+  # read data from file
+  data <- fread(paste(folder, "/", filename, sep=""))
 
-##
-# returns list(name=, data=) with name and actual dataset
-get_dataset <- function(filename) {
-  data <- fread(paste("~/Projects/goldfish/results/", filename, sep=""))
-
+  # allocate grp column
   data$grp <- ""
 
   for (i in 1:nrow(data)) {
@@ -104,13 +107,29 @@ get_dataset <- function(filename) {
     data[i] <- row
   }
 
-  # set data index
+  # create index on 'grp'
   data <- data.table(data, key='grp')
   # filter out NaN
   data <- data[complete.cases(data), ]
   # set name
   name <- get_name(filename)
   dataset <- list(name=name, data=data)
+}
+
+getLegendPos <- function(pos='topLeft') {
+  position <- switch(pos,
+    topLeft = c(1,0),
+    topRight = c(0,1),
+    bottomRight = c(1,1),
+    bottomLeft =  c(0,0)
+  )
+  justification <- switch(pos,
+    topLeft = c(1,0),
+    topRight = c(0,1),
+    bottomRight = c(1,1),
+    bottomLeft =  c(0,0)
+  )
+  return list(position=position, justification=justification)
 }
 
 
@@ -139,54 +158,10 @@ comparePlot <- function(evaluation, type, datasets) {
 
 
 ##
-# loops over vector of filenames
-# plots Precision, Recall and Precision/Recall curves
+# loops over list of filenames
+# creates irPlots of each type
 plotAll <- function(datasets, type, k=10) {
     for(dataset in datasets) {
         irPlot(dataset, type, k)
     }
 }
-
-
-# list of data set files to plot
-vtt <- list()
-#vtt$unclustered <- "2013-11-17-163634-VTT36k-unclustered.csv"
-#vtt$cluster2 <- "2013-11-27-222024-VTT36k-2 clusters.csv"
-#vtt$cluster3 <- "2013-11-28-012024-VTT36k-3 clusters.csv"
-#vtt$cluster5 <- "2013-11-28-061852-VTT36k-5 clusters.csv"
-vtt$cluster7 <- "2013-11-28-142459-VTT36k-7 clusters.csv"
-#vtt$cluster9 <- "2013-11-29-070254-VTT36k-9 clusters.csv"
-#vtt$cluster11 <- "2013-11-30-013920-VTT36k-11 clusters.csv"
-
-#vtt$k2tanimoto.top250.1 <- "archive/2013-12-07-135343-VTT36k-k2-tanimoto-top250-1.csv"
-#vtt$k2tanimoto.top250.2 <- "2013-12-07-140109-VTT36k-k2-tanimoto-top250-2.csv"
-#vtt$k2tanimoto.user580.top250 <- "2013-12-07-152021-VTT36k-k2tanimoto-user580-top250.csv"
-#vtt$k2tanimoto.user580.top250.2 <- "2013-12-07-152317-VTT36k-k2tanimoto-user580-top250-2.csv"
-#vtt$threshold04.top200 <- "2013-12-09-133101-VTT36k-threhold04-top200.csv"
-
-vtt <- lapply(vtt, get_dataset)
-
-#df <- vtt$cluster7
-
-
-
-vtt$cluster7$data <- vtt$cluster7$data[vtt$cluster7$data$grp != "Threshold 0.35 TanimotoCoefficient", ]
-vtt$cluster7$data <- vtt$cluster7$data[vtt$cluster7$data$grp != "Threshold 0.4 TanimotoCoefficient", ]
-#vtt$cluster7$data <- vtt$cluster7$data[vtt$cluster7$data$grp != "Threshold 0.3 TanimotoCoefficient", ]
-
-#str(vtt$cluster7[ != "Threshold 0.4 LogLikelihood",])
-
-#Threshold 0.4 TanimotoCoefficient
-#irPlot(vtt$cluster7, "Precision_Recall", 10, 1)
-#irPlot(vtt$cluster7, "Recall", 10)
-#irPlot(vtt$cluster7, "Precision", 10)
-#irPlot(vtt$unclustered, "Precision_Recall", 0)
-#irPlot(vtt$unclustered, "Recall", 10)
-irPlot(vtt$cluster7, "Precision_Recall", 10)
-
-
-#comparePlot("Threshold 0.3 TanimotoCoefficient", "Precision_Recall", vtt)
-#comparePlot("Threshold 0.35 TanimotoCoefficient", "Precision_Recall", vtt)
-#comparePlot("2NN TanimotoCoefficient", "Precision_Recall", vtt)
-#comparePlot("3NN TanimotoCoefficient", "Precision_Recall", vtt)
-

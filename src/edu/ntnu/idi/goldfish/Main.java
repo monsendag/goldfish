@@ -1,5 +1,7 @@
 package edu.ntnu.idi.goldfish;
 
+import static org.bitbucket.dollar.Dollar.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,7 +44,8 @@ public class Main {
 //		 set = DataSet.MovielensSynthesized1M;
 //		 set = DataSet.MovielensSynthesized200k;
 //		set = DataSet.Movielens1M;
-		 set = DataSet.Movielens50k;
+//		 set = DataSet.Movielens50k;
+		 set = DataSet.yow10k;
 		// set = DataSet.food;
 
 		DataModel dataModel = getDataModel(set);
@@ -50,7 +53,7 @@ public class Main {
 		List<Evaluation> evaluations = new ArrayList<Evaluation>();
 		EvaluationResults results = new EvaluationResults(dataModel);
 
-		int[] topNvals = { 10 };
+		List<Integer> topNvals = $(10, 20).toList();
 		for (int topN : topNvals) {
 
 			int numFeatures = 10;
@@ -102,12 +105,15 @@ public class Main {
 	}
 
 	public static enum DataSet {
-		Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food
+		yow10k, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food
 	}
 
 	public static DataModel getDataModel(DataSet set) throws IOException, TasteException {
 		DataModel model;
 		switch (set) {
+		
+		case yow10k:
+			return new FileDataModel(new File("datasets/yow-userstudy/ratings.tsv"));
 		
 		// regular models
 		case Netflix100M:
