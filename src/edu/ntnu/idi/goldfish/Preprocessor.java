@@ -16,6 +16,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.correlation.*;
 import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.impl.common.FullRunningAverage;
 import org.apache.mahout.cf.taste.model.Preference;
 
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
@@ -31,45 +32,72 @@ public class Preprocessor {
 	public static void main(String[] args) {
 		Preprocessor pre = new Preprocessor();
 		pre.readFile("datasets/yow-userstudy/ratings-and-timings.csv");
-		pre.writeToCsv("datasets/yow-userstudy/processed.csv");
+
+		pre.calculateRMSE();
+
+		// pre.writeToCsv("datasets/yow-userstudy/processed.csv");
 	}
 
-	public void writeToCsv(String name){
-			for(Pref p : prefs) {
-				boolean hasExplicit = p.expl >= 1;
-				boolean hasImplicit = p.impl > 0;
-				
-				if(!hasExplicit && hasImplicit) {
-					// have implicit
-					// find out if we have enough explicit-implicit rating pars
-					List<Pref> ps = get(p.itemId);
-					if(ps.size() >= THRESHOLD) {
-						// check if abs(correlation) > 0.5
-						double correlation = getCorrelation(ps);
-						if(Math.abs(correlation) > 0.5) {
-							// calculate pseudorating, and store as explicit rating
-							// win
-							p.expl = getPseudoRating(p, correlation, ps);
-						}
+	public void calculateRMSE() {
+		FullRunningAverage average = new FullRunningAverage();
+		for (Pref p : prefs) {
+			boolean hasExplicit = p.expl >= 1;
+			boolean hasImplicit = p.impl > 0;
+
+			if (hasExplicit && hasImplicit) {
+				// have implicit
+				// find out if we have enough explicit-implicit rating pars
+				List<Pref> ps = get(p.itemId);
+				if (ps.size() >= THRESHOLD) {
+					// check if abs(correlation) > 0.5
+					double correlation = getCorrelation(ps);
+					if (Math.abs(correlation) > 0.5) {
+						// calculate pseudorating, and store as explicit rating
+						double diff = p.expl - getPseudoRating(p, correlation, ps);
+						average.addDatum(Math.abs(diff));
 					}
 				}
 			}
-			
-			try {
-				FileWriter writer = new FileWriter(name);
-				for(Pref p : prefs) {
-					writer.write(String.format("%d,%d,%d\n", p.userId, p.itemId, p.expl));
+		}
+		System.out.println(Math.sqrt(average.getAverage()));
+	}
+
+	public void writeToCsv(String name) {
+		for (Pref p : prefs) {
+			boolean hasExplicit = p.expl >= 1;
+			boolean hasImplicit = p.impl > 0;
+
+			if (!hasExplicit && hasImplicit) {
+				// have implicit
+				// find out if we have enough explicit-implicit rating pars
+				List<Pref> ps = get(p.itemId);
+				if (ps.size() >= THRESHOLD) {
+					// check if abs(correlation) > 0.5
+					double correlation = getCorrelation(ps);
+					if (Math.abs(correlation) > 0.5) {
+						// calculate pseudorating, and store as explicit rating
+						// win
+						p.expl = getPseudoRating(p, correlation, ps);
+					}
 				}
-				writer.close();
 			}
-			catch(IOException e) {}
+		}
+
+		try {
+			FileWriter writer = new FileWriter(name);
+			for (Pref p : prefs) {
+				writer.write(String.format("%d,%d,%d\n", p.userId, p.itemId, p.expl));
+			}
+			writer.close();
+		} catch (IOException e) {
+		}
 	}
 
 	private int getPseudoRating(Pref p, double correlation, List<Pref> ps) {
 		int min = Integer.MAX_VALUE;
 		int max = Integer.MIN_VALUE;
 		int pseudoRating = 5;
-		
+
 		for (Pref pref : ps) {
 			if (pref.impl < min) {
 				min = pref.impl;
@@ -82,18 +110,15 @@ public class Preprocessor {
 		if (min == max) {
 			return 3;
 		}
-		
-		if(p.impl < max){
+
+		if (p.impl < max) {
 			pseudoRating = (int) (1 + Math.floor((5 * (p.impl / max))));
-		}
-		
-		if(pseudoRating <= 0 || pseudoRating > 5) {
-			System.out.println("Im cool yo");
 		}
 
 		if (correlation < 0) {
 			pseudoRating = 6 - pseudoRating;
 		}
+
 		return pseudoRating;
 	}
 
@@ -122,17 +147,15 @@ public class Preprocessor {
 				// use comma as separator
 				String[] row = line.split(cvsSplitBy);
 				// need 4 values
-				if(row.length != 4) {
+				if (row.length != 4) {
 					continue;
 				}
-				
+
 				int userId = Integer.parseInt(row[0]);
 				int articleId = Integer.parseInt(row[1]);
 				int expl = Integer.parseInt(row[2]);
-				
+
 				int impl = Integer.parseInt(row[3]);
-				
-				
 
 				Pref p = new Pref(userId, articleId, impl, expl);
 
@@ -161,7 +184,7 @@ public class Preprocessor {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
+		}
 	}
 
 	public double getCorrelation(List<Pref> prefs) {
