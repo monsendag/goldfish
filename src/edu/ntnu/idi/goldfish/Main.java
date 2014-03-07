@@ -45,7 +45,8 @@ public class Main {
 //		 set = DataSet.MovielensSynthesized200k;
 //		set = DataSet.Movielens1M;
 //		 set = DataSet.Movielens50k;
-		 set = DataSet.yow10k;
+//		 set = DataSet.yow10kratings;
+		 set = DataSet.yow10kprocessed;
 		// set = DataSet.food;
 
 		DataModel dataModel = getDataModel(set);
@@ -98,23 +99,26 @@ public class Main {
 		}
 
 		StopWatch.start("total evaluation");
-		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.5);
+		evaluator.evaluateUnclustered(evaluations, results, dataModel, 0.9);
 		results.save();
 		// results.print();
 		System.out.format("Completed evaluation in %s\n", StopWatch.str("total evaluation"));
 	}
 
 	public static enum DataSet {
-		yow10k, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food
+		yow10kratings, yow10kprocessed, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food
 	}
 
 	public static DataModel getDataModel(DataSet set) throws IOException, TasteException {
 		DataModel model;
 		switch (set) {
+		// yow userstudy
+		case yow10kratings:
+			return new FileDataModel(new File("datasets/yow-userstudy/ratings.csv"));
+		case yow10kprocessed:
+			return new FileDataModel(new File("datasets/yow-userstudy/processed.csv"));
 		
-		case yow10k:
-			return new FileDataModel(new File("datasets/yow-userstudy/ratings.tsv"));
-		
+			
 		// regular models
 		case Netflix100M:
 			return new FileDataModel(new File("datasets/netflix-100m/ratings.tsv.gz"));
