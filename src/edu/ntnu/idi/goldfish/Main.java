@@ -45,8 +45,8 @@ public class Main {
 //		 set = DataSet.MovielensSynthesized200k;
 //		set = DataSet.Movielens1M;
 //		 set = DataSet.Movielens50k;
-//		 set = DataSet.yow10kratings;
-		 set = DataSet.yow10kprocessed;
+		 set = DataSet.yow10kratings;
+//		 set = DataSet.yow10kprocessed;
 		// set = DataSet.food;
 
 		DataModel dataModel = getDataModel(set);
