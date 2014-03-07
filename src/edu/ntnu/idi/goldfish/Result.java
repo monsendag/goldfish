@@ -6,7 +6,7 @@ public class Result {
 
 	Evaluation evaluation;
 	
-	
+	String name = null;
 	
 	// RMSE
 	double RMSE;
@@ -27,6 +27,7 @@ public class Result {
 	// evaluation time
 	long evalTime;
 	
+
 	public Result(Evaluation evaluation, double RMSE, double AAD, double precision, double recall, long buildTime, long recTime, long evalTime) {
 		this.evaluation = evaluation;
 
@@ -41,12 +42,17 @@ public class Result {
 		this.evalTime = evalTime;
 	}
 	
+	
 	public int getTopN() {
 		return evaluation.getTopN();
 	}
 	
 	public double getKTL() {
 		return evaluation.getKTL();
+	}
+	
+	public String getName() {
+		return name != null ? name : evaluation.toString();
 	}
 	
 	public String getSimilarity() {
@@ -56,7 +62,7 @@ public class Result {
 	public String toString() {
 		
 		Formatter formats = new Formatter();
-		formats.put("%-11s", evaluation.toString());
+		formats.put("%-11s", getName());
 		formats.put("%19s", getSimilarity());
 		formats.put("K/T/L: %5.2f", getKTL());
 		formats.put("Top-N: %3d", getTopN());
@@ -73,7 +79,7 @@ public class Result {
 	
 	public String toTSV() {
 		Formatter formats = new Formatter();
-		formats.put("%s", evaluation.toString());
+		formats.put("%s", getName());
 		formats.put("%s", getSimilarity());
 		formats.put("%.2f", getKTL());
 		formats.put("%d", getTopN());
@@ -100,12 +106,15 @@ public class Result {
 			totalRecTime += res.recTime;
 			totalEvalTime += res.evalTime;
 		}
-		return new Result(results.get(0).evaluation, totalRMSE, totalAAD, totalPrecision, totalRecall, totalBuildTime, totalRecTime, totalEvalTime);
-	}
+		Result result = new Result(results.get(0).evaluation, totalRMSE, totalAAD, totalPrecision, totalRecall, totalBuildTime, totalRecTime, totalEvalTime);
+		result.name = "# TOTALS";
+		return result;	}
 	
 	public static Result getAverage(List<Result> results) {
 		int N = results.size();
 		Result total = getTotal(results);
-		return new Result(results.get(0).evaluation, total.RMSE / N, total.AAD / N, total.precision / N, total.recall / N, total.buildTime / N, total.recTime / N, total.evalTime / N);
+		total = new Result(results.get(0).evaluation, total.RMSE / N, total.AAD / N, total.precision / N, total.recall / N, total.buildTime / N, total.recTime / N, total.evalTime / N);
+		total.name = "# AVERAGE"; 
+		return total;
 	}
 }

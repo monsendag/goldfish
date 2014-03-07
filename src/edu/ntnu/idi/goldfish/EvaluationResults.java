@@ -71,6 +71,7 @@ public class EvaluationResults extends ArrayList<Result> {
 		for (Result res : this) {
 			out += res.toTSV()+"\n";
 		}
+		out += Result.getTotal(this)+"\n";
 		return out;
 	}
 	
@@ -99,6 +100,7 @@ public class EvaluationResults extends ArrayList<Result> {
             File file = new File(fileName);
             writer = new BufferedWriter(new FileWriter(file));
             writer.write(output);
+            System.out.println("Saved to file: "+fileName);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -111,6 +113,7 @@ public class EvaluationResults extends ArrayList<Result> {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            
         }
     }
 

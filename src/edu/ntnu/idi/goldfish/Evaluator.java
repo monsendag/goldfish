@@ -63,6 +63,9 @@ public class Evaluator {
 		for(Evaluation evaluation : evaluations) {
 			results.add(evaluate(evaluation, dataModel, test, getRandomUser(dataModel)));
 		}
+		System.out.println("==================================================================================================================================================================================");
+		System.out.println(Result.getTotal(results));
+		System.out.println(Result.getAverage(results));
 		System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems(), StopWatch.str("totaleval"));
 	}
 	
