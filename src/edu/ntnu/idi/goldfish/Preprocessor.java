@@ -1,25 +1,15 @@
 package edu.ntnu.idi.goldfish;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.correlation.*;
-import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.cf.taste.model.Preference;
-
-import edu.ntnu.idi.goldfish.mahout.SMPreference;
-import edu.ntnu.idi.goldfish.mahout.SMPreferenceArray;
 
 public class Preprocessor {
 
@@ -68,7 +58,7 @@ public class Preprocessor {
 	private int getPseudoRating(Pref p, double correlation, List<Pref> ps) {
 		int min = Integer.MAX_VALUE;
 		int max = Integer.MIN_VALUE;
-		int pseudoRating = 5;
+		int pseudoRating;
 		
 		for (Pref pref : ps) {
 			if (pref.impl < min) {
@@ -78,19 +68,21 @@ public class Preprocessor {
 				max = pref.impl;
 			}
 		}
-
+		
 		if (min == max) {
 			return 3;
 		}
-		
-		if(p.impl < max){
-			pseudoRating = (int) (1 + Math.floor((5 * (p.impl / max))));
-		}
-		
-		if(pseudoRating <= 0 || pseudoRating > 5) {
-			System.out.println("Im cool yo");
-		}
 
+		if(p.impl < min){
+			pseudoRating = 1;
+		} else if(p.impl > max) {
+			pseudoRating = 5;
+		} else{
+			int binSize = (max-min)/5;
+			int dif = p.impl - min;
+			pseudoRating = (int) (1 + Math.floor(dif/binSize));
+		}
+		
 		if (correlation < 0) {
 			pseudoRating = 6 - pseudoRating;
 		}
