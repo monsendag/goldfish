@@ -81,8 +81,8 @@ public class SMRMSEevaluator extends AbstractDifferenceRecommenderEvaluator {
 		DataModel trainingModel = dataModelBuilder == null ? new GenericDataModel(trainingPrefs) : dataModelBuilder
 				.buildDataModel(trainingPrefs);
 
-		System.out.println(String.format("Training set: %d users, %d items, %d prefs", trainingModel.getNumUsers(), trainingModel.getNumItems()));
-		System.out.println(String.format("Test set: %d prefs", testPrefs.size()));
+//		System.out.println(String.format("Training set: %d users, %d items", trainingModel.getNumUsers(), trainingModel.getNumItems()));
+//		System.out.println(String.format("Test set: %d prefs", testPrefs.size()));
 		
 		Recommender recommender = recommenderBuilder.buildRecommender(trainingModel);
 
@@ -110,32 +110,46 @@ public class SMRMSEevaluator extends AbstractDifferenceRecommenderEvaluator {
 		List<Preference> oneUserTestPrefs = null;
 		PreferenceArray prefs = dataModel.getPreferencesFromUser(userID);
 		int size = prefs.length();
+		
+//		int numberOfTestPrefs = 0;
+//		int numberOfTrainingPrefs = 0;
+//		int numberOfPseudoRatings = 0;
 
 		for (int i = 0; i < size; i++) {
 			Preference newPref = new GenericPreference(userID, prefs.getItemID(i), prefs.getValue(i));
 
 			boolean isPseudo = Preprocessor.isPseudoPreference(newPref);
+//			if(isPseudo) numberOfPseudoRatings++;
 			// @TODO keep pseudoratings in training set while keeping correct
 			// trainingPercentage
 
-			if (Math.random() < trainingPercentage) {
+			if (Math.random() < trainingPercentage || isPseudo) {
 				if (oneUserTrainingPrefs == null) {
 					oneUserTrainingPrefs = Lists.newArrayListWithCapacity(3);
 				}
 				oneUserTrainingPrefs.add(newPref);
+//				numberOfTestPrefs++;
 			} else {
 				if (oneUserTestPrefs == null) {
 					oneUserTestPrefs = Lists.newArrayListWithCapacity(3);
 				}
 				oneUserTestPrefs.add(newPref);
+//				numberOfTrainingPrefs++;
 			}
 		}
 		if (oneUserTrainingPrefs != null) {
 			trainingPrefs.put(userID, new GenericUserPreferenceArray(oneUserTrainingPrefs));
+//			numberOfTrainingPrefs++;
 			if (oneUserTestPrefs != null) {
 				testPrefs.put(userID, new GenericUserPreferenceArray(oneUserTestPrefs));
+//				numberOfTestPrefs++;
 			}
 		}
+		
+//		System.out.println(String.format("Test set: %d prefs", numberOfTestPrefs));
+//		System.out.println(String.format("Training set: %d prefs", numberOfTrainingPrefs));
+//		System.out.println(String.format("User %d har %d pseudo ratings", userID, numberOfPseudoRatings));
+		
 	}
 
 }

@@ -22,7 +22,7 @@ import org.apache.mahout.cf.taste.model.Preference;
 
 public class Preprocessor {
 
-	private final int THRESHOLD = 5;
+	private final int THRESHOLD = 2;
 	private Map<Integer, List<Preprocessor.Pref>> prefByUser = new HashMap<Integer, List<Preprocessor.Pref>>();
 	private Map<Integer, List<Preprocessor.Pref>> prefByItem = new HashMap<Integer, List<Preprocessor.Pref>>();
 	private List<Pref> prefs = new ArrayList<Pref>();
@@ -65,7 +65,7 @@ public class Preprocessor {
 			if (hasExplicit && hasImplicit) {
 				// have implicit
 				// find out if we have enough explicit-implicit rating pars
-				List<Pref> ps = get(p.itemId);
+				List<Pref> ps = getRatings(p.itemId);
 				if (ps.size() >= THRESHOLD) {
 					// check if abs(correlation) > 0.5
 					double correlation = getCorrelation(ps);
@@ -91,7 +91,7 @@ public class Preprocessor {
 			if (!hasExplicit && hasImplicit) {
 				// have implicit
 				// find out if we have enough explicit-implicit rating pars
-				List<Pref> ps = get(p.itemId);
+				List<Pref> ps = getRatings(p.itemId);
 				if (ps.size() >= THRESHOLD) {
 					// check if abs(correlation) > 0.5
 					double correlation = getCorrelation(ps);
@@ -165,7 +165,7 @@ public class Preprocessor {
 		return pseudoRating;
 	}
 
-	private List<Pref> get(int itemId) {
+	private List<Pref> getRatings(int itemId) {
 		List<Pref> prefs = new ArrayList<Pref>();
 		for (Pref pref : prefByItem.get(itemId)) {
 			if (pref.expl > 0 && pref.impl > 0) {

@@ -52,7 +52,7 @@ public class Main {
 		List<Evaluation> evaluations = new ArrayList<Evaluation>();
 		EvaluationResults results = new EvaluationResults(dataModel);
 
-		List<Integer> topNvals = $(10, 20).toList();
+		List<Integer> topNvals = $(10, 111).toList();
 		for (int topN : topNvals) {
 
 			int numFeatures = 10;
