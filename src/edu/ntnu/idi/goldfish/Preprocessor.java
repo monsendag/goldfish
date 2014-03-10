@@ -47,11 +47,13 @@ public class Preprocessor {
 		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 	}
 	
-	public DataModel getPreprocessedRatings() throws IOException{
-		readFile("datasets/yow-userstudy/ratings-and-timings.csv");
-		writeToCsv("datasets/yow-userstudy/processed.csv");
+	public static DataModel getPreprocessedRatings() throws IOException{
+
+		Preprocessor pre = new Preprocessor();
+		pre.readFile("datasets/yow-userstudy/ratings-and-timings.csv");
+		pre.writeToCsv("/tmp/yow-userstudy-processed.csv");
 		
-		return new FileDataModel(new File("datasets/yow-userstudy/processed.csv")); 
+		return new FileDataModel(new File("/tmp/yow-userstudy-processed.csv")); 
 	}
 
 	public void calculateRMSE() {

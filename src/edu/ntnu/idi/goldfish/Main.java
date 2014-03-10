@@ -8,12 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.cf.taste.example.grouplens.GroupLensDataModel;
 import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 
-import edu.ntnu.idi.goldfish.mahout.KiwiRecommender;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 
 public class Main {
@@ -45,8 +43,8 @@ public class Main {
 //		 set = DataSet.MovielensSynthesized200k;
 //		set = DataSet.Movielens1M;
 //		 set = DataSet.Movielens50k;
-		 set = DataSet.yow10kratings;
-//		 set = DataSet.yow10kprocessed;
+//		 set = DataSet.yow10kratings;
+		 set = DataSet.yow10kprocessed;
 		// set = DataSet.food;
 
 		DataModel dataModel = getDataModel(set);
@@ -116,8 +114,7 @@ public class Main {
 		case yow10kratings:
 			return new FileDataModel(new File("datasets/yow-userstudy/ratings.csv"));
 		case yow10kprocessed:
-			return new FileDataModel(new File("datasets/yow-userstudy/processed.csv"));
-		
+			return Preprocessor.getPreprocessedRatings();
 			
 		// regular models
 		case Netflix100M:
