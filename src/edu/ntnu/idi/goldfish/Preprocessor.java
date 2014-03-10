@@ -15,7 +15,7 @@ import org.apache.mahout.cf.taste.impl.common.FullRunningAverage;
 
 public class Preprocessor {
 
-	private final int THRESHOLD = 2;
+	private final int THRESHOLD = 5;
 	private Map<Integer, List<Preprocessor.Pref>> prefByUser = new HashMap<Integer, List<Preprocessor.Pref>>();
 	private Map<Integer, List<Preprocessor.Pref>> prefByItem = new HashMap<Integer, List<Preprocessor.Pref>>();
 	private List<Pref> prefs = new ArrayList<Pref>();
@@ -24,9 +24,9 @@ public class Preprocessor {
 		Preprocessor pre = new Preprocessor();
 		pre.readFile("datasets/yow-userstudy/ratings-and-timings.csv");
 
-		pre.calculateRMSE();
+//		pre.calculateRMSE();
 
-		// pre.writeToCsv("datasets/yow-userstudy/processed.csv");
+		 pre.writeToCsv("datasets/yow-userstudy/processed.csv");
 	}
 
 	public void calculateRMSE() {
@@ -44,13 +44,16 @@ public class Preprocessor {
 					double correlation = getCorrelation(ps);
 					if (Math.abs(correlation) > 0.5) {
 						// calculate pseudorating, and store as explicit rating
-						double diff = p.expl - getPseudoRating(p, correlation, ps);
-						average.addDatum(Math.abs(diff));
+						ps.remove(p);
+						int pseudo = getPseudoRatingClosestNeighbor(p, ps);
+//						double error = getPseudoRatingEqualBins(p, correlation, ps);
+						double error = Math.abs(p.expl - pseudo);
+						average.addDatum(error);
 					}
 				}
 			}
 		}
-		System.out.println(Math.sqrt(average.getAverage()));
+		System.out.println(average.getAverage());
 	}
 
 	public void writeToCsv(String name) {
@@ -68,7 +71,7 @@ public class Preprocessor {
 					if (Math.abs(correlation) > 0.5) {
 						// calculate pseudorating, and store as explicit rating
 						// win
-						p.expl = getPseudoRating(p, correlation, ps);
+						p.expl = getPseudoRatingClosestNeighbor(p, ps);
 					}
 				}
 			}
@@ -84,7 +87,22 @@ public class Preprocessor {
 		}
 	}
 
-	private int getPseudoRating(Pref p, double correlation, List<Pref> ps) {
+	private int getPseudoRatingClosestNeighbor(Pref p, List<Pref> ps){
+		int diff = Integer.MAX_VALUE;
+		Pref closestPref = null;
+		
+		for (Pref pref : ps) {
+			int tempDiff = Math.abs(p.impl - pref.impl);
+			if(tempDiff < diff){
+				diff = tempDiff;
+				closestPref = pref;
+			}
+		}
+		
+		return closestPref.expl;
+	}
+	
+	private int getPseudoRatingEqualBins(Pref p, double correlation, List<Pref> ps) {
 		int min = Integer.MAX_VALUE;
 		int max = Integer.MIN_VALUE;
 		int pseudoRating;
