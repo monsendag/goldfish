@@ -1,16 +1,23 @@
 package edu.ntnu.idi.goldfish;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.math3.stat.correlation.*;
 import org.apache.mahout.cf.taste.impl.common.FullRunningAverage;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
+import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.model.Preference;
 
 
 public class Preprocessor {
@@ -19,6 +26,8 @@ public class Preprocessor {
 	private Map<Integer, List<Preprocessor.Pref>> prefByUser = new HashMap<Integer, List<Preprocessor.Pref>>();
 	private Map<Integer, List<Preprocessor.Pref>> prefByItem = new HashMap<Integer, List<Preprocessor.Pref>>();
 	private List<Pref> prefs = new ArrayList<Pref>();
+	
+	private static Set<String> pseudoRatings = new HashSet<String>();
 
 	public static void main(String[] args) {
 		Preprocessor pre = new Preprocessor();
@@ -27,6 +36,22 @@ public class Preprocessor {
 //		pre.calculateRMSE();
 
 		 pre.writeToCsv("datasets/yow-userstudy/processed.csv");
+		 
+	}
+	
+	public Preprocessor(){
+		
+	}
+	
+	public static boolean isPseudoPreference(Preference pref) {
+		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+	}
+	
+	public DataModel getPreprocessedRatings() throws IOException{
+		readFile("datasets/yow-userstudy/ratings-and-timings.csv");
+		writeToCsv("datasets/yow-userstudy/processed.csv");
+		
+		return new FileDataModel(new File("datasets/yow-userstudy/processed.csv")); 
 	}
 
 	public void calculateRMSE() {
@@ -72,6 +97,7 @@ public class Preprocessor {
 						// calculate pseudorating, and store as explicit rating
 						// win
 						p.expl = getPseudoRatingClosestNeighbor(p, ps);
+						pseudoRatings.add(String.format("%d_%d", p.userId, p.itemId));
 					}
 				}
 			}
