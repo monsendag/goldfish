@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.IRStatistics;
 import org.apache.mahout.cf.taste.eval.RecommenderIRStatsEvaluator;
+import org.apache.mahout.cf.taste.impl.eval.AbstractDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.GenericRecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluator;
@@ -17,6 +18,7 @@ import org.apache.mahout.common.RandomWrapper;
 import org.apache.mahout.common.distance.DistanceMeasure;
 
 import edu.ntnu.idi.goldfish.mahout.SMDataSplitter;
+import edu.ntnu.idi.goldfish.mahout.SMRMSEevaluator;
 
 public class Evaluator {
 
@@ -79,14 +81,15 @@ public class Evaluator {
 		double recall = 0;
 
 		// initialize evaluators
-		RMSRecommenderEvaluator RMSE = new RMSRecommenderEvaluator();
+		AbstractDifferenceRecommenderEvaluator RMSE = new SMRMSEevaluator();
 		AverageAbsoluteDifferenceRecommenderEvaluator AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
         RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
 		
+        
         // do evaluations
         // NOTE: when a result is not needed, the respective line may be commented out here for increased evaluation speed
-		rmse = RMSE.evaluate(evaluation.getRecommenderBuilder(), null, dataModel, 1 - testFrac, testFrac);
-		aad = AAD.evaluate(evaluation.getRecommenderBuilder(), null, dataModel, 1 - testFrac, testFrac);
+		rmse = RMSE.evaluate(evaluation.getRecommenderBuilder(), null, dataModel, 0.9, testFrac);
+		aad = AAD.evaluate(evaluation.getRecommenderBuilder(), null, dataModel, 0.9, testFrac);
         IRStatistics stats = irEvaluator.evaluate(evaluation.getRecommenderBuilder(), evaluation.getModelBuilder(), dataModel, null, evaluation.getTopN(), relevanceThreshold, testFrac);
         precision = stats.getPrecision();
         recall = stats.getRecall();
