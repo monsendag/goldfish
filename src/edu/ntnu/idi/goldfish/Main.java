@@ -52,7 +52,7 @@ public class Main {
 		List<Evaluation> evaluations = new ArrayList<Evaluation>();
 		EvaluationResults results = new EvaluationResults(dataModel);
 
-		List<Integer> topNvals = $(10, 20).toList();
+		List<Integer> topNvals = $(10, 111).toList();
 		for (int topN : topNvals) {
 
 			int numFeatures = 10;
@@ -114,7 +114,7 @@ public class Main {
 		case yow10kratings:
 			return new FileDataModel(new File("datasets/yow-userstudy/ratings.csv"));
 		case yow10kprocessed:
-			return Preprocessor.getPreprocessedRatings();
+			return Preprocessor.getPreprocessedDataModel("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv");
 			
 		// regular models
 		case Netflix100M:
