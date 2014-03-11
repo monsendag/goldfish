@@ -277,7 +277,8 @@ public final class SMUserPreferenceArray implements SMPreferenceArray {
 			return values[i][j];
 		}
 
-		public void setValue(float value, int i) {
+		public void setValue(float value, int j) {
+			values[i][j] = value;
 		}
 
 		public float getValue() {
@@ -293,6 +294,7 @@ public final class SMUserPreferenceArray implements SMPreferenceArray {
 		}
 
 		public void setValue(float value) {
+			values[i][0] = value;
 		}
 
 		@Override

@@ -268,8 +268,8 @@ public final class SMItemPreferenceArray implements SMPreferenceArray {
     }
 
 	@Override
-	public void setValue(float value, int i) {
-		
+	public void setValue(float value, int j) {
+		values[i][j] = value;
 	}
 
 	@Override
@@ -279,7 +279,7 @@ public final class SMItemPreferenceArray implements SMPreferenceArray {
 
 	@Override
 	public float[] getValues() {
-		return null;
+		return values[i];
 	}
 
 	public float getValue() {
@@ -287,7 +287,7 @@ public final class SMItemPreferenceArray implements SMPreferenceArray {
 	}
 
 	public void setValue(float value) {
-		
+		values[i][0] = value;
 	}
 
   }
