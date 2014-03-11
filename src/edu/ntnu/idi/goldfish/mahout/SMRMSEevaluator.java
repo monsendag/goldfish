@@ -81,8 +81,8 @@ public class SMRMSEevaluator extends AbstractDifferenceRecommenderEvaluator {
 		DataModel trainingModel = dataModelBuilder == null ? new GenericDataModel(trainingPrefs) : dataModelBuilder
 				.buildDataModel(trainingPrefs);
 
-		System.out.println(String.format("Training set: %d users, %d items, %d prefs", trainingModel.getNumUsers(), trainingModel.getNumItems()));
-		System.out.println(String.format("Test set: %d prefs", testPrefs.size()));
+//		System.out.println(String.format("Training set: %d users, %d items", trainingModel.getNumUsers(), trainingModel.getNumItems()));
+//		System.out.println(String.format("Test set: %d prefs", testPrefs.size()));
 		
 		Recommender recommender = recommenderBuilder.buildRecommender(trainingModel);
 
