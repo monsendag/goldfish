@@ -13,8 +13,9 @@ import com.google.common.base.Preconditions;
  */
 public abstract class SMPreference implements Preference, Serializable {
   
-	public static final int NUM_VALUES = 2;
-    public static float[] weights = {1, 2.5f};  // needs to be reflected in Matlab code (Kiwi.m)
+	public static float defaultWeight = 0; 
+	public static float[] customWeights = {1, 0};
+	public static int NUM_VALUES = -1;
 	
     public abstract void setValue(float value, int i);
     
@@ -23,10 +24,10 @@ public abstract class SMPreference implements Preference, Serializable {
     public abstract float[] getValues();
     
 	public static float combineValues(float[] values) {
-		Preconditions.checkArgument(values.length == weights.length, "Values and weights arrays are of different size");
 		float result = 0;
 		for(int i=0; i<values.length; i++) {
-			result += values[i] * weights[i];
+			// use default weight or custom weights
+			result += i >= customWeights.length ? defaultWeight : values[i] * customWeights[i];
 		}
 		return result;
 	}

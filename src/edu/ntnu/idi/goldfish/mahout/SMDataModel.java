@@ -134,7 +134,6 @@ public class SMDataModel extends AbstractDataModel {
 	private long lastUpdateFileModified;
 	private char delimiter;
 	private Splitter delimiterPattern;
-	private boolean hasPrefValues;
 	private ReentrantLock reloadLock;
 	private boolean transpose;
 	private long minReloadIntervalMS;
@@ -223,13 +222,13 @@ public class SMDataModel extends AbstractDataModel {
 						"Did not find a delimiter(pattern) in first line");
 			}
 		}
+
+                SMPreference.NUM_VALUES = determineNumValues(firstLine);
+
 		List<String> firstLineSplit = Lists.newArrayList();
 		for (String token : delimiterPattern.split(firstLine)) {
 			firstLineSplit.add(token);
 		}
-		// If preference value exists and isn't empty then the file is
-		// specifying pref values
-		hasPrefValues = firstLineSplit.size() >= 3 && !firstLineSplit.get(2).isEmpty();
 
 		this.reloadLock = new ReentrantLock();
 		this.transpose = transpose;
@@ -237,6 +236,14 @@ public class SMDataModel extends AbstractDataModel {
 
 		reload();
 	}
+
+        private int determineNumValues(String firstLine) {
+                int count = -2; // ignore user and item
+                for(String token : delimiterPattern.split(firstLine)) {
+                        count++;
+                }
+                return count;
+        }
 
 	public File getDataFile() {
 		return dataFile;
@@ -426,7 +433,7 @@ public class SMDataModel extends AbstractDataModel {
 			return;
 		}
 
-		Iterator<String> tokens = delimiterPattern.split(line).iterator();
+                Iterator<String> tokens = delimiterPattern.split(line).iterator();
 
 		long userID = Long.parseLong(tokens.next());
 		long itemID = Long.parseLong(tokens.next());
