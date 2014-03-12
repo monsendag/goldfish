@@ -129,7 +129,6 @@ public class Preprocessor {
 		float diff = Float.MAX_VALUE;
 		SMPreference closestPref = null;
 
-		System.out.println(bestCorrelated);
 		for (Preference pref : prefs) {
 			SMPreference p = (SMPreference) pref;
 
