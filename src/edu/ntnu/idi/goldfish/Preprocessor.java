@@ -1,14 +1,8 @@
 package edu.ntnu.idi.goldfish;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.math3.stat.correlation.*;
+import edu.ntnu.idi.goldfish.mahout.SMDataModel;
+import edu.ntnu.idi.goldfish.mahout.SMPreference;
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.mahout.cf.taste.common.NoSuchItemException;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
@@ -16,8 +10,12 @@ import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
 
-import edu.ntnu.idi.goldfish.mahout.SMDataModel;
-import edu.ntnu.idi.goldfish.mahout.SMPreference;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class Preprocessor {
 

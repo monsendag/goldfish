@@ -1,9 +1,9 @@
 package edu.ntnu.idi.goldfish;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 
 public class Formatter {
 

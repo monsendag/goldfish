@@ -1,5 +1,7 @@
 package edu.ntnu.idi.goldfish;
 
+import edu.ntnu.idi.goldfish.mahout.KiwiRecommender;
+import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.DataModelBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
@@ -7,9 +9,6 @@ import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
 import org.apache.mahout.cf.taste.recommender.Recommender;
-
-import edu.ntnu.idi.goldfish.mahout.KiwiRecommender;
-import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 
 public class KiwiEvaluation extends Evaluation{
 

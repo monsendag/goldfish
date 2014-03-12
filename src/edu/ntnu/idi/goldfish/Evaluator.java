@@ -1,24 +1,20 @@
 package edu.ntnu.idi.goldfish;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-
+import edu.ntnu.idi.goldfish.mahout.SMRMSEevaluator;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.IRStatistics;
 import org.apache.mahout.cf.taste.eval.RecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.AbstractDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.GenericRecommenderIRStatsEvaluator;
-import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluator;
 import org.apache.mahout.cf.taste.model.DataModel;
-import org.apache.mahout.cf.taste.recommender.Recommender;
 import org.apache.mahout.common.RandomUtils;
 import org.apache.mahout.common.RandomWrapper;
 import org.apache.mahout.common.distance.DistanceMeasure;
 
-import edu.ntnu.idi.goldfish.mahout.SMDataSplitter;
-import edu.ntnu.idi.goldfish.mahout.SMRMSEevaluator;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 public class Evaluator {
 

@@ -1,18 +1,17 @@
 package edu.ntnu.idi.goldfish;
 
-import static org.bitbucket.dollar.Dollar.*;
+import edu.ntnu.idi.goldfish.mahout.SMDataModel;
+import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
+import org.apache.mahout.cf.taste.model.DataModel;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
-import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
-import org.apache.mahout.cf.taste.model.DataModel;
-
-import edu.ntnu.idi.goldfish.mahout.SMDataModel;
+import static org.bitbucket.dollar.Dollar.$;
 
 public class Main {
 

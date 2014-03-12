@@ -1,10 +1,9 @@
 package edu.ntnu.idi.goldfish;
 
+import edu.ntnu.idi.goldfish.mahout.LynxFactorizer;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.recommender.svd.Factorizer;
 import org.apache.mahout.cf.taste.model.DataModel;
-
-import edu.ntnu.idi.goldfish.mahout.LynxFactorizer;
 
 public class Lynx extends MatrixFactorization {
 

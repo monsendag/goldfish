@@ -18,11 +18,7 @@ package edu.ntnu.idi.goldfish.mahout;
  */
 
 
-import java.io.Serializable;
-
 import org.apache.mahout.cf.taste.model.Preference;
-
-import com.google.common.base.Preconditions;
 
 /**
  * <p>

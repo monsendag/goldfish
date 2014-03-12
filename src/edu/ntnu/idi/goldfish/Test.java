@@ -1,12 +1,10 @@
 package edu.ntnu.idi.goldfish;
 
+import edu.ntnu.idi.goldfish.mahout.SMDataModel;
+import org.apache.mahout.cf.taste.common.TasteException;
+
 import java.io.File;
 import java.io.IOException;
-
-import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.cf.taste.model.DataModel;
-
-import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 
 public class Test {
 

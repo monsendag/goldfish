@@ -17,8 +17,6 @@
 
 package edu.ntnu.idi.goldfish.mahout;
 
-import java.io.Serializable;
-
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
 

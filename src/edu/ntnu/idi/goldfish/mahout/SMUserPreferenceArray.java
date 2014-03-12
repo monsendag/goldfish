@@ -17,17 +17,14 @@
 
 package edu.ntnu.idi.goldfish.mahout;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
+import org.apache.mahout.cf.taste.model.Preference;
+import org.apache.mahout.common.iterator.CountingIterator;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
-
-import org.apache.mahout.cf.taste.model.Preference;
-import org.apache.mahout.cf.taste.model.PreferenceArray;
-import org.apache.mahout.common.iterator.CountingIterator;
 
 /**
  * <p>
