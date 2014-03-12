@@ -60,11 +60,12 @@ public class EvaluationResults extends ArrayList<Result> {
 		String out = "";
 		String[] headers = {"Recommender", "Similarity", "KTL", "TopN", "RMSE", "AAD", "Precision", "Recall", "Build time", "Rec time", "Eval time"};
 
+        out += Result.getTotal(this)+"\n";
+        out += Result.getAverage(this)+"\n";
 		out += StringUtils.join(headers,"\t") +"\n";
 		for (Result res : this) {
 			out += res.toTSV()+"\n";
 		}
-		out += Result.getTotal(this)+"\n";
 		return out;
 	}
 	
