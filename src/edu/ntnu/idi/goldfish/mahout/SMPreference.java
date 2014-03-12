@@ -24,10 +24,9 @@ public abstract class SMPreference implements Preference, Serializable {
 	public static float combineValues(float[] values) {
 		float result = 0;
 		for(int i=0; i<values.length; i++) {
-			// use default weight or custom weights
+			// use custom weights when available, otherwise default
 			result += i >= customWeights.length ? defaultWeight : values[i] * customWeights[i];
 		}
 		return result;
 	}
-    
 }
