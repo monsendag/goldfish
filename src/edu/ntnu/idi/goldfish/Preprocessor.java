@@ -21,16 +21,35 @@ import edu.ntnu.idi.goldfish.mahout.SMPreference;
 
 public class Preprocessor {
 
-	private final int THRESHOLD = 2;
+	private final int THRESHOLD = 3;
 	private Map<String, Float> correlations = new HashMap<String, Float>();
 	private static Set<String> pseudoRatings = new HashSet<String>();
 
 	public static void main(String[] args) throws IOException, TasteException {
-		// pre.readFile("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv");
+		SMDataModel model;
+		model = new SMDataModel(new File("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv"));
 
-		Preprocessor.getPreprocessedDataModel("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv");
-
-		// pre.calculateRMSE();
+ 		System.out.println(String.format("Density unprocessed: %f", getDensity(model)));
+		Preprocessor pre = new Preprocessor();
+		pre.preprocess(model);
+		System.out.println(String.format("Density processed: %f", getDensity(model)));
+	}
+	
+	public static double getDensity(SMDataModel model) throws TasteException{
+		LongPrimitiveIterator it = model.getItemIDs();
+		double count = 0;
+		while (it.hasNext()) {
+			PreferenceArray prefs = model.getPreferencesForItem(it.next());
+			for(Preference p : prefs) {
+				SMPreference pref = (SMPreference) p;
+				if(pref.getValue(0) >= 1) {
+					count += 1;
+				}
+			}
+		}
+		double total = model.getNumUsers() * model.getNumItems();
+		
+		return count/total;
 	}
 
 	public static DataModel getPreprocessedDataModel(String path) throws TasteException, IOException {
@@ -86,10 +105,16 @@ public class Preprocessor {
 							}
 						}
 
+						TrendLine t = new PolyTrendLine(1);
+						double[] explRatings = getRatings(model, itemID, 0);
+						double[] implRatings = getRatings(model, itemID, bestCorrelated); 
+						t.setValues(explRatings, implRatings);
+						
 						// check if abs(correlation) > 0.5
 						double correlation = getCorrelation(model, itemID, bestCorrelated);
 						if (Math.abs(correlation) > 0.5) {
-							float pseudoRating = getPseudoRatingClosestNeighbor(prefs, pref, bestCorrelated);
+							float pseudoRating = (float) Math.round(t.predict(pref.getValue(bestCorrelated)));
+//							float pseudoRating = getPseudoRatingClosestNeighbor(prefs, pref, bestCorrelated);
 							pref.setValue(pseudoRating, 0); // set explicit
 															// value
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
@@ -118,27 +143,31 @@ public class Preprocessor {
 		return closestPref.getValue(0);
 	}
 
-	public double getCorrelation(SMDataModel model, long itemID, int implicitIndex) {
-		PreferenceArray prefs;
-		try {
-			prefs = model.getPreferencesForItem(itemID);
-
-			double[] expl = new double[prefs.length()];
-			double[] impl = new double[prefs.length()];
-
-			for (int i = 0; i < prefs.length(); i++) {
-				SMPreference p = (SMPreference) prefs.get(i);
-				expl[i] = p.getValue(0);
-				impl[i] = p.getValue(implicitIndex);
-			}
-
+	public double getCorrelation(SMDataModel model, long itemID, int implicitIndex) throws NoSuchItemException {
+			double[] expl = getRatings(model, itemID, 0);
+			double[] impl = getRatings(model, itemID, implicitIndex);
+			
 			PearsonsCorrelation pc = new PearsonsCorrelation();
 			return pc.correlation(expl, impl);
-
-		} catch (NoSuchItemException e) {
-			e.printStackTrace();
-			return -1;
+	}
+	
+	/**
+	 * 
+	 * @param model
+	 * @param itemID
+	 * @param index
+	 * 		0 = explicit, 1,2...n = implicit
+	 * @return
+	 * @throws NoSuchItemException
+	 */
+	public double[] getRatings(SMDataModel model, long itemID, int index) throws NoSuchItemException{
+		PreferenceArray prefs = model.getPreferencesForItem(itemID);
+		double[] ratings = new double[prefs.length()];
+		for (int i = 0; i < prefs.length(); i++) {
+			SMPreference p = (SMPreference) prefs.get(i);
+			ratings[i] = p.getValue(index);
 		}
+		return ratings;
 	}
 
 }
