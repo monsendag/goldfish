@@ -93,6 +93,10 @@ public final class SMUserPreferenceArray extends SMPreferenceArray {
 		return false;
 	}
 
+    protected boolean isLess(int i, int j, int type) {
+        return type == ITEM ? ids[i] < ids[j] : super.isLess(i,j, type);
+    }
+
 	public SMUserPreferenceArray clone() {
 		return new SMUserPreferenceArray(ids.clone(), id, values.clone());
 	}

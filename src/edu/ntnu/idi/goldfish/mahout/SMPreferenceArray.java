@@ -120,10 +120,8 @@ public abstract class SMPreferenceArray implements PreferenceArray {
         lateralSort(VALUE_REVERSED);
     }
 
-    private boolean isLess(int i, int j, int type) {
+    protected boolean isLess(int i, int j, int type) {
         switch (type) {
-            case USER:
-                return ids[i] < ids[j];
             case VALUE:
                 return getValue(j) < getValue(j);
             case VALUE_REVERSED:

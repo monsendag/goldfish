@@ -82,6 +82,11 @@ public final class SMItemPreferenceArray extends SMPreferenceArray {
     return false;
   }
 
+  protected boolean isLess(int i, int j, int type) {
+      return type == USER ? ids[i] < ids[j] : super.isLess(i,j, type);
+  }
+
+
   public boolean hasPrefWithItemID(long itemID) {
     return id == itemID;
   }
