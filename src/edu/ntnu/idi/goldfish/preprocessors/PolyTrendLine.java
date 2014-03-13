@@ -1,4 +1,4 @@
-package edu.ntnu.idi.goldfish;
+package edu.ntnu.idi.goldfish.preprocessors;
 
 public class PolyTrendLine extends OLSTrendLine {
     final int degree;

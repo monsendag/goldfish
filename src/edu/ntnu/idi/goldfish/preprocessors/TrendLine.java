@@ -1,4 +1,4 @@
-package edu.ntnu.idi.goldfish;
+package edu.ntnu.idi.goldfish.preprocessors;
 
 public interface TrendLine {
 	public void setValues(double[] x, double[] y); // y ~ f(x)

@@ -2,6 +2,7 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.configurations.Configuration;
 import edu.ntnu.idi.goldfish.mahout.SMRMSEevaluator;
+import edu.ntnu.idi.goldfish.preprocessors.KMeansWrapper;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.IRStatistics;
 import org.apache.mahout.cf.taste.eval.RecommenderIRStatsEvaluator;

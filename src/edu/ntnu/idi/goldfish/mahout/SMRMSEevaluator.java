@@ -2,7 +2,7 @@ package edu.ntnu.idi.goldfish.mahout;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import edu.ntnu.idi.goldfish.Preprocessor;
+import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.DataModelBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;

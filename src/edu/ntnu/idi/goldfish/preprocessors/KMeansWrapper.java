@@ -1,5 +1,6 @@
-package edu.ntnu.idi.goldfish;
+package edu.ntnu.idi.goldfish.preprocessors;
 
+import edu.ntnu.idi.goldfish.StopWatch;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
