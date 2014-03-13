@@ -23,16 +23,6 @@ public class Preprocessor {
 	private Map<String, Float> correlations = new HashMap<String, Float>();
 	private static Set<String> pseudoRatings = new HashSet<String>();
 
-	public static void main(String[] args) throws IOException, TasteException {
-		SMDataModel model;
-		model = new SMDataModel(new File("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv"));
-
- 		System.out.println(String.format("Density unprocessed: %f", getDensity(model)));
-		Preprocessor pre = new Preprocessor();
-		pre.preprocess(model);
-		System.out.println(String.format("Density processed: %f", getDensity(model)));
-	}
-	
 	public static DataModel getPreprocessedDataModel(String path) throws TasteException, IOException {
 		SMDataModel model;
 		model = new SMDataModel(new File(path));
