@@ -66,8 +66,8 @@ public abstract class SMPreferenceArray implements PreferenceArray {
     }
 
     public float getValue(int i) {
-        System.err.println("Cannot get single value from SMPreferenceArray");
-        return -1f;
+//        System.err.println("Cannot get single value from SMPreferenceArray");
+        return values[i][0];
     }
 
     public long[] getIDs() {

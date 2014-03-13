@@ -32,12 +32,12 @@ public abstract class SMPreference implements Preference, Serializable {
 	}
 
     public float getValue() {
-        System.err.println("Cannot get single value from SMPreference");
-        return -1f;
+        //System.err.println("Cannot get single value from SMPreference");
+        return getValue(0);
     }
 
     public void setValue(float value) {
-        System.err.println("Cannot get single value from SMPreference");
+        System.err.println("Cannot set single value on SMPreference");
     }
 
 }
