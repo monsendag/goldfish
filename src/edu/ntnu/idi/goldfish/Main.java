@@ -48,7 +48,7 @@ public class Main {
 
 		DataModel dataModel = getDataModel(set);
 		Evaluator evaluator = new Evaluator();
-		List<Evaluation> evaluations = new ArrayList<Evaluation>();
+		List<Configuration> configurations = new ArrayList<Configuration>();
 		EvaluationResults results = new EvaluationResults(dataModel);
 
 		List<Integer> topNvals = $(10, 111).toList();
@@ -80,26 +80,26 @@ public class Main {
 			// Multiplicative decay factor for learning_rate
 			double learningRateDecay = 1.0;
 
-			evaluations.add(new Lynx(topN, numFeatures, numIterations, lambda, mu0, decayFactor, stepOffset,
+			configurations.add(new Lynx(topN, numFeatures, numIterations, lambda, mu0, decayFactor, stepOffset,
 					forgettingExponent, biasMuRatio, biasLambdaRatio));
-			// evaluations.add(new RatingSGD(topN, numFeatures, numIterations,
+			// configurations.add(new RatingSGD(topN, numFeatures, numIterations,
 			// learningRate, preventOverfitting, randomNoise,
 			// learningRateDecay));
 			//
-			// evaluations.add(new KNN(topN,
+			// configurations.add(new KNN(topN,
 			// MemoryBased.Similarity.EuclideanDistance, 2));
-			// evaluations.add(new KiwiEvaluation(topN, new double[]{2, 1}, new
+			// configurations.add(new KiwiConfiguration(topN, new double[]{2, 1}, new
 			// double[]{10, 10, 2}));
-			// evaluations.add(new SVDPlusPlus(topN, numFeatures, numIterations,
+			// configurations.add(new SVDPlusPlus(topN, numFeatures, numIterations,
 			// learningRate, preventOverfitting, randomNoise,
 			// learningRateDecay));
 		}
 
-		StopWatch.start("total evaluation");
-		evaluator.evaluateUnclustered(evaluations, results, dataModel, 1.0);
+		StopWatch.start("total configuration");
+		evaluator.evaluateUnclustered(configurations, results, dataModel, 1.0);
 		results.save();
 		// results.print();
-		System.out.format("Completed evaluation in %s\n", StopWatch.str("total evaluation"));
+		System.out.format("Completed configuration in %s\n", StopWatch.str("total configuration"));
 	}
 
 	public static enum DataSet {

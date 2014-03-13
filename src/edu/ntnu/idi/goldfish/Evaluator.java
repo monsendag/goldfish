@@ -35,39 +35,39 @@ public class Evaluator {
 	public Evaluator() {	
 	}
 	
-	public void evaluateClustered(int numClusters, DistanceMeasure measure, List<Evaluation> evaluations, EvaluationResults results, DataModel dataModel, double test) throws TasteException, IOException, InterruptedException, ClassNotFoundException {
+	public void evaluateClustered(int numClusters, DistanceMeasure measure, List<Configuration> configurations, EvaluationResults results, DataModel dataModel, double test) throws TasteException, IOException, InterruptedException, ClassNotFoundException {
 
 		DataModel[] dataModels = KMeansWrapper.clusterUsers(dataModel, numClusters, measure, 0.5, 10, true, 0.0, true);
 		
 		StopWatch.start("totaleval");
 		EvaluationResults clusterResults;
-		for(Evaluation evaluation : evaluations) {
+		for(Configuration configuration : configurations) {
 			long user = getRandomUser(dataModel);
 			clusterResults = new EvaluationResults(dataModel);
-			StopWatch.start("cluster-evaluation");
+			StopWatch.start("cluster-configuration");
 			for(int i=0; i<dataModels.length; i++) {
-				clusterResults.add(evaluate(evaluation, dataModel, test, user));
+				clusterResults.add(evaluate(configuration, dataModel, test, user));
 			}
 			Result average = Result.getAverage(clusterResults);
-			System.err.format(average+" (in %s) \n", StopWatch.str("cluster-evaluation"));
+			System.err.format(average+" (in %s) \n", StopWatch.str("cluster-configuration"));
 			results.add(average);
 		}
-		System.out.format("Evaluated %d clusters with %d configurations in %s\n", numClusters, evaluations.size(), StopWatch.str("totaleval"));
+		System.out.format("Evaluated %d clusters with %d configurations in %s\n", numClusters, configurations.size(), StopWatch.str("totaleval"));
 	}
 	
-	public void evaluateUnclustered(List<Evaluation> evaluations, EvaluationResults results, DataModel dataModel, double test) throws IOException, TasteException {
-		System.out.format("Starting evaluation of %d configurations (%d users, %d items) \n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
+	public void evaluateUnclustered(List<Configuration> configurations, EvaluationResults results, DataModel dataModel, double test) throws IOException, TasteException {
+		System.out.format("Starting configuration of %d configurations (%d users, %d items) \n", configurations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
 		StopWatch.start("totaleval");
-		for(Evaluation evaluation : evaluations) {
-			results.add(evaluate(evaluation, dataModel, test, getRandomUser(dataModel)));
+		for(Configuration configuration : configurations) {
+			results.add(evaluate(configuration, dataModel, test, getRandomUser(dataModel)));
 		}
 		System.out.println("==================================================================================================================================================================================");
 		System.out.println(Result.getTotal(results));
 		System.out.println(Result.getAverage(results));
-		System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", evaluations.size(), dataModel.getNumUsers(), dataModel.getNumItems(), StopWatch.str("totaleval"));
+		System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", configurations.size(), dataModel.getNumUsers(), dataModel.getNumItems(), StopWatch.str("totaleval"));
 	}
 	
-	Result evaluate(Evaluation evaluation, DataModel dataModel, double testFrac, long userID) throws TasteException {
+	Result evaluate(Configuration configuration, DataModel dataModel, double testFrac, long userID) throws TasteException {
 		StopWatch.start("evalTime");
 		
 		// initialize variables
@@ -83,24 +83,24 @@ public class Evaluator {
 		
         
         // do evaluations
-        // NOTE: when a result is not needed, the respective line may be commented out here for increased evaluation speed
-		rmse = RMSE.evaluate(evaluation.getRecommenderBuilder(), null, dataModel, 0.9, testFrac);
-		aad = AAD.evaluate(evaluation.getRecommenderBuilder(), null, dataModel, 0.9, testFrac);
-        IRStatistics stats = irEvaluator.evaluate(evaluation.getRecommenderBuilder(), evaluation.getModelBuilder(), dataModel, null, evaluation.getTopN(), relevanceThreshold, testFrac);
+        // NOTE: when a result is not needed, the respective line may be commented out here for increased configuration speed
+		rmse = RMSE.evaluate(configuration.getRecommenderBuilder(), null, dataModel, 0.9, testFrac);
+		aad = AAD.evaluate(configuration.getRecommenderBuilder(), null, dataModel, 0.9, testFrac);
+        IRStatistics stats = irEvaluator.evaluate(configuration.getRecommenderBuilder(), configuration.getModelBuilder(), dataModel, null, configuration.getTopN(), relevanceThreshold, testFrac);
         precision = stats.getPrecision();
         recall = stats.getRecall();
         
         // calculate build time
 		StopWatch.start("buildTime");
-		evaluation.getRecommenderBuilder().buildRecommender(dataModel);
+		configuration.getRecommenderBuilder().buildRecommender(dataModel);
 		long buildTime = StopWatch.get("buildTime");
 		
 		// calculate recommendation time
 		long recTime = 0; //getRecommendationTiming(recommender, 20, 10, userID);
 
-		// get time of total evaluation
+		// get time of total configuration
         long evalTime = StopWatch.get("evalTime");
-		Result result = new Result(evaluation, rmse, aad, precision, recall, buildTime, recTime, evalTime);
+		Result result = new Result(configuration, rmse, aad, precision, recall, buildTime, recTime, evalTime);
 
 		// print each result to show progress
 		System.out.format("%s \n", result);

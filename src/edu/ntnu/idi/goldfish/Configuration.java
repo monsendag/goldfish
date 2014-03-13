@@ -3,7 +3,7 @@ package edu.ntnu.idi.goldfish;
 import org.apache.mahout.cf.taste.eval.DataModelBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 
-public abstract class Evaluation {
+public abstract class Configuration {
 
 	/**
 	 * Used for calculating Precision and Recall metrics
@@ -16,7 +16,7 @@ public abstract class Evaluation {
 	 */
 	public double KTL;
 	
-	public Evaluation(int topN, double KTL) {
+	public Configuration(int topN, double KTL) {
 		this.topN = topN;
 		this.KTL = KTL;
 	}

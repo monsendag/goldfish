@@ -7,7 +7,7 @@ import org.apache.mahout.cf.taste.impl.recommender.svd.SVDRecommender;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.Recommender;
 
-public abstract class MatrixFactorization extends Evaluation {
+public abstract class MatrixFactorization extends Configuration {
 
 	int numIterations;
 	

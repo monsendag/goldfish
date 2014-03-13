@@ -11,7 +11,7 @@ import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.recommender.Recommender;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
-public abstract class MemoryBased extends Evaluation {
+public abstract class MemoryBased extends Configuration {
 
 	public Similarity similarity;
 	

@@ -10,12 +10,12 @@ import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
 import org.apache.mahout.cf.taste.recommender.Recommender;
 
-public class KiwiEvaluation extends Evaluation{
+public class KiwiConfiguration extends Configuration {
 
 	private double[] weights;
 	private double[] latentFactors;
 	
-	public KiwiEvaluation(int topN, double[] weights, double[] latentFactors) {
+	public KiwiConfiguration(int topN, double[] weights, double[] latentFactors) {
 		super(topN, 0);
 		this.weights = weights;
 		this.latentFactors = latentFactors;
