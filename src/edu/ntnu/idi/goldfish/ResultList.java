@@ -10,12 +10,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 
-public class EvaluationResults extends ArrayList<Result> {
+public class ResultList extends ArrayList<Result> {
 	private static final long serialVersionUID = 7410339309503861432L;
 
 	private DataModel model;
 	
-	public EvaluationResults(DataModel model) {
+	public ResultList(DataModel model) {
 		this.model = model;
 	}
 	

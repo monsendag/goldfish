@@ -35,15 +35,15 @@ public class Evaluator {
 	public Evaluator() {	
 	}
 	
-	public void evaluateClustered(int numClusters, DistanceMeasure measure, List<Configuration> configurations, EvaluationResults results, DataModel dataModel, double test) throws TasteException, IOException, InterruptedException, ClassNotFoundException {
+	public void evaluateClustered(int numClusters, DistanceMeasure measure, List<Configuration> configurations, ResultList results, DataModel dataModel, double test) throws TasteException, IOException, InterruptedException, ClassNotFoundException {
 
 		DataModel[] dataModels = KMeansWrapper.clusterUsers(dataModel, numClusters, measure, 0.5, 10, true, 0.0, true);
 		
 		StopWatch.start("totaleval");
-		EvaluationResults clusterResults;
+		ResultList clusterResults;
 		for(Configuration configuration : configurations) {
 			long user = getRandomUser(dataModel);
-			clusterResults = new EvaluationResults(dataModel);
+			clusterResults = new ResultList(dataModel);
 			StopWatch.start("cluster-configuration");
 			for(int i=0; i<dataModels.length; i++) {
 				clusterResults.add(evaluate(configuration, dataModel, test, user));
@@ -55,7 +55,7 @@ public class Evaluator {
 		System.out.format("Evaluated %d clusters with %d configurations in %s\n", numClusters, configurations.size(), StopWatch.str("totaleval"));
 	}
 	
-	public void evaluateUnclustered(List<Configuration> configurations, EvaluationResults results, DataModel dataModel, double test) throws IOException, TasteException {
+	public void evaluateUnclustered(List<Configuration> configurations, ResultList results, DataModel dataModel, double test) throws IOException, TasteException {
 		System.out.format("Starting configuration of %d configurations (%d users, %d items) \n", configurations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
 		StopWatch.start("totaleval");
 		for(Configuration configuration : configurations) {

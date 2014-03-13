@@ -49,7 +49,7 @@ public class Main {
 		DataModel dataModel = getDataModel(set);
 		Evaluator evaluator = new Evaluator();
 		List<Configuration> configurations = new ArrayList<Configuration>();
-		EvaluationResults results = new EvaluationResults(dataModel);
+		ResultList results = new ResultList(dataModel);
 
 		List<Integer> topNvals = $(10, 111).toList();
 		for (int topN : topNvals) {
