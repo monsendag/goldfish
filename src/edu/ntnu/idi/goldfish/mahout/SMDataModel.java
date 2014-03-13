@@ -649,4 +649,21 @@ public class SMDataModel extends AbstractDataModel {
 
 	}
 
+    public double getDensity() throws TasteException {
+        LongPrimitiveIterator it = getItemIDs();
+        double count = 0;
+        while (it.hasNext()) {
+            PreferenceArray prefs = getPreferencesForItem(it.next());
+            for(Preference p : prefs) {
+                SMPreference pref = (SMPreference) p;
+                if(pref.getValue(0) >= 1) {
+                    count += 1;
+                }
+            }
+        }
+        double total = getNumUsers() * getNumItems();
+
+        return count/total;
+    }
+
 }

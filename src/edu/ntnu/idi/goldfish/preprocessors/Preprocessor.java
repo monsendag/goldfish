@@ -33,23 +33,6 @@ public class Preprocessor {
 		System.out.println(String.format("Density processed: %f", getDensity(model)));
 	}
 	
-	public static double getDensity(SMDataModel model) throws TasteException{
-		LongPrimitiveIterator it = model.getItemIDs();
-		double count = 0;
-		while (it.hasNext()) {
-			PreferenceArray prefs = model.getPreferencesForItem(it.next());
-			for(Preference p : prefs) {
-				SMPreference pref = (SMPreference) p;
-				if(pref.getValue(0) >= 1) {
-					count += 1;
-				}
-			}
-		}
-		double total = model.getNumUsers() * model.getNumItems();
-		
-		return count/total;
-	}
-
 	public static DataModel getPreprocessedDataModel(String path) throws TasteException, IOException {
 		SMDataModel model;
 		model = new SMDataModel(new File(path));
