@@ -1,5 +1,7 @@
 package edu.ntnu.idi.goldfish;
 
+import edu.ntnu.idi.goldfish.configurations.Configuration;
+import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;

@@ -1,5 +1,8 @@
 package edu.ntnu.idi.goldfish;
 
+import edu.ntnu.idi.goldfish.configurations.Configuration;
+import edu.ntnu.idi.goldfish.configurations.MemoryBased;
+
 import java.util.List;
 
 public class Result {

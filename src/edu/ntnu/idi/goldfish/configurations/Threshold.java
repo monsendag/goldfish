@@ -1,4 +1,4 @@
-package edu.ntnu.idi.goldfish;
+package edu.ntnu.idi.goldfish.configurations;
 
 import org.apache.mahout.cf.taste.impl.neighborhood.ThresholdUserNeighborhood;
 import org.apache.mahout.cf.taste.model.DataModel;

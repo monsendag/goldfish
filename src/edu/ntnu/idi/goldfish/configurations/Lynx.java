@@ -1,4 +1,4 @@
-package edu.ntnu.idi.goldfish;
+package edu.ntnu.idi.goldfish.configurations;
 
 import edu.ntnu.idi.goldfish.mahout.LynxFactorizer;
 import org.apache.mahout.cf.taste.common.TasteException;

@@ -1,4 +1,4 @@
-package edu.ntnu.idi.goldfish;
+package edu.ntnu.idi.goldfish.configurations;
 
 import org.apache.mahout.cf.taste.eval.DataModelBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;

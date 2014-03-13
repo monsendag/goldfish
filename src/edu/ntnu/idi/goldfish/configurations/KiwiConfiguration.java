@@ -1,5 +1,6 @@
-package edu.ntnu.idi.goldfish;
+package edu.ntnu.idi.goldfish.configurations;
 
+import edu.ntnu.idi.goldfish.configurations.Configuration;
 import edu.ntnu.idi.goldfish.mahout.KiwiRecommender;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import org.apache.mahout.cf.taste.common.TasteException;
