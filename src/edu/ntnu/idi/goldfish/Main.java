@@ -113,7 +113,7 @@ public class Main {
 		case yow10kratings:
 			return new FileDataModel(new File("datasets/yow-userstudy/ratings.csv"));
 		case yow10kprocessed:
-			return Preprocessor.getPreprocessedDataModel("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv");
+			return Preprocessor.getPreprocessedDataModel("datasets/yow-userstudy/like-timeonpage-timeonmouse-novelty.csv");
 			
 		// regular models
 		case Netflix100M:

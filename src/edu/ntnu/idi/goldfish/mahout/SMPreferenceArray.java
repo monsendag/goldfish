@@ -17,128 +17,167 @@
 
 package edu.ntnu.idi.goldfish.mahout;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
+import org.apache.mahout.common.iterator.CountingIterator;
+
+import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * An alternate representation of an array of {@link Preference}. Implementations, in theory, can produce a
  * more memory-efficient representation.
  */
-public interface SMPreferenceArray extends PreferenceArray {
-  
-  /**
-   * @return size of length of the "array"
-   */
-  int length();
-  
-  /**
-   * @param i
-   *          index
-   * @return a materialized {@link Preference} representation of the preference at i
-   */
-  SMPreference get(int i);
-  
-  /**
-   * Sets preference at i from information in the given {@link Preference}
-   * 
-   * @param i
-   * @param pref
-   */
-  void set(int i, SMPreference pref);
-  
-  /**
-   * @param i
-   *          index
-   * @return user ID from preference at i
-   */
-  long getUserID(int i);
-  
-  /**
-   * Sets user ID for preference at i.
-   * 
-   * @param i
-   *          index
-   * @param userID
-   *          new user ID
-   */
-  void setUserID(int i, long userID);
-  
-  /**
-   * @param i
-   *          index
-   * @return item ID from preference at i
-   */
-  long getItemID(int i);
-  
-  /**
-   * Sets item ID for preference at i.
-   * 
-   * @param i
-   *          index
-   * @param itemID
-   *          new item ID
-   */
-  void setItemID(int i, long itemID);
+public abstract class SMPreferenceArray implements PreferenceArray {
 
-  /**
-   * @return all user or item IDs
-   */
-  long[] getIDs();
-  
-  /**
-   * @param i
-   *          index
-   * @return preference value from preference at i
-   */
-  float getValue(int i);
-  
-  /**
-   * Sets preference value for preference at i.
-   * 
-   * @param i
-   *          index
-   * @param value
-   *          new preference value
-   */
-  void setValue(int i, float value);
-  
-  /**
-   * @return independent copy of this object
-   */
-  SMPreferenceArray clone();
-  
-  /**
-   * Sorts underlying array by user ID, ascending.
-   */
-  void sortByUser();
-  
-  /**
-   * Sorts underlying array by item ID, ascending.
-   */
-  void sortByItem();
-  
-  /**
-   * Sorts underlying array by preference value, ascending.
-   */
-  void sortByValue();
-  
-  /**
-   * Sorts underlying array by preference value, descending.
-   */
-  void sortByValueReversed();
-  
-  /**
-   * @param userID
-   *          user ID
-   * @return true if array contains a preference with given user ID
-   */
-  boolean hasPrefWithUserID(long userID);
-  
-  /**
-   * @param itemID
-   *          item ID
-   * @return true if array contains a preference with given item ID
-   */
-  boolean hasPrefWithItemID(long itemID);
-  
+    protected static final int USER = 0;
+    protected static final int ITEM = 1;
+    protected static final int VALUE = 2;
+    protected static final int VALUE_REVERSED = 3;
+    protected final float[][] values;
+    protected final long[] ids;
+    protected long id;
+
+    public SMPreferenceArray(int size) {
+        this.ids = new long[size];
+        values = new float[size][SMPreference.NUM_VALUES];
+        this.id = Long.MIN_VALUE; // as a sort of 'unspecified' value
+    }
+
+    protected SMPreferenceArray(long[] ids, long id, float[][] values) {
+        this.ids = ids;
+        this.id = id;
+        this.values = values;
+    }
+
+    public int length() {
+        return ids.length;
+    }
+
+    public void set(int i, Preference pref) {
+        System.err.println("Cannot set single value on SMPreferenceArray");
+    }
+
+
+    public SMPreference get(int i) {
+        return new PreferenceView(i);
+    }
+
+    public float getValue(int i) {
+//        System.err.println("Cannot get single value from SMPreferenceArray");
+        return values[i][0];
+    }
+
+    public long[] getIDs() {
+        return ids;
+    }
+
+    public Iterator<Preference> iterator() {
+        return Iterators.transform(new CountingIterator(length()),
+                new Function<Integer, Preference>() {
+                    public Preference apply(Integer from) {
+                        return new PreferenceView(from);
+                    }
+                });
+    }
+
+    protected void lateralSort(int type) {
+        //Comb sort: http://en.wikipedia.org/wiki/Comb_sort
+        int length = length();
+        int gap = length;
+        boolean swapped = false;
+        while (gap > 1 || swapped) {
+            if (gap > 1) {
+                gap /= 1.247330950103979; // = 1 / (1 - 1/e^phi)
+            }
+            swapped = false;
+            int max = length - gap;
+            for (int i = 0; i < max; i++) {
+                int other = i + gap;
+                if (isLess(other, i, type)) {
+                    swap(i, other);
+                    swapped = true;
+                }
+            }
+        }
+    }
+
+    public void sortByItem() {
+        lateralSort(ITEM);
+    }
+
+    public void sortByUser() {
+        lateralSort(USER);
+    }
+
+    public void sortByValue() {
+        lateralSort(VALUE);
+    }
+
+    public void sortByValueReversed() {
+        lateralSort(VALUE_REVERSED);
+    }
+
+    protected boolean isLess(int i, int j, int type) {
+        switch (type) {
+            case VALUE:
+                return getValue(j) < getValue(j);
+            case VALUE_REVERSED:
+                return getValue(j) > getValue(j);
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    protected void swap(int i, int j) {
+        long temp1 = ids[i];
+        float[] temp2 = values[i];
+        ids[i] = ids[j];
+        values[i] = values[j];
+        ids[j] = temp1;
+        values[j] = temp2;
+    }
+
+    public abstract SMPreferenceArray clone();
+
+
+    @Override
+    public int hashCode() {
+        return (int) (id >> 32) ^ (int) id ^ Arrays.hashCode(ids) ^ Arrays.hashCode(values);
+    }
+
+    protected final class PreferenceView extends SMPreference {
+
+        private final int i;
+
+        protected PreferenceView(int i) {
+            this.i = i;
+        }
+
+        public long getUserID() {
+            return SMPreferenceArray.this.getUserID(i);
+        }
+
+        public long getItemID() {
+            return SMPreferenceArray.this.getItemID(i);
+        }
+
+        @Override
+        public void setValue(float value, int j) {
+            values[i][j] = value;
+        }
+
+        public float getValue(int j) {
+            return values[i][j];
+        }
+
+        @Override
+        public float[] getValues() {
+            return values[i];
+        }
+
+    }
+
 }
