@@ -2,6 +2,7 @@ package edu.ntnu.idi.goldfish.preprocessors;
 
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
+
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.mahout.cf.taste.common.NoSuchItemException;
 import org.apache.mahout.cf.taste.common.TasteException;
@@ -12,8 +13,10 @@ import org.apache.mahout.cf.taste.model.PreferenceArray;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -66,7 +69,8 @@ public class Preprocessor {
 
 					// find out if we have enough explicit-implicit rating
 					// pars
-					if (hasImplicit && prefs.length() >= THRESHOLD) {
+					double[] explRatings = getRatings(model, itemID, 0);
+					if (hasImplicit && explRatings.length >= THRESHOLD) {
 
 						int bestCorrelated = -1;
 						for (int i = 1; i < vals.length; i++) {
@@ -76,16 +80,26 @@ public class Preprocessor {
 							}
 						}
 
-						TrendLine t = new PolyTrendLine(1);
-						double[] explRatings = getRatings(model, itemID, 0);
-						double[] implRatings = getRatings(model, itemID, bestCorrelated); 
-						t.setValues(explRatings, implRatings);
 						
 						// check if abs(correlation) > 0.5
 						double correlation = getCorrelation(model, itemID, bestCorrelated);
 						if (Math.abs(correlation) > 0.5) {
+							// we have now ensured that a relationship between the implicit and explicit feedback
+							// exist and will continue to find pseudoRatings
+							System.out.println(String.format("ItemID: %d", itemID));
+							
+							// 1: get pseudoRating based on linear regression
+							double[] implRatings = getRatings(model, itemID, bestCorrelated); 
+							TrendLine t = new PolyTrendLine(1);
+							t.setValues(explRatings, implRatings);
 							float pseudoRating = (float) Math.round(t.predict(pref.getValue(bestCorrelated)));
+							
+							// 2: get pseudoRating based on closest neighbor
 //							float pseudoRating = getPseudoRatingClosestNeighbor(prefs, pref, bestCorrelated);
+							
+							// 3: get pseudoRating based on rating bins
+//							float pseudoRating = getPseudoRatingEqualBins(pref, correlation, prefs, bestCorrelated);
+							
 							pref.setValue(pseudoRating, 0); // set explicit
 															// value
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
@@ -112,6 +126,43 @@ public class Preprocessor {
 
 		return closestPref.getValue(0);
 	}
+	
+	private int getPseudoRatingEqualBins(SMPreference p, double correlation, PreferenceArray ps, int implicitIndex) {
+		float min = Integer.MAX_VALUE;
+		float max = Integer.MIN_VALUE;
+		int pseudoRating;
+		 		
+		for (Preference pref : ps) {
+			SMPreference smp = (SMPreference) pref;
+			float implicit = smp.getValue(implicitIndex);
+			if (implicit < min) {
+			min = implicit;
+			}
+		 	if (implicit > max) {
+		 		max = implicit;
+		 	}
+		}
+		 		
+		if (min == max) {
+			return 3;
+		}
+		
+		if(p.getValue(implicitIndex) < min){
+			pseudoRating = 1;
+		} else if(p.getValue(implicitIndex) > max) {
+			pseudoRating = 5;
+		} else{
+			float binSize = (max-min)/5;
+			float dif = p.getValue(implicitIndex) - min;
+			pseudoRating = (int) (1 + Math.floor(dif/binSize));
+		}
+		 			 		
+		if (correlation < 0) {
+			pseudoRating = 6 - pseudoRating;
+		}
+		 			 
+		return pseudoRating;
+	}
 
 	public double getCorrelation(SMDataModel model, long itemID, int implicitIndex) throws NoSuchItemException {
 			double[] expl = getRatings(model, itemID, 0);
@@ -132,14 +183,22 @@ public class Preprocessor {
 	 */
 	public double[] getRatings(SMDataModel model, long itemID, int index) throws NoSuchItemException{
 		PreferenceArray prefs = model.getPreferencesForItem(itemID);
-		double[] ratings = new double[prefs.length()];
+		
+		// create a list of ratings since we don't know how many rating-pairs exist
+		List<Double> tempRatings = new ArrayList<Double>();
 		for (int i = 0; i < prefs.length(); i++) {
 			SMPreference p = (SMPreference) prefs.get(i);
             // ensure that we have explicit value
             if(p.getValue(0) <= 0) {
                 continue;
             }
-			ratings[i] = p.getValue(index);
+			tempRatings.add((double) p.getValue(index));
+		}
+		
+		// create the array of ratings with size of ratings-pairs
+		double[] ratings = new double[tempRatings.size()];
+		for (int i = 0; i < ratings.length; i++) {
+			ratings[i] = tempRatings.get(i);
 		}
 		return ratings;
 	}
