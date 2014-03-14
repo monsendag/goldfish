@@ -135,6 +135,10 @@ public class Preprocessor {
 		double[] ratings = new double[prefs.length()];
 		for (int i = 0; i < prefs.length(); i++) {
 			SMPreference p = (SMPreference) prefs.get(i);
+            // ensure that we have explicit value
+            if(p.getValue(0) <= 0) {
+                continue;
+            }
 			ratings[i] = p.getValue(index);
 		}
 		return ratings;
