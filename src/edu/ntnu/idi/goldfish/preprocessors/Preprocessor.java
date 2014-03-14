@@ -56,8 +56,12 @@ public class Preprocessor {
 
 				if (!hasExplicit) {
 
+					
 					boolean hasImplicit = false;
 					float[] vals = pref.getValues();
+					
+					
+					
 					for (int i = 1; i < vals.length; i++) {
 						if (vals[i] >= 1) {
 							hasImplicit = true;
@@ -86,24 +90,31 @@ public class Preprocessor {
 						if (Math.abs(correlation) > 0.5) {
 							// we have now ensured that a relationship between the implicit and explicit feedback
 							// exist and will continue to find pseudoRatings
-							System.out.println(String.format("ItemID: %d", itemID));
+//							System.out.println(String.format("ItemID: %d", itemID));
 							
-							// 1: get pseudoRating based on linear regression
+							// I: get pseudoRating based on linear regression
 							double[] implRatings = getRatings(model, itemID, bestCorrelated); 
 							TrendLine t = new PolyTrendLine(1);
 							t.setValues(explRatings, implRatings);
 							float pseudoRating = (float) Math.round(t.predict(pref.getValue(bestCorrelated)));
 							
-							// 2: get pseudoRating based on closest neighbor
+							// II: get pseudoRating based on closest neighbor
 //							float pseudoRating = getPseudoRatingClosestNeighbor(prefs, pref, bestCorrelated);
 							
-							// 3: get pseudoRating based on rating bins
+							// III: get pseudoRating based on rating bins
 //							float pseudoRating = getPseudoRatingEqualBins(pref, correlation, prefs, bestCorrelated);
 							
 							pref.setValue(pseudoRating, 0); // set explicit
 															// value
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 						}
+					} else if(vals[1] > 15000){
+						// according to CEO Tony Haile at Chartbeat people that spends more than 
+						// 15 seconds on an article like the article
+						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/
+						pref.setValue(4, 0);
+//						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
+//								+ "lets give it 4", itemID));
 					}
 				}
 			}
