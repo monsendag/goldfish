@@ -125,8 +125,12 @@ public class Preprocessor {
 						// Morita and Shinoda (1994) concluded that the most effective threshold concerning
 						// reading time is 20 seconds, which yielded 30% recall and 70% precision
 						pref.setValue(4, 0);
+						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 //						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 //								+ "lets give it 4", itemID));
+					} else if (vals[1] < 17500){
+						pref.setValue(2, 0);
+						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 					} else if(vals[2] > 700){
 						// with time on mouse = 700, most users give an article rating 4
 						pref.setValue(4,0);
