@@ -42,14 +42,22 @@ public class Preprocessor {
 		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 	}
 
+	/**
+	 * For each missing explicit value (when implicit feedback exist), check if enough explicit-implicit
+	 * rating pairs exists, if so, create a pseudo rating and add it to the dataset  
+	 * @param model
+	 * 		the model to preprocess
+	 * @throws TasteException
+	 */
 	public void preprocess(SMDataModel model) throws TasteException {
-		// iterate through all users
+		// iterate through all items
 		LongPrimitiveIterator it = model.getItemIDs();
 		while (it.hasNext()) {
 			long itemID = it.next();
 
-			// iterate through all prefs for user
+			// iterate through all prefs for item
 			PreferenceArray prefs = model.getPreferencesForItem(itemID);
+			System.out.println(String.format("Number of ratings,  %d, for each item %d", prefs.length(), itemID));
 			for (Preference p : prefs) {
 				SMPreference pref = (SMPreference) p;
 				boolean hasExplicit = pref.getValue(0) >= 1;
@@ -85,7 +93,7 @@ public class Preprocessor {
 						}
 
 						
-						// check if abs(correlation) > 0.5
+						// check if |correlation| > 0.5
 						double correlation = getCorrelation(model, itemID, bestCorrelated);
 						if (Math.abs(correlation) > 0.5) {
 							// we have now ensured that a relationship between the implicit and explicit feedback
@@ -104,9 +112,11 @@ public class Preprocessor {
 							// III: get pseudoRating based on rating bins
 //							float pseudoRating = getPseudoRatingEqualBins(pref, correlation, prefs, bestCorrelated);
 							
-							pref.setValue(pseudoRating, 0); // set explicit
-															// value
-							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+							// set explicit value as pseudoRating
+							pref.setValue(pseudoRating, 0); 
+							
+							// remember the pseudoRatings to ensure they are only used in the training set
+							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID())); 
 						}
 					} else if(vals[1] > 15000){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
@@ -120,7 +130,18 @@ public class Preprocessor {
 			}
 		}
 	}
-
+	
+	/**
+	 * Finds the pseudo rating given an article without explicit rating by using the closest neighbor,
+	 * that is, the neighbor with implicit feedback that resembles the given article most
+	 * @param prefs
+	 * 		all preferences for a given article
+	 * @param currentPref
+	 * 		the preference without explicit value and hence will get a pseudo rating
+	 * @param bestCorrelated
+	 * 		the implicit feedback index with highest correlation
+	 * @return
+	 */
 	private float getPseudoRatingClosestNeighbor(PreferenceArray prefs, SMPreference currentPref, int bestCorrelated) {
 		float diff = Float.MAX_VALUE;
 		SMPreference closestPref = null;
@@ -138,14 +159,27 @@ public class Preprocessor {
 		return closestPref.getValue(0);
 	}
 	
-	private int getPseudoRatingEqualBins(SMPreference p, double correlation, PreferenceArray ps, int implicitIndex) {
+	/**
+	 * Finds the pseudo rating based on equal size bins, requires at least two ratings, which becomes the
+	 * biggest and smallest bin.
+	 * @param currentPref
+	 * 		the preference without explicit value and hence will get a pseudo rating
+	 * @param correlation
+	 * 		if correlation is negative, pseudo rating is 6 - correlation
+	 * @param prefs
+	 * 		all preferences for a given article
+	 * @param bestCorrelated
+	 * 		the implicit feedback index with highest correlation
+	 * @return
+	 */
+	private int getPseudoRatingEqualBins(SMPreference currentPref, double correlation, PreferenceArray prefs, int bestCorrelated) {
 		float min = Integer.MAX_VALUE;
 		float max = Integer.MIN_VALUE;
 		int pseudoRating;
 		 		
-		for (Preference pref : ps) {
+		for (Preference pref : prefs) {
 			SMPreference smp = (SMPreference) pref;
-			float implicit = smp.getValue(implicitIndex);
+			float implicit = smp.getValue(bestCorrelated);
 			if (implicit < min) {
 			min = implicit;
 			}
@@ -158,13 +192,13 @@ public class Preprocessor {
 			return 3;
 		}
 		
-		if(p.getValue(implicitIndex) < min){
+		if(currentPref.getValue(bestCorrelated) < min){
 			pseudoRating = 1;
-		} else if(p.getValue(implicitIndex) > max) {
+		} else if(currentPref.getValue(bestCorrelated) > max) {
 			pseudoRating = 5;
 		} else{
 			float binSize = (max-min)/5;
-			float dif = p.getValue(implicitIndex) - min;
+			float dif = currentPref.getValue(bestCorrelated) - min;
 			pseudoRating = (int) (1 + Math.floor(dif/binSize));
 		}
 		 			 		
