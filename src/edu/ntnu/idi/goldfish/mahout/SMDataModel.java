@@ -666,4 +666,20 @@ public class SMDataModel extends AbstractDataModel {
         return count/total;
     }
 
+    public static void removeInvalidPrefs(DataModel dataModel) throws TasteException {
+        // iterate over users
+        LongPrimitiveIterator userIterator = dataModel.getUserIDs();
+        while(userIterator.hasNext()) {
+            // iterate over users preferences
+            long userID = userIterator.next();
+            PreferenceArray preferencesFromUser = dataModel.getPreferencesFromUser(userID);
+            for(Preference p : preferencesFromUser) {
+                // if preference is less than 1, remove it from model
+                if(p.getValue() <= 0) {
+                    dataModel.removePreference(userID, p.getItemID());
+                }
+            }
+        }
+
+    }
 }
