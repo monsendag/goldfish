@@ -430,6 +430,10 @@ public class SMDataModel extends AbstractDataModel {
 			values[t++] = Float.parseFloat(tokens.next());
 		}
 		
+		if(values.length == 1 && values[0] <= 0) {
+			return;
+		}
+		
 		if (transpose) {
 			long tmp = userID;
 			userID = itemID;
@@ -636,6 +640,37 @@ public class SMDataModel extends AbstractDataModel {
 			e.printStackTrace();
 		}
 	}
+	
+	public void writeDatasetToFileExplicit(String path) {
+		try {
+			FileWriter writer = new FileWriter(new File(path));
+
+			Iterator<Long> users = getUserIDs();
+			while (users.hasNext()) {
+				long userId = users.next();
+				SMPreferenceArray preferences = getSMPreferencesFromUser(userId);
+				Iterator<Preference> it = preferences.iterator();
+
+				float rating = 0;
+				float readIndex = 0;
+				long itemId = 0;
+				while (it.hasNext()) {
+					SMPreference p = (SMPreference) it.next();
+					rating = p.getValue(); // explicit
+					itemId = p.getItemID(); // item
+					writer.append(String.format("%d,%d,%f", userId, itemId, rating));
+					writer.append("\n");
+				}
+				writer.flush();
+			}
+			writer.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (TasteException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public Long getPreferenceTime(long userID, long itemID) throws TasteException {
 		return null;
@@ -646,7 +681,7 @@ public class SMDataModel extends AbstractDataModel {
 	}
 
 	public void removePreference(long userID, long itemID) throws TasteException {
-
+		
 	}
 
     public double getDensity() throws TasteException {
@@ -676,7 +711,7 @@ public class SMDataModel extends AbstractDataModel {
             for(Preference p : preferencesFromUser) {
                 // if preference is less than 1, remove it from model
                 if(p.getValue() <= 0) {
-                    dataModel.removePreference(userID, p.getItemID());
+                	dataModel.removePreference(userID, p.getItemID());
                 }
             }
         }

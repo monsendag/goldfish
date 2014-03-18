@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public enum DataSet {
 
-    yow10kratings, yow10kprocessed, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food;
+    yow10kratings, yow10kprocessed, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
 
     public DataModel getModel() throws IOException, TasteException {
         DataModel model;
@@ -22,6 +22,12 @@ public enum DataSet {
                 return new FileDataModel(new File("datasets/yow-userstudy/ratings.csv"));
             case yow10kprocessed:
                 return Preprocessor.getPreprocessedDataModel("datasets/yow-userstudy/like-timeonpage-timeonmouse-novelty.csv");
+            
+            // claypool userstudy
+            case claypool2k:
+            	return new SMDataModel(new File("datasets/claypool/cbdata-explicit.csv"));
+            case claypool2kprocessed:
+            	return Preprocessor.getPreprocessedDataModel("datasets/claypool/cbdata-feedback-anon.csv");
 
             // regular models
             case Netflix100M:

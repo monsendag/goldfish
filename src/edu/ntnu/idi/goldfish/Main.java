@@ -3,8 +3,10 @@ package edu.ntnu.idi.goldfish;
 import edu.ntnu.idi.goldfish.configurations.Configuration;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
+
 import org.apache.mahout.cf.taste.model.DataModel;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +40,10 @@ public class Main {
 		set = DataSet.claypool2kprocessed;
 		
 
-		DataModel dataModel = set.getModel();
+		SMDataModel dataModel = (SMDataModel) set.getModel();
+		dataModel.writeDatasetToFileExplicit("datasets/claypool/claypool-temp.csv");
+		dataModel = new SMDataModel(new File("datasets/claypool/claypool-temp.csv"));
+		
         SMDataModel.removeInvalidPrefs(dataModel);
 
 		Evaluator evaluator = new Evaluator();
