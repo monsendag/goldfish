@@ -31,8 +31,11 @@ public class Main {
 //		set = DataSet.Movielens1M;
 //		 set = DataSet.Movielens50k;
 //		 set = DataSet.yow10kratings;
-		 set = DataSet.yow10kprocessed;
+//		 set = DataSet.yow10kprocessed;
 		// set = DataSet.food;
+//		set = DataSet.claypool2k;
+		set = DataSet.claypool2kprocessed;
+		
 
 		DataModel dataModel = set.getModel();
 		Evaluator evaluator = new Evaluator();
