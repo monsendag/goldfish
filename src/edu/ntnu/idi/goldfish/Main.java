@@ -2,6 +2,7 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.configurations.Configuration;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
+import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 
 import java.util.ArrayList;
@@ -38,6 +39,8 @@ public class Main {
 		
 
 		DataModel dataModel = set.getModel();
+        SMDataModel.removeInvalidPrefs(dataModel);
+
 		Evaluator evaluator = new Evaluator();
 		List<Configuration> configurations = new ArrayList<Configuration>();
 		ResultList results = new ResultList(dataModel);
