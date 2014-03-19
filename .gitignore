@@ -16,6 +16,6 @@ target/
 #*.jar
 *.war
 *.ear
-
+*.numbers
 
 !*.zip
