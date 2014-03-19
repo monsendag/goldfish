@@ -37,10 +37,6 @@ public class Preprocessor {
 		return model;
 	}
 
-	public Preprocessor() {
-
-	}
-
 	public static boolean isPseudoPreference(Preference pref) {
 		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 	}
@@ -85,32 +81,31 @@ public class Preprocessor {
 		while (it.hasNext()) {
 			
 			long itemID = it.next();
-
-			// iterate through all prefs for item
 			PreferenceArray prefs = model.getPreferencesForItem(itemID);
 			
-//			System.out.println(String.format("Number of ratings,  %d, for each item %d", prefs.length(), itemID));
+			// iterate through all prefs for item
 			for (Preference p : prefs) {
+
 				SMPreference pref = (SMPreference) p;
-				
-				boolean hasExplicit = pref.getValue(0) >= 1;
+				boolean hasExplicit = pref.getValue(RATING_INDEX) >= 1;
 
 				if (!hasExplicit) {
 					
 					float[] feedback = pref.getValues();
+					
 					boolean hasImplicit = checkIfPreferenceHasImplicitFeedback(feedback);
-
 					int ratingPairs = getNumberOfRatingPairs(prefs);
+				
+					// do we have enough pairs of explicit and implicit feedback in order to map
+					// from implicit feedback to an explicit rating (pseudo rating) ?
 					if (hasImplicit && ratingPairs >= THRESHOLD) {
 
 						int bestCorrelated = getBestCorrelatedFeedback(prefs, feedback);
-						
-						// check if |correlation| > 0.5
 						double correlation = getCorrelation(prefs, bestCorrelated);
+						
 						if (Math.abs(correlation) > 0.5) {
 							// we have now ensured that a relationship between the implicit and explicit feedback
 							// exist and will continue to find pseudoRatings
-//								System.out.println(String.format("ItemID: %d", itemID));
 							
 							// I: get pseudoRating based on linear regression
 							float pseudoRating = getPseudoRatingLinearRegression(prefs, pref, bestCorrelated, ratingPairs);
@@ -154,7 +149,21 @@ public class Preprocessor {
 		}
 	}
 	
-	private float getPseudoRatingLinearRegression(PreferenceArray prefs, SMPreference pref, int bestCorrelated, int ratingPairs){
+	/**
+	 * Finds the pseudo rating given an article without explicit rating by using linear regression on the
+	 * implicit feedback that correlates best with the ratings given by users.
+	 * @param prefs
+	 * 		all preferences for a given article
+	 * @param currentPref
+	 * 		the preference without explicit rating and hence will get a pseudo rating
+	 * @param bestCorrelated
+	 * 		index of the best correlated implicit feedback
+	 * @param ratingPairs
+	 * 		number of explicit and implicit feedback that is used in linear expression
+	 * @return
+	 * 		a pseudo rating based on linear regression
+	 */
+	private float getPseudoRatingLinearRegression(PreferenceArray prefs, SMPreference currentPref, int bestCorrelated, int ratingPairs){
 		double[] explRatings = new double[ratingPairs];
 		double[] implRatings = new double[ratingPairs];
 		try {
@@ -168,7 +177,7 @@ public class Preprocessor {
 		TrendLine t = new PolyTrendLine(1);
 		t.setValues(explRatings, implRatings);
 		
-		return (float) Math.round(t.predict(pref.getValue(bestCorrelated)));
+		return (float) Math.round(t.predict(currentPref.getValue(bestCorrelated)));
 	}
 	
 	/**
@@ -181,6 +190,7 @@ public class Preprocessor {
 	 * @param bestCorrelated
 	 * 		the implicit feedback index with highest correlation
 	 * @return
+	 * 		a pseudo rating based on closest neighbor
 	 */
 	private float getPseudoRatingClosestNeighbor(PreferenceArray prefs, SMPreference currentPref, int bestCorrelated) {
 		float diff = Float.MAX_VALUE;
@@ -211,6 +221,7 @@ public class Preprocessor {
 	 * @param bestCorrelated
 	 * 		the implicit feedback index with highest correlation
 	 * @return
+	 * 		a pseudo rating based on equal bins
 	 */
 	private int getPseudoRatingEqualBins(SMPreference currentPref, double correlation, PreferenceArray prefs, int bestCorrelated) {
 		float min = Integer.MAX_VALUE;
@@ -294,7 +305,7 @@ public class Preprocessor {
 		for (int i = 0; i < prefs.length(); i++) {
 			SMPreference p = (SMPreference) prefs.get(i);
             // ensure that we have explicit value
-            if(p.getValue(0) >= 0) {
+            if(p.getValue(0) >= 1) {
                 pairs++;
             }
 		}
