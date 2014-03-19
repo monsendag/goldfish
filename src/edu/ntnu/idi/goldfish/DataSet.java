@@ -19,9 +19,9 @@ public enum DataSet {
         switch (this) {
             // yow userstudy
             case yow10kratings:
-                return new FileDataModel(new File("datasets/yow-userstudy/ratings.csv"));
+                return new FileDataModel(new File("datasets/yow-userstudy/ratings-fixed.csv"));
             case yow10kprocessed:
-                return Preprocessor.getPreprocessedDataModel("datasets/yow-userstudy/like-timeonpage-timeonmouse-novelty.csv");
+                return Preprocessor.getPreprocessedDataModel("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv");
             
             // claypool userstudy
             case claypool2k:

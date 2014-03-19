@@ -34,17 +34,16 @@ public class Main {
 //		set = DataSet.Movielens1M;
 //		 set = DataSet.Movielens50k;
 //		 set = DataSet.yow10kratings;
-//		 set = DataSet.yow10kprocessed;
+		 set = DataSet.yow10kprocessed;
 		// set = DataSet.food;
 //		set = DataSet.claypool2k;
-		set = DataSet.claypool2kprocessed;
+//		set = DataSet.claypool2kprocessed;
 		
 
-		SMDataModel dataModel = (SMDataModel) set.getModel();
-		dataModel.writeDatasetToFileExplicit("datasets/claypool/claypool-temp.csv");
-		dataModel = new SMDataModel(new File("datasets/claypool/claypool-temp.csv"));
-		
-        SMDataModel.removeInvalidPrefs(dataModel);
+		DataModel dataModel = set.getModel();
+		SMDataModel sm = (SMDataModel) dataModel;
+		sm.writeDatasetToFileExplicit("/tmp/removing-invalid-ratings.csv");
+		dataModel = new SMDataModel(new File("/tmp/removing-invalid-ratings.csv"));
 
 		Evaluator evaluator = new Evaluator();
 		List<Configuration> configurations = new ArrayList<Configuration>();
