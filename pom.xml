@@ -10,7 +10,7 @@
     <name>goldfish</name>
 
 
-    <description>Description about this application</description>
+    <description></description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
