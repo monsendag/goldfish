@@ -23,6 +23,9 @@ import java.util.Set;
 public class Preprocessor {
 
 	private final int THRESHOLD = 3;
+	private final int TIME_ON_PAGE_INDEX = 1;
+	private final int RATING_INDEX = 0;
+	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
 	private static Set<String> pseudoRatings = new HashSet<String>();
 
@@ -40,6 +43,30 @@ public class Preprocessor {
 
 	public static boolean isPseudoPreference(Preference pref) {
 		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+	}
+	
+	public boolean checkIfPreferenceHasImplicitFeedback(float[] feedback){
+		// start with index 1 because index 0 is explicit rating
+		for (int i = 1; i < feedback.length; i++) {
+			if (feedback[i] >= 1) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public int getBestCorrelatedFeedback(PreferenceArray prefs, float[] feedback) throws NoSuchItemException{
+		int bestCorrelated = -1;
+		
+		// iterate through implicit values and use the one with highest correlation
+		for (int i = 1; i < feedback.length; i++) {
+			if (bestCorrelated == -1
+					|| getCorrelation(prefs, i) > getCorrelation(prefs, bestCorrelated)) {
+				bestCorrelated = i;
+			}
+		}
+		
+		return bestCorrelated;
 	}
 
 	/**
@@ -61,54 +88,32 @@ public class Preprocessor {
 
 			// iterate through all prefs for item
 			PreferenceArray prefs = model.getPreferencesForItem(itemID);
+			
 //			System.out.println(String.format("Number of ratings,  %d, for each item %d", prefs.length(), itemID));
 			for (Preference p : prefs) {
 				SMPreference pref = (SMPreference) p;
+				
 				boolean hasExplicit = pref.getValue(0) >= 1;
 
 				if (!hasExplicit) {
-
 					
-					boolean hasImplicit = false;
-					float[] vals = pref.getValues();
-					
-					
-					
-					for (int i = 1; i < vals.length; i++) {
-						if (vals[i] >= 1) {
-							hasImplicit = true;
-							break;
-						}
-					}
-					// iterate through implicit values and use the one with
-					// highest correlation
+					float[] feedback = pref.getValues();
+					boolean hasImplicit = checkIfPreferenceHasImplicitFeedback(feedback);
 
-					// find out if we have enough explicit-implicit rating
-					// pars
-					double[] explRatings = getRatings(model, itemID, 0);
-					if (hasImplicit && explRatings.length >= THRESHOLD) {
+					int ratingPairs = getNumberOfRatingPairs(prefs);
+					if (hasImplicit && ratingPairs >= THRESHOLD) {
 
-						int bestCorrelated = -1;
-						for (int i = 1; i < vals.length; i++) {
-							if (bestCorrelated == -1
-									|| getCorrelation(model, itemID, i) > getCorrelation(model, itemID, bestCorrelated)) {
-								bestCorrelated = i;
-							}
-						}
-
+						int bestCorrelated = getBestCorrelatedFeedback(prefs, feedback);
 						
 						// check if |correlation| > 0.5
-						double correlation = getCorrelation(model, itemID, bestCorrelated);
+						double correlation = getCorrelation(prefs, bestCorrelated);
 						if (Math.abs(correlation) > 0.5) {
 							// we have now ensured that a relationship between the implicit and explicit feedback
 							// exist and will continue to find pseudoRatings
 //								System.out.println(String.format("ItemID: %d", itemID));
 							
 							// I: get pseudoRating based on linear regression
-							double[] implRatings = getRatings(model, itemID, bestCorrelated); 
-							TrendLine t = new PolyTrendLine(1);
-							t.setValues(explRatings, implRatings);
-							float pseudoRating = (float) Math.round(t.predict(pref.getValue(bestCorrelated)));
+							float pseudoRating = getPseudoRatingLinearRegression(prefs, pref, bestCorrelated, ratingPairs);
 							
 							// II: get pseudoRating based on closest neighbor
 //							float pseudoRating = getPseudoRatingClosestNeighbor(prefs, pref, bestCorrelated);
@@ -123,7 +128,7 @@ public class Preprocessor {
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID())); 
 						}
 					} 
-					else if(vals[1] > keh.getMostDenseImplicit()){
+					else if(feedback[TIME_ON_PAGE_INDEX] > keh.getMostDenseImplicit()){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
 						// 15 seconds on an article like the article
 						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/
@@ -147,6 +152,23 @@ public class Preprocessor {
 				}
 			}
 		}
+	}
+	
+	private float getPseudoRatingLinearRegression(PreferenceArray prefs, SMPreference pref, int bestCorrelated, int ratingPairs){
+		double[] explRatings = new double[ratingPairs];
+		double[] implRatings = new double[ratingPairs];
+		try {
+			explRatings = getRatings(prefs,0);
+			implRatings = getRatings(prefs, bestCorrelated); 
+		} catch (NoSuchItemException e) {
+			e.printStackTrace();
+			System.err.println("Linear regression could not retrive explicit and/or implicit ratings");
+		}
+		
+		TrendLine t = new PolyTrendLine(1);
+		t.setValues(explRatings, implRatings);
+		
+		return (float) Math.round(t.predict(pref.getValue(bestCorrelated)));
 	}
 	
 	/**
@@ -227,9 +249,9 @@ public class Preprocessor {
 		return pseudoRating;
 	}
 
-	public double getCorrelation(SMDataModel model, long itemID, int implicitIndex) throws NoSuchItemException {
-			double[] expl = getRatings(model, itemID, 0);
-			double[] impl = getRatings(model, itemID, implicitIndex);
+	public double getCorrelation(PreferenceArray prefs, int implicitIndex) throws NoSuchItemException {
+			double[] expl = getRatings(prefs, 0);
+			double[] impl = getRatings(prefs, implicitIndex);
 			
 			PearsonsCorrelation pc = new PearsonsCorrelation();
 			return pc.correlation(expl, impl);
@@ -242,10 +264,11 @@ public class Preprocessor {
 	 * @param index
 	 * 		0 = explicit, 1,2...n = implicit
 	 * @return
+	 * 		Returns all ratings for a given type of feedback given by the index parameter.
+	 * 		Also ensure that every rating returned has an explicit rating.
 	 * @throws NoSuchItemException
 	 */
-	public double[] getRatings(SMDataModel model, long itemID, int index) throws NoSuchItemException{
-		PreferenceArray prefs = model.getPreferencesForItem(itemID);
+	public double[] getRatings(PreferenceArray prefs, int index) throws NoSuchItemException{
 		
 		// create a list of ratings since we don't know how many rating-pairs exist
 		List<Double> tempRatings = new ArrayList<Double>();
@@ -264,6 +287,48 @@ public class Preprocessor {
 			ratings[i] = tempRatings.get(i);
 		}
 		return ratings;
+	}
+	
+	public int getNumberOfRatingPairs(PreferenceArray prefs) {
+		int pairs = 0;
+		for (int i = 0; i < prefs.length(); i++) {
+			SMPreference p = (SMPreference) prefs.get(i);
+            // ensure that we have explicit value
+            if(p.getValue(0) >= 0) {
+                pairs++;
+            }
+		}
+		
+		return pairs;
+	}
+	
+	//TODO: fix a better way of finding which implicit feedback we can use to create pseudo ratings
+	public List<double[]> getImplicitFeedbackWithEnoughRatingPairs(PreferenceArray prefs, int feedbackLength){
+		List<double[]> feedbacks = new ArrayList<double[]>();
+		
+		// create a list of ratings since we don't know how many rating-pairs exist
+		for (int j = 1; j < feedbackLength; j++) {
+			List<Double> tempExplRatings = new ArrayList<Double>();
+			List<Double> tempImplRatings = new ArrayList<Double>();
+			for (int i = 0; i < prefs.length(); i++) {
+				SMPreference p = (SMPreference) prefs.get(i);
+				// ensure that we have explicit value
+				if(p.getValue(0) >= 0 && p.getValue(j) >= 0) {
+					tempExplRatings.add((double) p.getValue(RATING_INDEX));
+					tempImplRatings.add((double) p.getValue(j));
+				}
+			}
+			if(tempExplRatings.size() >= THRESHOLD && tempImplRatings.size() >= THRESHOLD){
+				double[] explRatings = new double[tempExplRatings.size()];
+				double[] implRatings = new double[tempImplRatings.size()];
+				
+				for (int i = 0; i < implRatings.length; i++) {
+					explRatings[i] = tempExplRatings.get(i);
+					implRatings[i] = tempImplRatings.get(i);
+				}
+			}
+		}
+		return null;
 	}
 
 }

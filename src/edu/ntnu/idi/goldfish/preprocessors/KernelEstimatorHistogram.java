@@ -19,6 +19,16 @@ public class KernelEstimatorHistogram {
 		histograms = new int[NUMBER_OF_HISTOGRAMS];
 		
 		init(dataModel);
+		
+		printHistograms();
+	}
+	
+	public void printHistograms(){
+		System.out.println("Kernel estimator:");
+		for (int i = 0; i < histograms.length; i++) {
+			System.out.print(histograms[i] + ", ");
+		}
+		System.out.println("");
 	}
 	
 	public void init(SMDataModel dataModel) throws TasteException{
