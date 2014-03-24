@@ -50,7 +50,7 @@ public class KernelEstimatorHistogram {
 	}
 	
 	public void updateKernelEstimator(float f){
-		if(f <= MAXBIN) {
+		if(f <= MAXBIN && f >= BIN_SIZE) {
 			int index = (int) Math.floor(f/BIN_SIZE);
 			histograms[index]++;
 		}
@@ -59,8 +59,9 @@ public class KernelEstimatorHistogram {
 	public int getMostDenseImplicit(){
 		int max = -1;
 		int index = -1;
+
 		for (int i = 0; i < histograms.length; i++) {
-			if(histograms[i] > max){
+			if(histograms[i] >= max){
 				max = histograms[i];
 				index = i;
 			}
