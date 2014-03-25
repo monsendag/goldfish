@@ -6,14 +6,13 @@
     <groupId>edu.ntnu.idi</groupId>
     <artifactId>goldfish</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
     <name>goldfish</name>
-
-
     <description></description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <developers>
         <developer>
             <id>1</id>
