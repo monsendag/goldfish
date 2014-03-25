@@ -15,14 +15,12 @@
 
     <developers>
         <developer>
-            <id>1</id>
             <name>Dag Einar Monsen</name>
             <email>me@dag.im</email>
             <organization>NTNU</organization>
             <organizationUrl>http://www.ntnu.edu</organizationUrl>
         </developer>
         <developer>
-            <id>1</id>
             <name>Patrick Romstad</name>
             <email>promstad1@gmail.com</email>
             <organization>NTNU</organization>
