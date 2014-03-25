@@ -29,6 +29,7 @@ public class Preprocessor {
 
 	private final int THRESHOLD = 3;
 	private final int TIME_ON_PAGE_INDEX = 1;
+	private final int TIME_ON_MOUSE_INDEX = 2;
 	private final int RATING_INDEX = 0;
 	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
@@ -126,7 +127,18 @@ public class Preprocessor {
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID())); 
 						}
 					} 
-					else if(feedback[TIME_ON_PAGE_INDEX] > 20000){
+//					else if(timeOnPageAndTimeOnMouseCombined(feedback)){
+//						// according to CEO Tony Haile at Chartbeat people that spends more than 
+//						// 15 seconds on an article like the article
+//						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/
+//						// Morita and Shinoda (1994) concluded that the most effective threshold concerning
+//						// reading time is 20 seconds, which yielded 30% recall and 70% precision
+//						pref.setValue(4, 0);
+//						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+////						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
+////								+ "lets give it 4", itemID));
+//					} 
+					else if(timeOnPageFeedback(feedback)){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
 						// 15 seconds on an article like the article
 						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/
@@ -134,9 +146,15 @@ public class Preprocessor {
 						// reading time is 20 seconds, which yielded 30% recall and 70% precision
 						pref.setValue(4, 0);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
-						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
-								+ "lets give it 4", itemID));
-					} 
+//						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
+//								+ "lets give it 4", itemID));
+					}
+//					else if(timeOnMouseFeedback(feedback)){
+//						pref.setValue(4, 0);
+//						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+////						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
+////								+ "lets give it 4", itemID));
+//					}
 //					else if (vals[1] < 17500 && vals[1] > 1000){
 //						pref.setValue(2, 0);
 //						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
@@ -314,6 +332,19 @@ public class Preprocessor {
 		}
 		
 		return pairs;
+	}
+	
+	public boolean timeOnPageAndTimeOnMouseCombined(float[] feedback){
+		return feedback[TIME_ON_PAGE_INDEX] > 20000 && feedback[TIME_ON_PAGE_INDEX] < 50000 && 
+				feedback[TIME_ON_MOUSE_INDEX] > 2500 && feedback[TIME_ON_MOUSE_INDEX] < 8000;
+	}
+	
+	public boolean timeOnPageFeedback(float[] feedback){
+		return feedback[TIME_ON_PAGE_INDEX] > 20000 && feedback[TIME_ON_PAGE_INDEX] < 50000;
+	}
+	
+	public boolean timeOnMouseFeedback(float[] feedback){
+		return feedback[TIME_ON_MOUSE_INDEX] > 2500 && feedback[TIME_ON_MOUSE_INDEX] < 8000;
 	}
 	
 	//TODO: fix a better way of finding which implicit feedback we can use to create pseudo ratings
