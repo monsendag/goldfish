@@ -20,7 +20,7 @@ public class KernelEstimatorHistogram {
 		
 		init(dataModel);
 		
-		printHistograms();
+//		printHistograms();
 	}
 	
 	public void printHistograms(){
@@ -66,6 +66,7 @@ public class KernelEstimatorHistogram {
 				index = i;
 			}
 		}
+//		System.out.println(String.format("Most dense implicit value is %d",(index+1)*BIN_SIZE));
 		return (index + 1)*BIN_SIZE;
 	}
 }

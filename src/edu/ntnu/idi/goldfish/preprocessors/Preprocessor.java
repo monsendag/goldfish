@@ -20,6 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * This class is used to map implicit feedback to explicit rating where it is possible.
+ * @author Patrick Romstad and Dag Einar Monsen
+ *
+ */
 public class Preprocessor {
 
 	private final int THRESHOLD = 3;
@@ -73,8 +78,6 @@ public class Preprocessor {
 	 * @throws TasteException
 	 */
 	public void preprocess(SMDataModel model) throws TasteException {
-		KernelEstimatorHistogram keh = new KernelEstimatorHistogram(model);
-		System.out.println(String.format("Most dense implicit value is %d",keh.getMostDenseImplicit()));
 		
 		// iterate through all items
 		LongPrimitiveIterator it = model.getItemIDs();
@@ -123,7 +126,7 @@ public class Preprocessor {
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID())); 
 						}
 					} 
-					else if(feedback[TIME_ON_PAGE_INDEX] > keh.getMostDenseImplicit()){
+					else if(feedback[TIME_ON_PAGE_INDEX] > 20000){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
 						// 15 seconds on an article like the article
 						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/
@@ -131,8 +134,8 @@ public class Preprocessor {
 						// reading time is 20 seconds, which yielded 30% recall and 70% precision
 						pref.setValue(4, 0);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
-//						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
-//								+ "lets give it 4", itemID));
+						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
+								+ "lets give it 4", itemID));
 					} 
 //					else if (vals[1] < 17500 && vals[1] > 1000){
 //						pref.setValue(2, 0);
