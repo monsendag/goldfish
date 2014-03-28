@@ -3,7 +3,9 @@ package edu.ntnu.idi.goldfish.preprocessors;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 
+import org.apache.commons.math3.exception.NumberIsTooSmallException;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
+import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import org.apache.mahout.cf.taste.common.NoSuchItemException;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
@@ -80,6 +82,9 @@ public class Preprocessor {
 	 */
 	public void preprocess(SMDataModel model) throws TasteException {
 		
+		double[] beta = globalLR(model, 2);
+		boolean useGlobalLR = true;
+		
 		// iterate through all items
 		LongPrimitiveIterator it = model.getItemIDs();
 		while (it.hasNext()) {
@@ -94,15 +99,22 @@ public class Preprocessor {
 				boolean hasExplicit = pref.getValue(RATING_INDEX) >= 1;
 
 				if (!hasExplicit) {
-					
 					float[] feedback = pref.getValues();
-					
 					boolean hasImplicit = checkIfPreferenceHasImplicitFeedback(feedback);
 					int ratingPairs = getNumberOfRatingPairs(prefs);
-				
+					
+					if(useGlobalLR){
+						float pseudoRating = (float) beta[0];
+						for (int i = 1; i < beta.length; i++) {
+							pseudoRating += beta[i]*feedback[i];
+						}
+						pref.setValue(Math.round(pseudoRating), RATING_INDEX);
+						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+						
+					}
 					// do we have enough pairs of explicit and implicit feedback in order to map
 					// from implicit feedback to an explicit rating (pseudo rating) ?
-					if (hasImplicit && ratingPairs >= THRESHOLD) {
+					else if (hasImplicit && ratingPairs >= THRESHOLD) {
 
 						int bestCorrelated = getBestCorrelatedFeedback(prefs, feedback);
 						double correlation = getCorrelation(prefs, bestCorrelated);
@@ -138,16 +150,20 @@ public class Preprocessor {
 ////						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 ////								+ "lets give it 4", itemID));
 //					} 
-					else if(timeOnPageFeedback(feedback)){
+					else if(timeOnPageFeedback(feedback, 50000, 120000)){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
 						// 15 seconds on an article like the article
 						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/
 						// Morita and Shinoda (1994) concluded that the most effective threshold concerning
 						// reading time is 20 seconds, which yielded 30% recall and 70% precision
-						pref.setValue(4, 0);
+						pref.setValue(5, 0);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 //						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 //								+ "lets give it 4", itemID));
+					}
+					else if(timeOnPageFeedback(feedback, 30000, 50000)){
+						pref.setValue(4, 0);
+						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 					}
 //					else if(timeOnMouseFeedback(feedback)){
 //						pref.setValue(4, 0);
@@ -170,6 +186,69 @@ public class Preprocessor {
 		}
 	}
 	
+	private double[] globalLR(SMDataModel model, int numberOfIndependentVariables) throws TasteException {
+		
+		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);
+		
+		List<Double> tempExpl = new ArrayList<Double>();
+		List<Double[]> tempImpl = new ArrayList<Double[]>();
+		int implSize = numberOfIndependentVariables;
+		Double[] impl = new Double[implSize];
+		
+		LongPrimitiveIterator it = model.getItemIDs();
+		while (it.hasNext()) {
+			
+			long itemID = it.next();
+			PreferenceArray prefs = model.getPreferencesForItem(itemID);
+			SMPreference checkIVs = (SMPreference) prefs.get(0);
+			if(checkIVs.getValues().length-1 < implSize){
+				implSize = checkIVs.getValues().length-1;
+			}
+			
+			for (int i = 0; i < prefs.length(); i++) {
+				SMPreference p = (SMPreference) prefs.get(i);
+				// ensure that we have explicit value
+				if(p.getValue(RATING_INDEX) <= 0 || p.getValue(TIME_ON_PAGE_INDEX) <= 0) {
+					continue;
+				}
+				
+				tempExpl.add((double) p.getValue(RATING_INDEX));
+				impl = new Double[implSize];
+				for (int j = 0; j < impl.length; j++) {
+					impl[j] = (double) p.getValue(j+1);
+				}
+				tempImpl.add(impl);
+			}
+		}
+		
+		if(tempExpl.size() != tempImpl.size()) throw new NumberFormatException("LR must have equal IV and DV sizes");
+	
+		double[] explRatings = new double[tempExpl.size()];
+		double[][] implRatings = new double[tempImpl.size()][];
+		for (int i = 0; i < explRatings.length; i++) {
+			explRatings[i] = tempExpl.get(i);
+			Double[] tempRatings = tempImpl.get(i);
+			double[] ratings = new double[tempRatings.length];
+			for (int j = 0; j < tempRatings.length; j++) {
+				ratings[j] = tempRatings[j];
+			}
+			implRatings[i] = ratings;
+		}
+		
+		OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
+		regression.newSampleData(explRatings, implRatings);
+
+		double[] beta = regression.estimateRegressionParameters();      
+		
+		System.out.println("Regression parameters:");
+		for (int i = 0; i < beta.length; i++) {
+				System.out.print("B"+i+": " + beta[i] + ", ");
+		}
+		System.out.println("");
+		
+		return beta;
+	}
+
 	/**
 	 * Finds the pseudo rating given an article without explicit rating by using linear regression on the
 	 * implicit feedback that correlates best with the ratings given by users.
@@ -334,17 +413,18 @@ public class Preprocessor {
 		return pairs;
 	}
 	
-	public boolean timeOnPageAndTimeOnMouseCombined(float[] feedback){
-		return feedback[TIME_ON_PAGE_INDEX] > 20000 && feedback[TIME_ON_PAGE_INDEX] < 50000 && 
-				feedback[TIME_ON_MOUSE_INDEX] > 2500 && feedback[TIME_ON_MOUSE_INDEX] < 8000;
+	public boolean timeOnPageAndTimeOnMouseCombined(float[] feedback, int pageMin, int pageMax, 
+			int mouseMin, int mouseMax){
+		return feedback[TIME_ON_PAGE_INDEX] > pageMin && feedback[TIME_ON_PAGE_INDEX] < pageMax && 
+				feedback[TIME_ON_MOUSE_INDEX] > mouseMin && feedback[TIME_ON_MOUSE_INDEX] < mouseMax;
 	}
 	
-	public boolean timeOnPageFeedback(float[] feedback){
-		return feedback[TIME_ON_PAGE_INDEX] > 20000 && feedback[TIME_ON_PAGE_INDEX] < 50000;
+	public boolean timeOnPageFeedback(float[] feedback, int min, int max){
+		return feedback[TIME_ON_PAGE_INDEX] > min && feedback[TIME_ON_PAGE_INDEX] < max;
 	}
 	
-	public boolean timeOnMouseFeedback(float[] feedback){
-		return feedback[TIME_ON_MOUSE_INDEX] > 2500 && feedback[TIME_ON_MOUSE_INDEX] < 8000;
+	public boolean timeOnMouseFeedback(float[] feedback, int min, int max){
+		return feedback[TIME_ON_MOUSE_INDEX] > min && feedback[TIME_ON_MOUSE_INDEX] < max;
 	}
 	
 	//TODO: fix a better way of finding which implicit feedback we can use to create pseudo ratings
