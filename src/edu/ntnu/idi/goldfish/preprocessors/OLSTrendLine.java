@@ -37,5 +37,5 @@ public abstract class OLSTrendLine implements TrendLine {
         double yhat = coef.preMultiply(xVector(x))[0]; // apply coefs to xVector
         if (logY()) yhat = (Math.exp(yhat)); // if we predicted ln y, we still need to get y
         return yhat;
-    }
+    }   
 }
