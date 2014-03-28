@@ -2,7 +2,7 @@ package edu.ntnu.idi.goldfish.mahout;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.DataModelBuilder;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
@@ -110,7 +110,7 @@ public class SMRMSEevaluator extends AbstractDifferenceRecommenderEvaluator {
 		for (int i = 0; i < size; i++) {
 			Preference newPref = new GenericPreference(userID, prefs.getItemID(i), prefs.getValue(i));
 
-			boolean isPseudo = Preprocessor.isPseudoPreference(newPref);
+			boolean isPseudo = PreprocessorPuddis.isPseudoPreference(newPref);
 //			if(isPseudo) numberOfPseudoRatings++;
 			// @TODO keep pseudoratings in training set while keeping correct
 			// trainingPercentage
