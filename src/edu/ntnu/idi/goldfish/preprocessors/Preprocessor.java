@@ -186,6 +186,16 @@ public class Preprocessor {
 		}
 	}
 	
+	/**
+	 * Calculates linear regression on the dataset
+	 * @param model
+	 * 		the model of the dataset
+	 * @param numberOfIndependentVariables
+	 * 		the number of independent variables (different implicit feedback) used to do linear regression.
+	 * @return
+	 * 		the regression parameters (beta coefficients) 
+	 * @throws TasteException
+	 */
 	private double[] globalLR(SMDataModel model, int numberOfIndependentVariables) throws TasteException {
 		
 		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);
@@ -193,13 +203,16 @@ public class Preprocessor {
 		List<Double> tempExpl = new ArrayList<Double>();
 		List<Double[]> tempImpl = new ArrayList<Double[]>();
 		int implSize = numberOfIndependentVariables;
-		Double[] impl = new Double[implSize];
+		Double[] independentVariables = new Double[implSize];
 		
 		LongPrimitiveIterator it = model.getItemIDs();
 		while (it.hasNext()) {
 			
 			long itemID = it.next();
 			PreferenceArray prefs = model.getPreferencesForItem(itemID);
+			
+			// do a check if numberOfIndendentVaribles are higher than the number of 
+			// indepented variables (implicit feedback) in the dataset
 			SMPreference checkIVs = (SMPreference) prefs.get(0);
 			if(checkIVs.getValues().length-1 < implSize){
 				implSize = checkIVs.getValues().length-1;
@@ -213,20 +226,23 @@ public class Preprocessor {
 				}
 				
 				tempExpl.add((double) p.getValue(RATING_INDEX));
-				impl = new Double[implSize];
-				for (int j = 0; j < impl.length; j++) {
-					impl[j] = (double) p.getValue(j+1);
+				independentVariables = new Double[implSize];
+				for (int j = 0; j < independentVariables.length; j++) {
+					independentVariables[j] = (double) p.getValue(j+1);
 				}
-				tempImpl.add(impl);
+				tempImpl.add(independentVariables);
 			}
 		}
 		
+		// the number of dependent and independent variables in linear regression must be the same
 		if(tempExpl.size() != tempImpl.size()) throw new NumberFormatException("LR must have equal IV and DV sizes");
 	
 		double[] explRatings = new double[tempExpl.size()];
 		double[][] implRatings = new double[tempImpl.size()][];
 		for (int i = 0; i < explRatings.length; i++) {
 			explRatings[i] = tempExpl.get(i);
+			
+			// convert Double[] to double[]
 			Double[] tempRatings = tempImpl.get(i);
 			double[] ratings = new double[tempRatings.length];
 			for (int j = 0; j < tempRatings.length; j++) {
@@ -240,6 +256,7 @@ public class Preprocessor {
 
 		double[] beta = regression.estimateRegressionParameters();      
 		
+		// write the regression parameters to console 
 		System.out.println("Regression parameters:");
 		for (int i = 0; i < beta.length; i++) {
 				System.out.print("B"+i+": " + beta[i] + ", ");
