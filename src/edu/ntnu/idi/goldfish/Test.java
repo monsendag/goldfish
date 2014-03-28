@@ -1,12 +1,5 @@
 package edu.ntnu.idi.goldfish;
 
-import edu.ntnu.idi.goldfish.mahout.SMDataModel;
-import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
-
-import java.io.File;
-
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
 public class Test {
@@ -16,7 +9,7 @@ public class Test {
 //        model = new SMDataModel(new File("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv"));
 //
 //        System.out.println(String.format("Density unprocessed: %f", model.getDensity()));
-//        Preprocessor pre = new Preprocessor();
+//        PreprocessorPuddis pre = new PreprocessorPuddis();
 //        pre.preprocess(model);
 //        System.out.println(String.format("Density processed: %f", model.getDensity()));
 //
