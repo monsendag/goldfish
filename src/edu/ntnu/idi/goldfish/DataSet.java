@@ -2,6 +2,7 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
+import edu.ntnu.idi.goldfish.preprocessors.YowModel;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
@@ -12,9 +13,9 @@ import java.io.IOException;
 
 public enum DataSet {
 
-    yow10kratings, yow10kprocessed, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
+    yow10kratings, yow10kprocessed, yow10kyowmodel, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
 
-    public DataModel getModel() throws IOException, TasteException {
+    public DataModel getModel() throws Exception {
         DataModel model;
         switch (this) {
             // yow userstudy
@@ -22,7 +23,10 @@ public enum DataSet {
                 return new FileDataModel(new File("datasets/yow-userstudy/ratings-fixed.csv"));
             case yow10kprocessed:
                 return Preprocessor.getPreprocessedDataModel("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv");
-            
+            case yow10kyowmodel:
+                return new YowModel(new File("datasets/yow-userstudy/ratings-fixed.csv"));
+
+
             // claypool userstudy
             case claypool2k:
             	return new SMDataModel(new File("datasets/claypool/cbdata-explicit.csv"));
