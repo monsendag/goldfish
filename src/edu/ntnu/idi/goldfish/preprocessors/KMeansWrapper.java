@@ -70,7 +70,7 @@ public class KMeansWrapper {
 
 		// clean
 		HadoopUtil.delete(conf, output);
-		
+
 
 		// Run k-means algorithm
 		KMeansDriver.run(
@@ -78,7 +78,6 @@ public class KMeansWrapper {
 				new Path("clusterdata/users"), 		// the directory pathname for input points
 				new Path("clusterdata/clusters"),	// the directory pathname for initial & computed clusters
 				output, 							// the directory pathname for output points
-				measure, 							// the DistanceMeasure to use
 				convergenceDelta, 					// the convergence delta value
 				maxIterations, 						// the maximum number of iterations
 				runClustering, 						// true if points are to be clustered after iterations are completed
