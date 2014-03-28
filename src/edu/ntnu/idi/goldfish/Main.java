@@ -2,8 +2,10 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.configurations.Configuration;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
+import edu.ntnu.idi.goldfish.configurations.ParallelSGD;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 
+import edu.ntnu.idi.goldfish.preprocessors.YowModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 
 import java.io.File;
@@ -34,7 +36,8 @@ public class Main {
 //		set = DataSet.Movielens1M;
 //		 set = DataSet.Movielens50k;
 //		 set = DataSet.yow10kratings;
-		 set = DataSet.yow10kprocessed;
+//		 set = DataSet.yow10kprocessed;
+//        set = DataSet.yow10kyowmodel;
 		// set = DataSet.food;
 //		set = DataSet.claypool2k;
 //		set = DataSet.claypool2kprocessed;
@@ -43,7 +46,7 @@ public class Main {
 		DataModel dataModel = set.getModel();
 		SMDataModel sm = (SMDataModel) dataModel;
 		sm.writeDatasetToFileExplicit("/tmp/removing-invalid-ratings.csv");
-		dataModel = new SMDataModel(new File("/tmp/removing-invalid-ratings.csv"));
+		dataModel = new YowModel(new File("/tmp/removing-invalid-ratings.csv"));
 
 		Evaluator evaluator = new Evaluator();
 		List<Configuration> configurations = new ArrayList<Configuration>();
