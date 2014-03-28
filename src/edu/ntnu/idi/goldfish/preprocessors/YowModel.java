@@ -3,9 +3,11 @@ package edu.ntnu.idi.goldfish.preprocessors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.mahout.cf.taste.common.Refreshable;
 import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
 import org.apache.mahout.cf.taste.impl.common.FastIDSet;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveArrayIterator;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
+import org.apache.mahout.cf.taste.impl.model.GenericDataModel;
 import org.apache.mahout.cf.taste.impl.model.GenericItemPreferenceArray;
 import org.apache.mahout.cf.taste.impl.model.GenericPreference;
 import org.apache.mahout.cf.taste.impl.model.GenericUserPreferenceArray;
@@ -13,7 +15,6 @@ import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
-import org.h2.tools.Server;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 
@@ -30,6 +31,10 @@ import static org.jooq.impl.DSL.tableByName;
 
 public class YowModel implements DataModel {
 
+    static final long EXPLICIT = 0;
+    static final long TIMEONPAGE = 1;
+    static final long TIMEONMOUSE = 2;
+
     /**
      *
      */
@@ -38,7 +43,7 @@ public class YowModel implements DataModel {
     private Table<Record> DB = tableByName("yow");
     private Field<Long> userField = fieldByName(Long.class, "userid");
     private Field<Long> itemField = fieldByName(Long.class, "itemid");
-    private Field<String> prefField = fieldByName(String.class, "preference");
+    private Field<Long> fbackField = fieldByName(Long.class, "feedback");
     private Field<Float> valueField = fieldByName(Float.class, "value");
 
     public static void main(String[] args) throws Exception {
@@ -65,13 +70,8 @@ public class YowModel implements DataModel {
                 if(p1.getValue() != p2.getValue() || p1.getUserID() != p2.getUserID() || p1.getItemID() != p2.getItemID()) {
                     System.out.println("koko");
                 }
-
             }
-
         }
-
-
-//        new YowModel(new File("datasets/yow-userstudy/like-timeonpage-timeonmouse.csv"));
     }
 
     public YowModel(File f) throws Exception {
@@ -80,27 +80,35 @@ public class YowModel implements DataModel {
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:yow;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false");
         context = DSL.using(conn, SQLDialect.MYSQL);
 
-        Server webServer = Server.createWebServer("-webAllowOthers").start();
+        //Server webServer = Server.createWebServer("-webAllowOthers").start();
 
         initTable();
         parseFile(f);
 
         System.out.println(getNumUsers());
 
-        /**
-         *
-         * 1. For each user
-         *      1.1 model items X ratings as a matrix in a DataModel
-         *      1.2 generate recommendation model from the respective matrices
-         *      1.3 estimate explicit ratings
-         *          for each item
-         *              estimate = estimate explicit rating from recommender model
-         *              model.setEstimate (estimate)
-         *      1.4 get preference array for user (explicit ratings)
-         * 2. create new DataModel from user preference arrays
-         * 3. return it
-         *
-         */
+        LongPrimitiveIterator users = getUserIDs();
+
+        while(users.hasNext()) {
+            long userID = users.next();
+
+            LongPrimitiveIterator fbackIDs = getFeedbackIDs();
+
+            FastByIDMap<PreferenceArray> feedbackData = new FastByIDMap<>();
+
+            while(fbackIDs.hasNext()) {
+                long fbackID = fbackIDs.next();
+                feedbackData.put(fbackID, getPreferencesFromUserFeedback(userID, fbackID));
+            }
+            // create pref X item matrix
+            DataModel model = new GenericDataModel(feedbackData);
+
+            // do recommendation on model -- Fill all data for "user" EXPLICIT
+            // model preference name as user id
+        }
+
+        // merge all datamodels to final model -> return it
+
     }
 
     private void parseFile(File f) throws FileNotFoundException {
@@ -122,20 +130,20 @@ public class YowModel implements DataModel {
         long itemID = sc.nextLong();
 
         float explicit = sc.nextFloat();
-//        float timeonpage = sc.nextFloat();
-//        float timeonmouse = sc.nextFloat();
+        float timeonpage = sc.nextFloat();
+        float timeonmouse = sc.nextFloat();
 
-        Field[] fields = new Field[]{userField, itemField, prefField, valueField};
+        Field[] fields = new Field[]{userField, itemField, fbackField, valueField};
 
         if (explicit > 0) {
-            context.insertInto(DB, fields).values(new Object[]{userID, itemID, "explicit", explicit}).execute();
+            context.insertInto(DB, fields).values(new Object[]{userID, itemID, EXPLICIT, explicit}).execute();
         }
-//        if(timeonpage > 0) {
-//            context.insertInto(DB, fields).values(new Object[]{userID, itemID, "timeonpage", timeonpage}).execute();
-//        }
-//        if(timeonmouse > 0) {
-//            context.insertInto(DB, fields).values(new Object[]{userID, itemID, "timeonmouse", timeonmouse}).execute();
-//        }
+        if(timeonpage > 0) {
+            context.insertInto(DB, fields).values(new Object[]{userID, itemID, TIMEONPAGE, timeonpage}).execute();
+        }
+        if(timeonmouse > 0) {
+            context.insertInto(DB, fields).values(new Object[]{userID, itemID, TIMEONMOUSE, timeonmouse}).execute();
+        }
     }
 
     private void initTable() {
@@ -143,7 +151,7 @@ public class YowModel implements DataModel {
         context.query("CREATE TABLE IF NOT EXISTS yow (" +
                 "userid INT NOT NULL, " +
                 "itemid INT NOT NULL, " +
-                "preference varchar(50) NOT NULL, " +
+                "feedback INT NOT NULL, " +
                 "value INT NOT NULL " +
                 "" +
                 ")").execute();
@@ -151,6 +159,22 @@ public class YowModel implements DataModel {
         // set indices
         context.query("CREATE INDEX uindex ON yow (userid)").execute();
         context.query("CREATE INDEX iindex ON yow (itemid)").execute();
+    }
+
+    public FastByIDMap<PreferenceArray> getUserData() throws TasteException {
+        FastByIDMap<PreferenceArray> userData = new FastByIDMap<>();
+        LongPrimitiveIterator userids = getUserIDs();
+        while(userids.hasNext()) {
+            long userid = userids.nextLong();
+            userData.put(userid, getPreferencesFromUser(userid));
+        }
+        return userData;
+    }
+
+    public LongPrimitiveIterator getFeedbackIDs() throws TasteException {
+        Long[] fbackIDs = context.selectDistinct(fbackField)
+                .from(DB).fetchArray(fbackField);
+        return new LongPrimitiveArrayIterator(ArrayUtils.toPrimitive(fbackIDs));
     }
 
     public LongPrimitiveIterator getUserIDs() throws TasteException {
@@ -165,10 +189,18 @@ public class YowModel implements DataModel {
         return new LongPrimitiveArrayIterator(ArrayUtils.toPrimitive(itemID));
     }
 
+    public PreferenceArray getPreferencesFromUserFeedback(long userID, long fbackID) throws TasteException {
+        List<? extends Preference> prefs = context.select(fbackField, itemField, valueField).from(DB)
+                .where(userField.equal(fbackID))
+                .and(fbackField.equal(fbackID))
+                .fetch().into(GenericPreference.class);
+        return new GenericUserPreferenceArray(prefs);
+    }
+
     public PreferenceArray getPreferencesFromUser(long userID) throws TasteException {
         List<? extends Preference> prefs = context.select(userField, itemField, valueField).from(DB)
                 .where(userField.equal(userID))
-                .and(prefField.equal("explicit"))
+                .and(fbackField.equal(EXPLICIT))
                 .fetch().into(GenericPreference.class);
         return new GenericUserPreferenceArray(prefs);
     }
@@ -176,7 +208,7 @@ public class YowModel implements DataModel {
     public PreferenceArray getPreferencesForItem(long itemID) throws TasteException {
         List<? extends Preference> prefs = context.select().from(DB)
                 .where(itemField.equal(itemID))
-                .and(prefField.equal("explicit"))
+                .and(fbackField.equal(EXPLICIT))
                 .fetch().into(GenericPreference.class);
         return new GenericItemPreferenceArray(prefs);
     }
@@ -195,7 +227,7 @@ public class YowModel implements DataModel {
         return context.selectOne().from(DB)
                 .where(userField.equal(userID)
                         .and(itemField.equal(itemID)))
-                .and(prefField.equal("explicit"))
+                .and(fbackField.equal(EXPLICIT))
                 .fetchOne(valueField);
     }
 

@@ -26,27 +26,19 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 
-//		 set = DataSet.Movielens1M;
-//		 set = DataSet.Sample100;
-//		 set = DataSet.Movielens1Mbinary;
-//		 set = DataSet.Movielens50kbinary;
+//        set = DataSet.claypool2k;
+//		set = DataSet.claypool2kprocessed;
 
-//		 set = DataSet.MovielensSynthesized1M;
-//		 set = DataSet.MovielensSynthesized200k;
-//		set = DataSet.Movielens1M;
-//		 set = DataSet.Movielens50k;
-//		 set = DataSet.yow10kratings;
+        set = DataSet.yow10kratings;
 //		 set = DataSet.yow10kprocessed;
 //        set = DataSet.yow10kyowmodel;
-		// set = DataSet.food;
-//		set = DataSet.claypool2k;
-//		set = DataSet.claypool2kprocessed;
-		
 
 		DataModel dataModel = set.getModel();
-		SMDataModel sm = (SMDataModel) dataModel;
-		sm.writeDatasetToFileExplicit("/tmp/removing-invalid-ratings.csv");
-		dataModel = new YowModel(new File("/tmp/removing-invalid-ratings.csv"));
+
+
+//		SMDataModel sm = (SMDataModel) dataModel;
+//		sm.writeDatasetToFileExplicit("/tmp/removing-invalid-ratings.csv");
+//		dataModel = new YowModel(new File("/tmp/removing-invalid-ratings.csv"));
 
 		Evaluator evaluator = new Evaluator();
 		List<Configuration> configurations = new ArrayList<Configuration>();
