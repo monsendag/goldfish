@@ -2,6 +2,7 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorMF;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
 import edu.ntnu.idi.goldfish.preprocessors.YowModel;
 import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
@@ -27,7 +28,9 @@ public enum DataSet {
                 model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
                 return model;
             case yow10kprocessedmf:
-
+                model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
+                Preprocessor mf = new PreprocessorMF();
+                return mf.preprocess((YowModel) model);
             // claypool userstudy
             case claypool2k:
             	return new SMDataModel(new File("datasets/claypool/cbdata-explicit.csv"));
