@@ -37,8 +37,8 @@ public class PreprocessorPuddis extends Preprocessor {
 	private Map<String, Float> correlations = new HashMap<String, Float>();
 	private static Set<String> pseudoRatings = new HashSet<String>();
 
-    public void preprocess(YowModel model) {
-
+    public DataModel preprocess(YowModel model) {
+        return null;
     }
 
 	public static DataModel getPreprocessedDataModel(String path) throws TasteException, IOException {
