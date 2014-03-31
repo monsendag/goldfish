@@ -2,35 +2,37 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
 import edu.ntnu.idi.goldfish.preprocessors.YowModel;
-import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 
 import java.io.File;
-import java.io.IOException;
 
 public enum DataSet {
 
-    yow10kratings, yow10kprocessed, yow10kyowmodel, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
+    yowExdupesExinvalidLike, yow10kprocessedpuddis, yow10kprocessedmf, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
 
     public DataModel getModel() throws Exception {
         DataModel model;
         switch (this) {
             // yow userstudy
-            case yow10kratings:
+            case yowExdupesExinvalidLike:
                 return new FileDataModel(new File("datasets/yow-userstudy/exdupes-exinvalid-like.csv"));
-            case yow10kprocessed:
-                return Preprocessor.getPreprocessedDataModel("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv");
-            case yow10kyowmodel:
-                return new YowModel(new File("datasets/yow-userstudy/like.csv"));
+            case yow10kprocessedpuddis:
+
+                model = PreprocessorPuddis.getPreprocessedDataModel("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv");
+                Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
+                model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
+                return model;
+            case yow10kprocessedmf:
 
             // claypool userstudy
             case claypool2k:
             	return new SMDataModel(new File("datasets/claypool/cbdata-explicit.csv"));
             case claypool2kprocessed:
-            	return Preprocessor.getPreprocessedDataModel("datasets/claypool/cbdata-feedback-anon.csv");
+            	return PreprocessorPuddis.getPreprocessedDataModel("datasets/claypool/cbdata-feedback-anon.csv");
 
             // regular models
             case Netflix100M:

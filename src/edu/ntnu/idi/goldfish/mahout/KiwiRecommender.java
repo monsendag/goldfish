@@ -57,7 +57,6 @@ public class KiwiRecommender implements Recommender {
 			 // Build Matlab class
 			MatlabProxy p = getProxy();
 			File file = new File("/tmp/ratings-synthesized.csv");
-			this.model.writeDatasetToFile(file);
 			p.eval(String.format("kiwi = Kiwi('%s', %s, %s);", file.getAbsolutePath(), Arrays.toString(weights), Arrays.toString(latentFactors)));
 			
 			
