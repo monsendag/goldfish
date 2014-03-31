@@ -82,8 +82,9 @@ public class Preprocessor {
 	 */
 	public void preprocess(SMDataModel model) throws TasteException {
 		
-		double[] beta = globalLR(model, 2);
+		double[] beta = globalLR(model, 1);
 		boolean useGlobalLR = true;
+		int counter = 0;
 		
 		// iterate through all items
 		LongPrimitiveIterator it = model.getItemIDs();
@@ -110,6 +111,7 @@ public class Preprocessor {
 						}
 						pref.setValue(Math.round(pseudoRating), RATING_INDEX);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+						counter++;
 						
 					}
 					// do we have enough pairs of explicit and implicit feedback in order to map
@@ -137,6 +139,8 @@ public class Preprocessor {
 							
 							// remember the pseudoRatings to ensure they are only used in the training set
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID())); 
+							
+							System.out.println(String.format("User %d rated %d with rating: %f", pref.getUserID(), pref.getItemID(), pseudoRating));
 						}
 					} 
 //					else if(timeOnPageAndTimeOnMouseCombined(feedback)){
@@ -158,12 +162,15 @@ public class Preprocessor {
 						// reading time is 20 seconds, which yielded 30% recall and 70% precision
 						pref.setValue(5, 0);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
-//						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
-//								+ "lets give it 4", itemID));
+						System.out.println(String.format("User spent between 50 and 120 seconds on item: %d, "
+								+ "lets give it 5", itemID));
 					}
 					else if(timeOnPageFeedback(feedback, 30000, 50000)){
 						pref.setValue(4, 0);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+						
+						System.out.println(String.format("User spent between 30 and 50 seconds on item: %d, "
+								+ "lets give it 4", itemID));
 					}
 //					else if(timeOnMouseFeedback(feedback)){
 //						pref.setValue(4, 0);
@@ -184,6 +191,7 @@ public class Preprocessor {
 				}
 			}
 		}
+		System.out.println(counter);
 	}
 	
 	/**
