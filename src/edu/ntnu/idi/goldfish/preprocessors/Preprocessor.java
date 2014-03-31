@@ -3,6 +3,7 @@ package edu.ntnu.idi.goldfish.preprocessors;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 import edu.ntnu.idi.goldfish.mahout.SMPreferenceArray;
+
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
@@ -10,9 +11,17 @@ import org.apache.mahout.cf.taste.model.Preference;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 public abstract class Preprocessor {
+	
+	protected static Set<String> pseudoRatings = new HashSet<String>();
+	
+	public static boolean isPseudoPreference(Preference pref) {
+		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+	}
 
     public abstract void preprocess(YowModel model);
 
