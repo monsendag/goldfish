@@ -206,7 +206,7 @@ public class YowModel implements DataModel {
     }
 
     public PreferenceArray getPreferencesForItem(long itemID) throws TasteException {
-        List<? extends Preference> prefs = context.select().from(DB)
+        List<? extends Preference> prefs = context.select(userField, itemField, valueField).from(DB)
                 .where(itemField.equal(itemID))
                 .and(fbackField.equal(EXPLICIT))
                 .fetch().into(GenericPreference.class);

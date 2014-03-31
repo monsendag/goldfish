@@ -35,11 +35,6 @@ public class PreprocessorPuddis extends Preprocessor {
 	private final int RATING_INDEX = 0;
 	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
-	private static Set<String> pseudoRatings = new HashSet<String>();
-
-    public void preprocess(YowModel model) {
-
-    }
 
 	public static DataModel getPreprocessedDataModel(String path) throws TasteException, IOException {
 		SMDataModel model;
@@ -49,9 +44,7 @@ public class PreprocessorPuddis extends Preprocessor {
 		return model;
 	}
 
-	public static boolean isPseudoPreference(Preference pref) {
-		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
-	}
+	
 	
 	public boolean checkIfPreferenceHasImplicitFeedback(float[] feedback){
 		// start with index 1 because index 0 is explicit rating
@@ -86,8 +79,8 @@ public class PreprocessorPuddis extends Preprocessor {
 	 */
 	public void preprocess(SMDataModel model) throws TasteException {
 		
-		double[] beta = globalLR(model, 2);
-		boolean useGlobalLR = true;
+		double[] beta = globalLR(model, 1);
+		boolean useGlobalLR = false;
 		
 		// iterate through all items
 		LongPrimitiveIterator it = model.getItemIDs();
@@ -154,13 +147,13 @@ public class PreprocessorPuddis extends Preprocessor {
 ////						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 ////								+ "lets give it 4", itemID));
 //					} 
-					else if(timeOnPageFeedback(feedback, 50000, 120000)){
+					else if(timeOnPageFeedback(feedback, 25000, 120000)){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
 						// 15 seconds on an article like the article
 						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/
 						// Morita and Shinoda (1994) concluded that the most effective threshold concerning
 						// reading time is 20 seconds, which yielded 30% recall and 70% precision
-						pref.setValue(5, 0);
+						pref.setValue(4, 0);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 //						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 //								+ "lets give it 4", itemID));
@@ -458,6 +451,12 @@ public class PreprocessorPuddis extends Preprocessor {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public void preprocess(YowModel model) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
