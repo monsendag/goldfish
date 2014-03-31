@@ -35,7 +35,6 @@ public class PreprocessorMLR extends Preprocessor {
 	private final int RATING_INDEX = 0;
 	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
-	private static Set<String> pseudoRatings = new HashSet<String>();
 
 
 	public static DataModel getPreprocessedDataModel(String path) throws Exception {
@@ -46,11 +45,8 @@ public class PreprocessorMLR extends Preprocessor {
 		return model;
 	}
 
-	public static boolean isPseudoPreference(Preference pref) {
-		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
-	}
 
-	public void preprocess(YowModel model) {
+	public DataModel preprocess(YowModel model) {
 		try {
 			
 			double[] beta = globalLR(model, 2);
@@ -83,6 +79,7 @@ public class PreprocessorMLR extends Preprocessor {
 			e.printStackTrace();
 			System.err.println("Could not get all items from the yow model");
 		}
+        return null;
 		
 	}
 	
