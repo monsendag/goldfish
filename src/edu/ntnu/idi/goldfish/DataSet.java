@@ -1,10 +1,8 @@
 package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
-import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorMF;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
-import edu.ntnu.idi.goldfish.preprocessors.YowModel;
+import edu.ntnu.idi.goldfish.preprocessors.*;
+
 import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
@@ -13,7 +11,7 @@ import java.io.File;
 
 public enum DataSet {
 
-    yowExdupesExinvalidLike, yow10kprocessedpuddis, yow10kprocessedmf, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
+    yowExdupesExinvalidLike, yow10kprocessedpuddis, yow10kprocessedmlr, yow10kprocessedmf, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
 
     public DataModel getModel() throws Exception {
         DataModel model;
@@ -24,6 +22,12 @@ public enum DataSet {
             case yow10kprocessedpuddis:
 
                 model = PreprocessorPuddis.getPreprocessedDataModel("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv");
+                Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
+                model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
+                return model;
+            case yow10kprocessedmlr:
+
+                model = PreprocessorMLR.getPreprocessedDataModel("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv");
                 Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
                 model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
                 return model;

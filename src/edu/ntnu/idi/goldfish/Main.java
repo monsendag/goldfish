@@ -26,6 +26,7 @@ public class Main {
 //		set = DataSet.claypool2kprocessed;
 
         set = DataSet.yow10kprocessedpuddis;
+//		set = DataSet.yow10kprocessedmlr;
 //		 set = DataSet.yow10kprocessed;
 //        set = DataSet.yow10kyowmodel;
 

@@ -11,6 +11,7 @@ import org.apache.mahout.cf.taste.impl.model.GenericDataModel;
 import org.apache.mahout.cf.taste.impl.model.GenericItemPreferenceArray;
 import org.apache.mahout.cf.taste.impl.model.GenericPreference;
 import org.apache.mahout.cf.taste.impl.model.GenericUserPreferenceArray;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
@@ -20,7 +21,7 @@ import org.jooq.impl.DSL;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.sql.Connection;
+import java.sql.*;
 import java.sql.DriverManager;
 import java.util.*;
 
@@ -191,7 +192,6 @@ public class YowModel implements DataModel {
         itemIDs.stream().forEach(set::add);
         return set;
     }
-
 
 
     @Override
