@@ -60,15 +60,15 @@ public class Evaluator {
 	}
 
 	public void evaluateUnclustered(List<Configuration> configurations, ResultList results, DataModel dataModel, double train, double eval) throws IOException, TasteException {
-//		System.out.format("Starting evaluation of %d configurations (%d users, %d items) \n", configurations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
+		System.out.format("Starting evaluation of %d configurations (%d users, %d items) \n", configurations.size(), dataModel.getNumUsers(), dataModel.getNumItems());
 		StopWatch.start("totaleval");
 		for(Configuration configuration : configurations) {
 			results.add(evaluate(configuration, dataModel, train, eval, getRandomUser(dataModel)));
 		}
-//		System.out.println(StringUtils.repeat("=", 190));
-//		System.out.println(Result.getTotal(results));
-		System.out.format("train: %.2f  eval: %.2f  %s\n",train, eval, Result.getAverage(results));
-//		System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", configurations.size(), dataModel.getNumUsers(), dataModel.getNumItems(), StopWatch.str("totaleval"));
+		System.out.println(StringUtils.repeat("=", 190));
+		System.out.println(Result.getTotal(results));
+		System.out.println(Result.getAverage(results));
+		System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", configurations.size(), dataModel.getNumUsers(), dataModel.getNumItems(), StopWatch.str("totaleval"));
 	}
 
 	Result evaluate(Configuration configuration, DataModel dataModel, double train, double eval, long userID) throws TasteException {
