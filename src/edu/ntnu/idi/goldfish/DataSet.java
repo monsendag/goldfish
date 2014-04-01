@@ -11,10 +11,11 @@ import java.io.File;
 
 public enum DataSet {
 
-    yowExdupesExinvalidLike, yow10kprocessedpuddis, yow10kprocessedmlr, yow10kprocessedmf, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
+    yowExdupesExinvalidLike, yow10kprocessedpuddis, yow10kprocessedmlr, yow10kprocessedmf, yow10kprocessedclassifier, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
 
     public DataModel getModel() throws Exception {
         DataModel model;
+        Preprocessor pre;
         switch (this) {
             // yow userstudy
             case yowExdupesExinvalidLike:
@@ -33,9 +34,13 @@ public enum DataSet {
                 return model;
             case yow10kprocessedmf:
                 model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
-                Preprocessor mf = new PreprocessorMF();
-                return mf.preprocess((YowModel) model);
+                pre = new PreprocessorMF();
+                return pre.preprocess((YowModel) model);
             // claypool userstudy
+            case yow10kprocessedclassifier:
+                model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
+                pre = new PreprocessorClassifier();
+                return pre.preprocess((YowModel) model);
             case claypool2k:
             	return new SMDataModel(new File("datasets/claypool/cbdata-explicit.csv"));
             case claypool2kprocessed:
