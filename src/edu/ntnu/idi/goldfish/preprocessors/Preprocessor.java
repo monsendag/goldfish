@@ -79,6 +79,7 @@ public abstract class Preprocessor {
                 while (it.hasNext()) {
                     SMPreference p = (SMPreference) it.next();
                     rating = p.getValue(); // explicit
+                    if(rating <= 0) continue;
                     itemId = p.getItemID(); // item
                     writer.append(String.format("%d,%d,%f", userId, itemId, rating));
                     writer.append("\n");

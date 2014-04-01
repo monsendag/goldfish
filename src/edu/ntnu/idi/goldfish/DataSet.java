@@ -18,10 +18,10 @@ public enum DataSet {
         switch (this) {
             // yow userstudy
             case yowExdupesExinvalidLike:
-                return new FileDataModel(new File("datasets/yow-userstudy/exdupes-exinvalid-like.csv"));
+                return new FileDataModel(new File("datasets/yow-userstudy/sample-exdupes-exinvalid-like.csv"));
             case yow10kprocessedpuddis:
 
-                model = PreprocessorPuddis.getPreprocessedDataModel("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv");
+                model = PreprocessorPuddis.getPreprocessedDataModel("datasets/yow-userstudy/sample-exdupes-like-timeonpage-timeonmouse-pagetimesmouse.csv");
                 Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
                 model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
                 return model;
@@ -39,7 +39,10 @@ public enum DataSet {
             case claypool2k:
             	return new SMDataModel(new File("datasets/claypool/cbdata-explicit.csv"));
             case claypool2kprocessed:
-            	return PreprocessorPuddis.getPreprocessedDataModel("datasets/claypool/cbdata-feedback-anon.csv");
+            	model = PreprocessorPuddis.getPreprocessedDataModel("datasets/claypool/cbdata-feedback-anon.csv");
+            	Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
+                model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
+            	return model;
 
             // regular models
             case Netflix100M:

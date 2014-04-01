@@ -32,6 +32,7 @@ public class PreprocessorPuddis extends Preprocessor {
 	private final int THRESHOLD = 3;
 	private final int TIME_ON_PAGE_INDEX = 1;
 	private final int TIME_ON_MOUSE_INDEX = 2;
+	private final int TIME_PAGE_TIMES_MOUSE = 3;
 	private final int RATING_INDEX = 0;
 	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
@@ -80,7 +81,8 @@ public class PreprocessorPuddis extends Preprocessor {
 	public void preprocess(SMDataModel model) throws TasteException {
 		
 		double[] beta = globalLR(model, 1);
-		boolean useGlobalLR = false;
+		boolean useGlobalLR = true;
+		int numberOfPseudoRatings = 0;
 		
 		// iterate through all items
 		LongPrimitiveIterator it = model.getItemIDs();
@@ -105,8 +107,19 @@ public class PreprocessorPuddis extends Preprocessor {
 						for (int i = 1; i < beta.length; i++) {
 							pseudoRating += beta[i]*feedback[i];
 						}
+						
+						// the beta0 is 3, have to manually set the lowest ratings
+						pseudoRating = feedback[TIME_ON_PAGE_INDEX] < 25000 ? 2 : pseudoRating;
+						pseudoRating = feedback[TIME_ON_PAGE_INDEX] < 10000 ? 1 : pseudoRating;
+						pseudoRating = -100;
+						
 						pref.setValue(Math.round(pseudoRating), RATING_INDEX);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+						
+						System.out.println(String.format("\nUser %d gave item %d a rating of %d. \n"
+								+ "Page: %.0f, Mouse %.0f, pagemouse: %.0f \n%d \n", pref.getUserID(), pref.getItemID(), 
+								Math.round(pseudoRating), feedback[TIME_ON_PAGE_INDEX], feedback[TIME_ON_MOUSE_INDEX], 
+								feedback[TIME_PAGE_TIMES_MOUSE], ++numberOfPseudoRatings));
 						
 					}
 					// do we have enough pairs of explicit and implicit feedback in order to map
@@ -133,7 +146,10 @@ public class PreprocessorPuddis extends Preprocessor {
 							pref.setValue(pseudoRating, 0); 
 							
 							// remember the pseudoRatings to ensure they are only used in the training set
-							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID())); 
+							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+							
+							System.out.println(String.format("User %d rated item %d with pseudorating: %.0f and correlation: %.2f", 
+									pref.getUserID(), pref.getItemID(), pseudoRating, correlation));
 						}
 					} 
 //					else if(timeOnPageAndTimeOnMouseCombined(feedback)){
@@ -147,18 +163,18 @@ public class PreprocessorPuddis extends Preprocessor {
 ////						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 ////								+ "lets give it 4", itemID));
 //					} 
-					else if(timeOnPageFeedback(feedback, 25000, 120000)){
+					else if(false && timeOnPageFeedback(feedback, 25000, 120000)){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
 						// 15 seconds on an article like the article
 						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/
 						// Morita and Shinoda (1994) concluded that the most effective threshold concerning
 						// reading time is 20 seconds, which yielded 30% recall and 70% precision
-						pref.setValue(4, 0);
+						pref.setValue(5, 0);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 //						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 //								+ "lets give it 4", itemID));
 					}
-					else if(timeOnPageFeedback(feedback, 30000, 50000)){
+					else if(false && timeOnPageFeedback(feedback, 30000, 50000)){
 						pref.setValue(4, 0);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 					}
@@ -205,7 +221,8 @@ public class PreprocessorPuddis extends Preprocessor {
 			for (int i = 0; i < prefs.length(); i++) {
 				SMPreference p = (SMPreference) prefs.get(i);
 				// ensure that we have explicit value
-				if(p.getValue(RATING_INDEX) <= 0 || p.getValue(TIME_ON_PAGE_INDEX) <= 0) {
+				if(p.getValue(RATING_INDEX) <= 0 || p.getValue(TIME_ON_PAGE_INDEX) <= 0 ||
+						p.getValue(TIME_ON_PAGE_INDEX) > 140000) {
 					continue;
 				}
 				
