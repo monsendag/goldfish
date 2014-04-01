@@ -81,7 +81,7 @@ public class Main {
 		}
 
 		StopWatch.start("total configuration");
-		evaluator.evaluateUnclustered(configurations, results, dataModel, 1.0);
+		evaluator.evaluateUnclustered(configurations, results, dataModel, 0.9, 1.0);
 		results.save();
 		// results.print();
 		System.out.format("Completed configuration in %s\n", StopWatch.str("total configuration"));
