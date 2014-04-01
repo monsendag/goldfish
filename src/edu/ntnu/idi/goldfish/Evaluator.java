@@ -9,6 +9,7 @@ import org.apache.mahout.cf.taste.eval.RecommenderIRStatsEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.AbstractDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.AverageAbsoluteDifferenceRecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.eval.GenericRecommenderIRStatsEvaluator;
+import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluator;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.common.RandomUtils;
 import org.apache.mahout.common.RandomWrapper;
@@ -80,17 +81,17 @@ public class Evaluator {
 
 		// initialize evaluators
 		AbstractDifferenceRecommenderEvaluator RMSE = new SMRMSEevaluator();
-		AverageAbsoluteDifferenceRecommenderEvaluator AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
-        RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
+//		AverageAbsoluteDifferenceRecommenderEvaluator AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
+//        RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
 		
         
         // do evaluations
         // NOTE: when a result is not needed, the respective line may be commented out here for increased configuration speed
 		rmse = RMSE.evaluate(configuration.getRecommenderBuilder(), null, dataModel, 0.9, testFrac);
-		aad = AAD.evaluate(configuration.getRecommenderBuilder(), null, dataModel, 0.9, testFrac);
-        IRStatistics stats = irEvaluator.evaluate(configuration.getRecommenderBuilder(), configuration.getModelBuilder(), dataModel, null, configuration.getTopN(), relevanceThreshold, testFrac);
-        precision = stats.getPrecision();
-        recall = stats.getRecall();
+//		aad = AAD.evaluate(configuration.getRecommenderBuilder(), null, dataModel, 0.9, testFrac);
+//        IRStatistics stats = irEvaluator.evaluate(configuration.getRecommenderBuilder(), configuration.getModelBuilder(), dataModel, null, configuration.getTopN(), relevanceThreshold, testFrac);
+//        precision = stats.getPrecision();
+//        recall = stats.getRecall();
         
         // calculate build time
 		StopWatch.start("buildTime");
@@ -102,7 +103,7 @@ public class Evaluator {
 
 		// get time of total configuration
         long evalTime = StopWatch.get("evalTime");
-		Result result = new Result(configuration, rmse, aad, precision, recall, buildTime, recTime, evalTime);
+		Result result = new Result(configuration, rmse, aad, 0, 0, buildTime, recTime, evalTime);
 
 		// print each result to show progress
 		System.out.format("%s \n", result);
