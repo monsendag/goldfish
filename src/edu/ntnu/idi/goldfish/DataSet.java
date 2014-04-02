@@ -11,17 +11,17 @@ import java.io.File;
 
 public enum DataSet {
 
-    yowExdupesExinvalidLike, yow10kprocessedpuddis, yow10kprocessedmlr, yow10kprocessedmf, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
+    yowExdupesExinvalidLike, yow10kprocessedpuddis, yow10kprocessedmlr, yow10kprocessedmf, yow10kprocessedclustering, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food, claypool2k, claypool2kprocessed;
 
     public DataModel getModel() throws Exception {
         DataModel model;
         switch (this) {
             // yow userstudy
             case yowExdupesExinvalidLike:
-                return new FileDataModel(new File("datasets/yow-userstudy/sample-exdupes-exinvalid-like.csv"));
+                return new FileDataModel(new File("datasets/yow-userstudy/yow-sample-exdupes-exinvalid-like.csv"));
             case yow10kprocessedpuddis:
 
-                model = PreprocessorPuddis.getPreprocessedDataModel("datasets/yow-userstudy/sample-exdupes-like-timeonpage-timeonmouse-pagetimesmouse.csv");
+                model = PreprocessorPuddis.getPreprocessedDataModel("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv");
                 Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
                 model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
                 return model;
@@ -35,11 +35,19 @@ public enum DataSet {
                 model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
                 Preprocessor mf = new PreprocessorMF();
                 return mf.preprocess((YowModel) model);
+            case yow10kprocessedclustering:
+            	model = PreprocessorClustering.getPreprocessedDataModel("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv");
+                Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
+                model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
+                return model;
+                
+                
+                
             // claypool userstudy
             case claypool2k:
-            	return new SMDataModel(new File("datasets/claypool/cbdata-explicit.csv"));
+            	return new SMDataModel(new File("datasets/claypool/claypool-sample-exdupes-exinvalid-rating.csv"));
             case claypool2kprocessed:
-            	model = PreprocessorPuddis.getPreprocessedDataModel("datasets/claypool/cbdata-feedback-anon.csv");
+            	model = PreprocessorPuddis.getPreprocessedDataModel("datasets/claypool/claypool-sample-exdupes-rating-timeonpage-timeonmouse-pagetimesmouse.csv");
             	Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
                 model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
             	return model;
