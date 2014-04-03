@@ -30,10 +30,6 @@ import java.util.Set;
 public class PreprocessorPuddis extends Preprocessor {
 
 	private final int THRESHOLD = 3;
-	private final int TIME_ON_PAGE_INDEX = 1;
-	private final int TIME_ON_MOUSE_INDEX = 2;
-	private final int TIME_PAGE_TIMES_MOUSE = 3;
-	private final int RATING_INDEX = 0;
 	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
 

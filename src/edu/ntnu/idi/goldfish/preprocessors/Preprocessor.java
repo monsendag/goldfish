@@ -18,6 +18,10 @@ import java.util.Set;
 public abstract class Preprocessor {
 	
 	protected static Set<String> pseudoRatings = new HashSet<String>();
+	protected final int RATING_INDEX = 0;
+	protected final int TIME_ON_PAGE_INDEX = 1;
+	protected final int TIME_ON_MOUSE_INDEX = 2;
+	protected final int TIME_PAGE_TIMES_MOUSE = 3;
 	
 	public static boolean isPseudoPreference(Preference pref) {
 		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
