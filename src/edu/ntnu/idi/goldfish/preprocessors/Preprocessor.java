@@ -27,7 +27,7 @@ public abstract class Preprocessor {
 		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 	}
 
-    public abstract DataModel preprocess(YowModel model) throws TasteException;
+    public abstract DataModel preprocess(YowModel model) throws Exception;
 
     /**
      * Write dataset to file with csv format

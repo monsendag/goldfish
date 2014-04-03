@@ -25,7 +25,8 @@ public class Main {
 //        set = DataSet.claypool2k;
 //		set = DataSet.claypool2kprocessed;
 
-        set = DataSet.yow10kprocessedpuddis;
+//        set = DataSet.yow10kprocessedpuddis;
+        set = DataSet.yow10kprocessedclassifier;
 //		set = DataSet.yow10kprocessedmlr;
 //		 set = DataSet.yow10kprocessed;
 //        set = DataSet.yowExdupesExinvalidLike;

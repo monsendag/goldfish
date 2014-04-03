@@ -11,17 +11,15 @@ import org.apache.mahout.cf.taste.impl.model.GenericDataModel;
 import org.apache.mahout.cf.taste.impl.model.GenericItemPreferenceArray;
 import org.apache.mahout.cf.taste.impl.model.GenericPreference;
 import org.apache.mahout.cf.taste.impl.model.GenericUserPreferenceArray;
-import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
-import org.h2.tools.Server;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.sql.*;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.*;
 
@@ -40,17 +38,23 @@ public class YowModel implements DataModel {
     private static final long serialVersionUID = 1L;
     DSLContext context;
     private Table<Record> table = tableByName("yow");
-    private Field<Long> userField = fieldByName(Long.class, "userid");
-    private Field<Long> itemField = fieldByName(Long.class, "itemid");
-    private Field<Long> fbackField = fieldByName(Long.class, "feedback");
+    private Field<Long> userField = fieldByName(long.class, "userid");
+    private Field<Long> itemField = fieldByName(long.class, "itemid");
+    private Field<Long> fbackField = fieldByName(long.class, "feedback");
     private Field<Float> valueField = fieldByName(Float.class, "value");
+    private Field<Float> explicitField = fieldByName(Float.class, "explicit");
+    private Field<Float> pageField = fieldByName(Float.class, "timeonpage");
+    private Field<Float> mouseField = fieldByName(Float.class, "timeonmouse");
 
     public static void main(String[] args) throws Exception {
 
         YowModel model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
-        Server webServer = Server.createWebServer("-webAllowOthers").start();
+//        Server webServer = Server.createWebServer("-webAllowOthers").start();
         System.out.println("jdbc:h2:mem:"+model.hashCode());
         System.out.printf("users: %d, items: %d", model.getNumUsers(), model.getNumItems());
+
+
+//        System.out.println(res);
     }
 
     public YowModel(File f) throws Exception {
@@ -113,14 +117,15 @@ public class YowModel implements DataModel {
         try {
             // load driver
             Class.forName("org.h2.Driver");
-            Connection conn = DriverManager.getConnection("jdbc:h2:mem:"+hashCode());
+            Connection conn = DriverManager.getConnection(String.format("jdbc:h2:mem:%s;DATABASE_TO_UPPER=FALSE", hashCode()));
+
             context = DSL.using(conn, SQLDialect.MYSQL);
 
             // initialize db
             context.query("CREATE TABLE IF NOT EXISTS yow (" +
-                    "userid INT NOT NULL, " +
-                    "itemid INT NOT NULL, " +
-                    "feedback INT NOT NULL, " +
+                    "userid BIGINT NOT NULL, " +
+                    "itemid BIGINT NOT NULL, " +
+                    "feedback BIGINT NOT NULL, " +
                     "value INT NOT NULL " +
                     "" +
                     ")").execute();
@@ -270,7 +275,48 @@ public class YowModel implements DataModel {
         return context.select(valueField).from(table).groupBy(userField, itemField, fbackField).fetchMap(fbackField, valueField);
     }
 
-    public Result<Record5<Long, Long, Float, Float, Float>> getFeedbackRows() {
-        return context.select(userField, itemField, valueField, valueField, valueField).groupBy(userField, itemField).fetch();
+    public List<YowRow> getFeedbackRows() {
+        String query = "" +
+        "(SELECT\n" +
+        "yow.userid AS userid, \n" +
+        "yow.itemid AS itemid,\n" +
+        "cast(isNull(col0.value, 0) as real) AS explicit,\n" +
+        "cast(IsNull(col1.value, 0) as real) AS timeonpage,\n" +
+        "cast(IsNull(col2.value, 0) as real) AS timeonmouse\n" +
+        "FROM yow \n" +
+        "LEFT JOIN yow AS col0 ON col0.feedback = 0 \n" +
+        "AND col0.userid=yow.userid AND col0.itemid=yow.itemid\n" +
+        "LEFT JOIN yow AS col1 ON col1.feedback = 1 \n" +
+        "AND col1.userid=yow.userid AND col1.itemid=yow.itemid\n" +
+        "LEFT JOIN yow AS col2 ON col2.feedback = 2 \n" +
+        "AND col2.userid=yow.userid AND col2.itemid=yow.itemid\n" +
+        "GROUP BY userid, itemid)\n";
+
+        Result<Record> result = context.fetch(query);
+
+        List<YowRow> rows = new ArrayList<>();
+        result.stream().forEach(r ->
+            rows.add(new YowRow(r.getValue(userField), r.getValue(itemField), r.getValue(explicitField), r.getValue(pageField), r.getValue(mouseField)))
+        );
+
+        return rows;
+    }
+
+    public class YowRow {
+
+        public final long userid;
+        public final long itemid;
+        public final float rating;
+        public final float timeonpage;
+        public final float timeonmouse;
+
+        public YowRow(long userid, long itemid, float rating, float timeonpage, float timeonmouse) {
+            this.userid = userid;
+            this.itemid = itemid;
+            this.rating = rating;
+            this.timeonpage = timeonpage;
+            this.timeonmouse = timeonmouse;
+        }
+
     }
 }
