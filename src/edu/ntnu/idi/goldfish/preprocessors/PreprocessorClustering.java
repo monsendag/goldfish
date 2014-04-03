@@ -20,10 +20,15 @@ import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 import weka.classifiers.meta.ClassificationViaClustering;
 import weka.clusterers.ClusterEvaluation;
+import weka.clusterers.Cobweb;
 import weka.clusterers.EM;
+import weka.clusterers.FarthestFirst;
 import weka.clusterers.FilteredClusterer;
+import weka.clusterers.HierarchicalClusterer;
 import weka.clusterers.MakeDensityBasedClusterer;
 import weka.clusterers.SimpleKMeans;
+import weka.clusterers.XMeans;
+import weka.clusterers.sIB;
 import weka.core.Instances;
 import weka.core.Instance;
 import weka.filters.Filter;
@@ -33,7 +38,9 @@ public class PreprocessorClustering extends Preprocessor{
 
 	private ClassificationViaClustering cvc = null;
 	private Instances data = null;
-	public static enum Clusterer { SimpleKMeans, DensityBased, EM } 
+	private final int NUM_CLUSTERS = 5;
+	
+	public static enum Clusterer { SimpleKMeans, DensityBased, EM, FarthestFirst, Cobweb, sIB, XMeans } 
 	
 	public static DataModel getPreprocessedDataModel(String path) throws Exception {
 		SMDataModel model;
@@ -44,7 +51,7 @@ public class PreprocessorClustering extends Preprocessor{
 	}
 
 	public static void main(String[] args) throws Exception {
-		PreprocessorClustering pc = new PreprocessorClustering(Clusterer.EM);
+		PreprocessorClustering pc = new PreprocessorClustering(Clusterer.Cobweb);
 	}
 	public PreprocessorClustering(Clusterer clusterer) throws Exception{
 		
@@ -63,8 +70,22 @@ public class PreprocessorClustering extends Preprocessor{
 			break;
 		case DensityBased:
 			buildDensityBasedClusterer();
+			break;
 		case EM:
 			buildEMClusterer();
+			break;
+		case FarthestFirst:
+			buildFarthestFirstClusterer();
+			break;
+		case Cobweb:
+			buildCobwebClusterer();
+			break;
+		case sIB:
+			buildsIBClusterer();
+			break;
+		case XMeans:
+			buildXMeansClusterer();
+			break;
 		default:
 			buildSimpleKMeansClusterer();
 			break;
@@ -74,18 +95,30 @@ public class PreprocessorClustering extends Preprocessor{
 		System.out.println(cvc.toString());
 	}
 	
+	public void buildFarthestFirstClusterer() throws Exception{
+		FarthestFirst ff = new FarthestFirst();
+		ff.setNumClusters(NUM_CLUSTERS);
+		
+		cvc.setClusterer(ff);
+	}
+	
+	public void buildHierarchicalClusterer(){
+		HierarchicalClusterer hc = new HierarchicalClusterer();
+		hc.setNumClusters(NUM_CLUSTERS);
+		
+		cvc.setClusterer(hc);
+	}
+	
 	public void buildSimpleKMeansClusterer() throws Exception{
-		// create the simpleKMeans cluster
 		SimpleKMeans skm = new SimpleKMeans();
-		skm.setNumClusters(5);
+		skm.setNumClusters(NUM_CLUSTERS);
 
 		cvc.setClusterer(skm);
 	}
 	
 	public void buildDensityBasedClusterer() throws Exception{
-		// create the simpleKMeans cluster
 		SimpleKMeans skm = new SimpleKMeans();
-		skm.setNumClusters(5);
+		skm.setNumClusters(NUM_CLUSTERS);
 		
 		MakeDensityBasedClusterer dbc = new MakeDensityBasedClusterer();
 		dbc.setClusterer(skm);
@@ -95,11 +128,49 @@ public class PreprocessorClustering extends Preprocessor{
 	
 	public void buildEMClusterer() throws Exception{
 		EM em = new EM();
-		em.setNumClusters(5);
+		em.setNumClusters(NUM_CLUSTERS);
 		
 		cvc.setClusterer(em);
 	}
+	
+	public void buildCobwebClusterer(){
+		Cobweb c = new Cobweb();
 		
+		cvc.setClusterer(c);
+	}
+	
+	public void buildsIBClusterer(){
+		sIB s = new sIB();
+		s.setNumClusters(NUM_CLUSTERS);
+		
+		cvc.setClusterer(s);
+	}
+	
+	public void buildXMeansClusterer(){
+		XMeans xm = new XMeans();
+		xm.setMaxNumClusters(NUM_CLUSTERS);
+		xm.setMinNumClusters(NUM_CLUSTERS);
+		
+		cvc.setClusterer(xm);
+	}
+		
+	@Override
+	public DataModel preprocess(YowModel model) throws Exception {
+		List<YowModel.YowRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
+		for(YowModel.YowRow row : results) {
+			Instance i = new Instance(1, new double[]{-1, row.timeonpage, row.timeonmouse});
+			i.setDataset(data);
+			int rating = (int) (cvc.classifyInstance(i)+1); // zero indexed
+			
+			System.out.format("classify: u: %d  i: %6d  estimate: %d\n", row.userid, row.itemid, rating);
+			
+			model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
+			pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
+		}
+		
+		return model;
+	}
+	
 	public void preprocess(SMDataModel model) throws Exception {
 		
 		int counter = 0;
@@ -132,22 +203,6 @@ public class PreprocessorClustering extends Preprocessor{
 		}
 	}
 
-	@Override
-	public DataModel preprocess(YowModel model) throws Exception {
-		List<YowModel.YowRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
-        for(YowModel.YowRow row : results) {
-            Instance i = new Instance(1, new double[]{-1, row.timeonpage, row.timeonmouse});
-            i.setDataset(data);
-            int rating = (int) (cvc.classifyInstance(i)+1);
-
-            System.out.format("classify: u: %d  i: %6d  estimate: %d\n", row.userid, row.itemid, rating);
-
-            model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
-            pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
-        }
-
-		return model;
-	}
 	
 	public void ManualClassificationViaClustering() throws Exception{
 		

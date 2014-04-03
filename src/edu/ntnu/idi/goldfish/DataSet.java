@@ -41,7 +41,7 @@ public enum DataSet {
             case yow10kprocessedclustering:
             	
             	model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
-            	pre = new PreprocessorClustering(Clusterer.EM);
+            	pre = new PreprocessorClustering(Clusterer.XMeans);
                 return pre.preprocess((YowModel) model);
 
                 
