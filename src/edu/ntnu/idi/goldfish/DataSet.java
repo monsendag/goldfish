@@ -39,10 +39,9 @@ public enum DataSet {
                 return mf.preprocess((YowModel) model);
             case yow10kprocessedclustering:
             	
-            	model = PreprocessorClustering.getPreprocessedDataModel("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv");
-                Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
-                model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
-                return model;
+            	model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
+            	pre = new PreprocessorClustering();
+                return pre.preprocess((YowModel) model);
 
                 
             // claypool userstudy

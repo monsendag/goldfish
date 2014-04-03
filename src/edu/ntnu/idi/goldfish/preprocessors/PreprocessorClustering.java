@@ -6,7 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
@@ -38,10 +40,6 @@ public class PreprocessorClustering extends Preprocessor{
 		return model;
 	}
 
-	public static void main(String[] args) throws Exception {
-		PreprocessorClustering pc = new PreprocessorClustering();
-	}
-	
 	public PreprocessorClustering() throws Exception{
 		
 		// create the simpleKMeans cluster
@@ -95,8 +93,19 @@ public class PreprocessorClustering extends Preprocessor{
 	}
 
 	@Override
-	public DataModel preprocess(YowModel model) throws TasteException {
-		// TODO Auto-generated method stub
+	public DataModel preprocess(YowModel model) throws Exception {
+		List<YowModel.YowRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
+        for(YowModel.YowRow row : results) {
+            Instance i = new Instance(1, new double[]{-1, row.timeonpage, row.timeonmouse});
+            i.setDataset(data);
+            int rating = (int) (cvc.classifyInstance(i)+1);
+
+            System.out.format("classify: u: %d  i: %6d  estimate: %d\n", row.userid, row.itemid, rating);
+
+            model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
+            pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
+        }
+
 		return null;
 	}
 	
