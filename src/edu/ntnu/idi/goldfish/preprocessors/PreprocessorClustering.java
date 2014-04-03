@@ -106,7 +106,7 @@ public class PreprocessorClustering extends Preprocessor{
             pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
         }
 
-		return null;
+		return model;
 	}
 	
 	public void ManualClassificationViaClustering() throws Exception{
