@@ -111,15 +111,17 @@ public class PreprocessorPuddis extends Preprocessor {
 						// the beta0 is 3, have to manually set the lowest ratings
 						pseudoRating = feedback[TIME_ON_PAGE_INDEX] < 25000 ? 2 : pseudoRating;
 						pseudoRating = feedback[TIME_ON_PAGE_INDEX] < 10000 ? 1 : pseudoRating;
-						pseudoRating = -100;
+						
+						// is pseudorating > 5, then outlier feedback has been used
+						pseudoRating = pseudoRating > 5 ? -1 : pseudoRating;
 						
 						pref.setValue(Math.round(pseudoRating), RATING_INDEX);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 						
-						System.out.println(String.format("\nUser %d gave item %d a rating of %d. \n"
-								+ "Page: %.0f, Mouse %.0f, pagemouse: %.0f \n%d \n", pref.getUserID(), pref.getItemID(), 
-								Math.round(pseudoRating), feedback[TIME_ON_PAGE_INDEX], feedback[TIME_ON_MOUSE_INDEX], 
-								feedback[TIME_PAGE_TIMES_MOUSE], ++numberOfPseudoRatings));
+//						System.out.println(String.format("\nUser %d gave item %d a rating of %d. \n"
+//								+ "Page: %.0f, Mouse %.0f, pagemouse: %.0f \n%d \n", pref.getUserID(), pref.getItemID(), 
+//								Math.round(pseudoRating), feedback[TIME_ON_PAGE_INDEX], feedback[TIME_ON_MOUSE_INDEX], 
+//								feedback[TIME_PAGE_TIMES_MOUSE], ++numberOfPseudoRatings));
 						
 					}
 					// do we have enough pairs of explicit and implicit feedback in order to map
@@ -163,7 +165,7 @@ public class PreprocessorPuddis extends Preprocessor {
 ////						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 ////								+ "lets give it 4", itemID));
 //					} 
-					else if(false && timeOnPageFeedback(feedback, 25000, 120000)){
+					else if(false && timeOnPageFeedback(feedback, 50000, 120000)){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
 						// 15 seconds on an article like the article
 						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/

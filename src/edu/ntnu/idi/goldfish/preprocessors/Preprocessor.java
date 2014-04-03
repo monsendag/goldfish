@@ -81,7 +81,7 @@ public abstract class Preprocessor {
                     rating = p.getValue(); // explicit
                     if(rating <= 0) continue;
                     itemId = p.getItemID(); // item
-                    writer.append(String.format("%d,%d,%f", userId, itemId, rating));
+                    writer.append(String.format("%d,%d,%.0f", userId, itemId, rating));
                     writer.append("\n");
                 }
                 writer.flush();
