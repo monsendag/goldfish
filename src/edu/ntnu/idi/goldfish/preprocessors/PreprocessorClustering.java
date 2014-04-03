@@ -20,7 +20,9 @@ import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 import weka.classifiers.meta.ClassificationViaClustering;
 import weka.clusterers.ClusterEvaluation;
+import weka.clusterers.EM;
 import weka.clusterers.FilteredClusterer;
+import weka.clusterers.MakeDensityBasedClusterer;
 import weka.clusterers.SimpleKMeans;
 import weka.core.Instances;
 import weka.core.Instance;
@@ -31,33 +33,71 @@ public class PreprocessorClustering extends Preprocessor{
 
 	private ClassificationViaClustering cvc = null;
 	private Instances data = null;
+	public static enum Clusterer { SimpleKMeans, DensityBased, EM } 
 	
 	public static DataModel getPreprocessedDataModel(String path) throws Exception {
 		SMDataModel model;
 		model = new SMDataModel(new File(path));
-		PreprocessorClustering pre = new PreprocessorClustering();
+		PreprocessorClustering pre = new PreprocessorClustering(Clusterer.EM);
 		pre.preprocess(model);
 		return model;
 	}
 
-	public PreprocessorClustering() throws Exception{
+	public static void main(String[] args) throws Exception {
+		PreprocessorClustering pc = new PreprocessorClustering(Clusterer.EM);
+	}
+	public PreprocessorClustering(Clusterer clusterer) throws Exception{
 		
-		// create the simpleKMeans cluster
-		SimpleKMeans skm = new SimpleKMeans();
-		skm.setNumClusters(5);
-				
-		//read the dataset and create instances for training and evaluating
+		// read the dataset and create instances for training and evaluating
 		BufferedReader reader = new BufferedReader(
 				new FileReader("datasets/yow-userstudy/arff/yow-preprocess-clustering.arff"));
 		data = new Instances(reader);
 		data.setClassIndex(0);
 		
+		// initialize ClassificationViaClustering
 		cvc = new ClassificationViaClustering();
-		cvc.setClusterer(skm);
+		
+		switch (clusterer) {
+		case SimpleKMeans:
+			buildSimpleKMeansClusterer();
+			break;
+		case DensityBased:
+			buildDensityBasedClusterer();
+		case EM:
+			buildEMClusterer();
+		default:
+			buildSimpleKMeansClusterer();
+			break;
+		}
+		
 		cvc.buildClassifier(data);
-		
 		System.out.println(cvc.toString());
+	}
+	
+	public void buildSimpleKMeansClusterer() throws Exception{
+		// create the simpleKMeans cluster
+		SimpleKMeans skm = new SimpleKMeans();
+		skm.setNumClusters(5);
+
+		cvc.setClusterer(skm);
+	}
+	
+	public void buildDensityBasedClusterer() throws Exception{
+		// create the simpleKMeans cluster
+		SimpleKMeans skm = new SimpleKMeans();
+		skm.setNumClusters(5);
 		
+		MakeDensityBasedClusterer dbc = new MakeDensityBasedClusterer();
+		dbc.setClusterer(skm);
+		
+		cvc.setClusterer(dbc);
+	}
+	
+	public void buildEMClusterer() throws Exception{
+		EM em = new EM();
+		em.setNumClusters(5);
+		
+		cvc.setClusterer(em);
 	}
 		
 	public void preprocess(SMDataModel model) throws Exception {

@@ -2,6 +2,7 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.preprocessors.*;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.Clusterer;
 
 import org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
@@ -40,7 +41,7 @@ public enum DataSet {
             case yow10kprocessedclustering:
             	
             	model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
-            	pre = new PreprocessorClustering();
+            	pre = new PreprocessorClustering(Clusterer.EM);
                 return pre.preprocess((YowModel) model);
 
                 
