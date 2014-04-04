@@ -51,8 +51,9 @@ public class PreprocessorClustering extends Preprocessor{
 	}
 
 	public static void main(String[] args) throws Exception {
-		PreprocessorClustering pc = new PreprocessorClustering(Clusterer.Cobweb);
+		PreprocessorClustering pc = new PreprocessorClustering(Clusterer.SimpleKMeans);
 	}
+	
 	public PreprocessorClustering(Clusterer clusterer) throws Exception{
 		
 		// read the dataset and create instances for training and evaluating

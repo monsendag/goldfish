@@ -20,10 +20,10 @@ public enum DataSet {
         switch (this) {
             // yow userstudy
             case yowExdupesExinvalidLike:
-                return new FileDataModel(new File("datasets/yow-userstudy/yow-sample-exdupes-exinvalid-like.csv"));
+                return new FileDataModel(new File("datasets/yow-userstudy/yow-smart-sample-explicit.csv"));
             case yow10kprocessedpuddis:
 
-                model = PreprocessorPuddis.getPreprocessedDataModel("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv");
+                model = PreprocessorPuddis.getPreprocessedDataModel("datasets/yow-userstudy/yow-smart-sample-implicit.csv");
                 Preprocessor.writeDatasetToFileExplicit((SMDataModel) model, "/tmp/removing-invalid-ratings.csv");
                 model = new FileDataModel(new File("/tmp/removing-invalid-ratings.csv"));
                 return model;
@@ -40,8 +40,8 @@ public enum DataSet {
                 return mf.preprocess((YowModel) model);
             case yow10kprocessedclustering:
             	
-            	model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
-            	pre = new PreprocessorClustering(Clusterer.XMeans);
+            	model = new YowModel(new File("datasets/yow-userstudy/yow-smart-sample-implicit.csv"));
+            	pre = new PreprocessorClustering(Clusterer.DensityBased);
                 return pre.preprocess((YowModel) model);
 
                 

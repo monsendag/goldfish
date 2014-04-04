@@ -25,8 +25,8 @@ public class Main {
 //        set = DataSet.claypool2k;
 //		set = DataSet.claypool2kprocessed;
 
-		set = DataSet.yow10kprocessedclustering;
-//        set = DataSet.yow10kprocessedpuddis;
+//		set = DataSet.yow10kprocessedclustering;
+        set = DataSet.yow10kprocessedpuddis;
 //        set = DataSet.yow10kprocessedclassifier;
 //		set = DataSet.yow10kprocessedmlr;
 //		 set = DataSet.yow10kprocessed;
@@ -38,7 +38,7 @@ public class Main {
 		List<Configuration> configurations = new ArrayList<Configuration>();
 		ResultList results = new ResultList(dataModel);
 
-		List<Integer> topNvals = $(10, 111).toList();
+		List<Integer> topNvals = $(1, 1001).toList();
 		for (int topN : topNvals) {
 
 			int numFeatures = 10;
