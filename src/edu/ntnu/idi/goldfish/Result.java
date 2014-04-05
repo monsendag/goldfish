@@ -1,123 +1,47 @@
 package edu.ntnu.idi.goldfish;
 
-import edu.ntnu.idi.goldfish.configurations.Configuration;
-import edu.ntnu.idi.goldfish.configurations.MemoryBased;
+import edu.ntnu.idi.goldfish.configurations.Config;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class Result {
+public class Result extends HashMap<String, Object> {
 
-	Configuration configuration;
-	
-	String name = null;
-	
-	// RMSE
-	double RMSE;
-	
-	// AAD/MAE 
-	double AAD;
-	
-	// IR stats (precision, recall)
-	double precision;
-	double recall;
-	
-	// model build timing
-	long buildTime;
-	
-	// recommendation timing
-	long recTime;
-	
-	// configuration time
-	long evalTime;
-	
+    Config config;
 
-	public Result(Configuration configuration, double RMSE, double AAD, double precision, double recall, long buildTime, long recTime, long evalTime) {
-		this.configuration = configuration;
+    public Result() {
 
-		this.RMSE = RMSE;
-		this.AAD = AAD;
-		
-		this.precision = precision;
-		this.recall = recall;
-		
-		this.buildTime = buildTime;
-		this.recTime = recTime;
-		this.evalTime = evalTime;
-	}
-	
-	
-	public int getTopN() {
-		return configuration.getTopN();
-	}
-	
-	public double getKTL() {
-		return configuration.getKTL();
-	}
-	
-	public String getName() {
-		return name != null ? name : configuration.toString();
-	}
-	
-	public String getSimilarity() {
-		return configuration instanceof MemoryBased ? ((MemoryBased) configuration).similarity.toString() : "";
-	}
-	
-	public String toString() {
-		
-		Formatter formats = new Formatter();
-		formats.put("%-11s", getName());
-		formats.put("%19s", getSimilarity());
-		formats.put("K/T/L: %5.2f", getKTL());
-		formats.put("Top-N: %3d", getTopN());
-		formats.put("RMSE: %6.3f", RMSE);
-		formats.put("AAD: %6.3f", AAD);
-		formats.put("Precision: %6.3f", precision);
-		formats.put("Recall: %6.3f", recall);
-		formats.put("Build time: %4d", buildTime);
-		formats.put("Rec time: %2d", recTime);
-		formats.put("Eval time: %2d", evalTime);
+    }
 
-		return formats.join(" | ");
+    public Result(Config config) {
+        this.config = config;
+    }
+
+    public Result set(String prop, Object val) {
+        super.put(prop, val);
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T get(String val) {
+        return containsKey(val) ? (T) super.get(val) : config!=null ? config.get(val) : null;
+    }
+
+	public String toString(Columns columns) {
+        List<String> values = columns.keySet().stream().map(col ->
+            String.format("%s: " + columns.get(col), col, get(col))
+        ).collect(Collectors.toList());
+        return StringUtils.join(values, " | ");
 	}
 	
-	public String toTSV() {
-		Formatter formats = new Formatter();
-		formats.put("%s", getName());
-		formats.put("%s", getSimilarity());
-		formats.put("%.2f", getKTL());
-		formats.put("%d", getTopN());
-		formats.put("%.3f", RMSE);
-		formats.put("%.3f", AAD);
-		formats.put("%.3f", precision);
-		formats.put("%.3f", recall);
-		formats.put("%d", buildTime);
-		formats.put("%d", recTime);
-		formats.put("%d", evalTime);
-		
-		return formats.join("\t");
-	}
-	
-	public static Result getTotal(List<Result> results) {
-		double totalRMSE = 0, totalAAD = 0, totalPrecision = 0, totalRecall = 0;
-		long totalBuildTime = 0, totalRecTime = 0, totalEvalTime = 0;
-		for(Result res : results) {
-			totalRMSE += res.RMSE;
-			totalAAD += res.AAD;
-			totalPrecision += res.precision;
-			totalRecall += res.recall;
-			totalBuildTime += res.buildTime;
-			totalRecTime += res.recTime;
-			totalEvalTime += res.evalTime;
-		}
-		Result result = new Result(results.get(0).configuration, totalRMSE, totalAAD, totalPrecision, totalRecall, totalBuildTime, totalRecTime, totalEvalTime);
-		result.name = "# TOTALS";
-		return result;	}
-	
-	public static Result getAverage(List<Result> results) {
-		int N = results.size();
-		Result total = getTotal(results);
-		total = new Result(results.get(0).configuration, total.RMSE / N, total.AAD / N, total.precision / N, total.recall / N, total.buildTime / N, total.recTime / N, total.evalTime / N);
-		total.name = "# AVERAGE"; 
-		return total;
+	public String toTSV(Columns columns) {
+        List<String> values = new ArrayList<>();
+        for(String col : columns.keySet()) {
+            values.add(String.format(columns.get(col), (Object)get(col)));
+        }
+		return StringUtils.join(values, "\t");
 	}
 }

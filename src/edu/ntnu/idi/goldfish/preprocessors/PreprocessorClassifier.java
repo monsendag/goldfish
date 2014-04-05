@@ -1,9 +1,12 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
 import edu.ntnu.idi.goldfish.StopWatch;
+import edu.ntnu.idi.goldfish.mahout.DBModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import weka.classifiers.Classifier;
-import weka.classifiers.functions.SMOreg;
+import weka.classifiers.Evaluation;
+import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.lazy.IBk;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils;
@@ -14,18 +17,41 @@ import java.util.stream.Collectors;
 public class PreprocessorClassifier extends Preprocessor {
 
     public static void main(String[] args) throws Exception {
+//        Classifier classifier = new SMOreg();
+        Classifier classifier = new IBk();
+
+        classifier.setDebug(true);
+
+        String path = "datasets/yow-userstudy/arff/exdupes-exinvalid-like-timeonpage-timeonmouse.arff";
+        String testpath = "datasets/yow-userstudy/arff/exdupes-exinvalid-like-timeonpage-timeonmouse-testset.arff";
+        Instances dataset = new ConverterUtils.DataSource(path).getDataSet();
+        Instances testset = new ConverterUtils.DataSource(testpath).getDataSet();
+        dataset.setClassIndex(0);
+        testset.setClassIndex(0);
+
+        System.out.format("Building classifier from %s\n", path);
+        StopWatch.start("build-classifier");
+        classifier.buildClassifier(dataset);
+        StopWatch.print("build-classifier");
 
 
+        Evaluation eval = new Evaluation(dataset);
+        eval.evaluateModel(classifier, testset);
 
+        System.out.print("      > " + eval.toSummaryString().trim().replace("\n", "\n      > "));
+
+//        System.out.format("class: %.2f\n", classifier.classifyInstance(new Instance(1, new double[]{0, -0, 421421414})));
+//        System.out.format("class: %.2f\n", classifier.classifyInstance(new Instance(1, new double[]{0, 0012121, 21})));
+//        System.out.format("class: %.2f\n", classifier.classifyInstance(new Instance(1, new double[]{0, 99919, -2101222})));
+//        System.out.format("class: %.2f\n", classifier.classifyInstance(new Instance(1, new double[]{0, -10004, 001212})));
 
     }
 
     @Override
-    public DataModel preprocess(YowModel model) throws Exception {
-//        Classifier classifier = new MultilayerPerceptron();
-        Classifier classifier = new SMOreg();
+    public DataModel preprocess(DBModel model) throws Exception {
+        Classifier classifier = new NaiveBayes();
 
-        Instances dataset = new ConverterUtils.DataSource("datasets/yow-userstudy/exdupes-exinvalid-like-timeonpage-timeonmouse.arff").getDataSet();
+        Instances dataset = new ConverterUtils.DataSource("datasets/yow-userstudy/arff/yow-preprocess-clustering.arff").getDataSet();
         dataset.setClassIndex(0);
 
         StopWatch.start("build-classifier");
@@ -33,17 +59,16 @@ public class PreprocessorClassifier extends Preprocessor {
         StopWatch.print("build-classifier");
 
         StopWatch.start("classify");
-        List<YowModel.YowRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
-        for(YowModel.YowRow row : results) {
+        List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
+        for(DBModel.DBRow row : results) {
             Instance un = new Instance(1, new double[]{0, row.timeonpage, row.timeonmouse});
+            un.setDataset(dataset);
             double rating = classifier.classifyInstance(un);
-
-            System.out.format("classify: u: %d  i: %6d  estimate: %.2f\n", row.userid, row.itemid, rating);
-
+//            System.out.format("classify: u: %d  i: %6d  estimate: %.2f\n", row.userid, row.itemid, rating);
             model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
+            pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
         }
         StopWatch.print("classify");
-
         return model;
     }
 
@@ -160,5 +185,4 @@ public class PreprocessorClassifier extends Preprocessor {
 //        train(getInput(), target, lr);
 //        test(getInput(), target, lr, 0.05, 0.3);
 //    }
-
 }

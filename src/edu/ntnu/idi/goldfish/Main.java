@@ -1,14 +1,14 @@
 package edu.ntnu.idi.goldfish;
 
-import edu.ntnu.idi.goldfish.configurations.Configuration;
+import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
-
-import org.apache.mahout.cf.taste.model.DataModel;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.bitbucket.dollar.Dollar.$;
+import static edu.ntnu.idi.goldfish.DataSet.*;
 
 public class Main {
 
@@ -21,71 +21,35 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
+		List<Config> configurations = new ArrayList<>();
+		ResultList results = new ResultList();
 
-//        set = DataSet.claypool2k;
-//		set = DataSet.claypool2kprocessed;
+        Config baseLine = new Lynx()
+                .set("name", "baseline")
+                .set("model", yowBaseline.getModel());
 
-		set = DataSet.yow10kprocessedclustering;
-//        set = DataSet.yow10kprocessedpuddis;
-//        set = DataSet.yow10kprocessedclassifier;
-//		set = DataSet.yow10kprocessedmlr;
-//		 set = DataSet.yow10kprocessed;
-//        set = DataSet.yowExdupesExinvalidLike;
+        for(int i=0; i<10000; i++) {
+            configurations.add(baseLine);
+        }
 
-		DataModel dataModel = set.getModel();
+        Config puddis = new Config()
+                .set("name", "puddis")
+                .set("model", yowSMImplicit.getModel())
+                .set("preprocessor", PreprocessorPuddis.class);
 
-		Evaluator evaluator = new Evaluator();
-		List<Configuration> configurations = new ArrayList<Configuration>();
-		ResultList results = new ResultList(dataModel);
 
-		List<Integer> topNvals = $(10, 111).toList();
-		for (int topN : topNvals) {
+        results.setColumns("name", "RMSE", "evalTime");
 
-			int numFeatures = 10;
-			int numIterations = 20;
-			double lambda = 0.01;
-			// these next two control decayFactor^steps exponential type of
-			// annealing learning rate and decay factor
-			double mu0 = 0.01;
-			double decayFactor = 1;
+		StopWatch.start("total evaluation");
+//        System.out.format("Starting evaluation of %d configurations (%d users, %d items) \n", configurations.size(), dbModel.getNumUsers(), dbModel.getNumItems());
 
-			// these next two control 1/steps^forget type annealing
-			int stepOffset = 0;
-			// -1 equals even weighting of all examples, 0 means only use
-			// exponential annealing
-			double forgettingExponent = 0;
+        Evaluator.evaluate(configurations, results);
 
-			// The following two should be inversely proportional :)
-			double biasMuRatio = 0.5;
-			double biasLambdaRatio = 0.1;
-			// Learning rate (step size)
-			double learningRate = 0.01;
-			// Parameter used to prevent overfitting
-			double preventOverfitting = 0.1;
-			// Standard deviation for random initialization of features
-			double randomNoise = 0.01;
-			// Multiplicative decay factor for learning_rate
-			double learningRateDecay = 1.0;
+//        results.print();
+        System.out.println(StringUtils.repeat("=", 190));
+        results.printSummary();
+        results.save();
 
-			configurations.add(new Lynx(topN, numFeatures, numIterations, lambda, mu0, decayFactor, stepOffset,
-					forgettingExponent, biasMuRatio, biasLambdaRatio));
-			// configurations.add(new RatingSGD(topN, numFeatures, numIterations,
-			// learningRate, preventOverfitting, randomNoise,
-			// learningRateDecay));
-			//
-			// configurations.add(new KNN(topN,
-			// MemoryBased.Similarity.EuclideanDistance, 2));
-			// configurations.add(new KiwiConfiguration(topN, new double[]{2, 1}, new
-			// double[]{10, 10, 2}));
-			// configurations.add(new SVDPlusPlus(topN, numFeatures, numIterations,
-			// learningRate, preventOverfitting, randomNoise,
-			// learningRateDecay));
-		}
-
-		StopWatch.start("total configuration");
-		evaluator.evaluateUnclustered(configurations, results, dataModel, 0.9, 1.0);
-		results.save();
-		// results.print();
-		System.out.format("Completed configuration in %s\n", StopWatch.str("total configuration"));
+//        System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", configurations.size(), dbModel.getNumUsers(), dbModel.getNumItems(), StopWatch.str("total evaluation"));
 	}
 }

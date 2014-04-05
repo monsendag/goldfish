@@ -1,31 +1,36 @@
 package edu.ntnu.idi.goldfish.configurations;
 
-import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 import org.apache.mahout.cf.taste.impl.recommender.svd.ALSWRFactorizer;
 import org.apache.mahout.cf.taste.impl.recommender.svd.Factorizer;
-import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.impl.recommender.svd.SVDRecommender;
 
-public class ALSWR extends MatrixFactorization {
+public class ALSWR extends Config {
 
-	private double lambda;
-	private boolean usesImplicitFeedback;
-	private double alpha;
 
-	public ALSWR(int topN, int numFeatures, int numIterations, double lambda, boolean usesImplicitFeedback, double alpha) {
-		super(topN, numFeatures, numIterations);
-		this.lambda = lambda;
-		this.usesImplicitFeedback = usesImplicitFeedback;
-		this.alpha = alpha;
+	public ALSWR() {
+		super();
+
+        this
+            .set("numFeatures", 10)
+            .set("lambda", 10)
+            .set("numIterations", 10)
+            .set("usesImplicitFeedback", 10)
+            .set("alpha", 10);
+
 	}
 
-	@Override
-	public Factorizer getFactorizer(DataModel dataModel) throws TasteException {
-		return new ALSWRFactorizer(dataModel, (int) KTL, lambda, numIterations, usesImplicitFeedback, alpha);
-	}
-	
-	public String toString() {
-		return String.format("ALSWR");
-	}
-	
+    public RecommenderBuilder getBuilder() {
+        return model -> {
+            Factorizer factorizer = new ALSWRFactorizer(model,
+                    get("numFeatures"),
+                    get("lambda"),
+                    get("numIterations"),
+                    get("usesImplicitFeedback"),
+                    get("alpha"));
+
+            return new SVDRecommender(model, factorizer);
+        };
+    }
 
 }

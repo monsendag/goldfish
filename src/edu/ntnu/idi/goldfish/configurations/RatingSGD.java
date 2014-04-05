@@ -1,31 +1,33 @@
 package edu.ntnu.idi.goldfish.configurations;
 
-import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 import org.apache.mahout.cf.taste.impl.recommender.svd.Factorizer;
 import org.apache.mahout.cf.taste.impl.recommender.svd.RatingSGDFactorizer;
-import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.impl.recommender.svd.SVDRecommender;
 
-public class RatingSGD extends MatrixFactorization {
+public class RatingSGD extends Config {
 
-	private double learningRate;
-	private double preventOverfitting;
-	private double randomNoise;
-	private double learningRateDecay;
+    public RatingSGD() {
+        this
+                .set("numFeatures", 10)
+                .set("numIterations", 20)
+                .set("learningRate", 0.01) // Learning rate (step size)
+                .set("preventOverfitting", 0.1) // Parameter used to prevent overfitting
+                .set("randomNoise", 0.01)  // Standard deviation for random initialization of features
+                .set("learningRateDecay", 1.0); // Multiplicative decay factor for learning_rate
+    }
 
-	public RatingSGD(int topN, int numFeatures, int iterations, double learningRate, double preventOverfitting, double randomNoise, double learningRateDecay) {
-		super(topN, numFeatures, iterations);
-		this.learningRate = learningRate;
-		this.preventOverfitting = preventOverfitting;
-		this.randomNoise = randomNoise;
-		this.learningRateDecay = learningRateDecay;
-	}
+    public RecommenderBuilder getBuilder() {
+        return model -> {
+            Factorizer factorizer = new RatingSGDFactorizer(model,
+                    get("numFeatures"),
+                    get("learningRate"),
+                    get("preventOverfitting"),
+                    get("randomNoise"),
+                    get("numIterations"),
+                    get("learningRateDecay"));
 
-	@Override
-	public Factorizer getFactorizer(DataModel dataModel) throws TasteException {
-		return new RatingSGDFactorizer(dataModel, (int) KTL, learningRate, preventOverfitting, randomNoise, numIterations, learningRateDecay);
-	}
-
-	public String toString() {
-		return String.format("RatingSGD");
-	}
+            return new SVDRecommender(model, factorizer);
+        };
+    }
 }
