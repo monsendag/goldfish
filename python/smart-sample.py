@@ -27,7 +27,7 @@ with open('../datasets/yow-userstudy/python/yow-data.csv', 'rb') as f:
 	writer = csv.writer(out_file, delimiter=',')
 
 	# write header
-	writer.writerow(['# user_id','DOC_ID', 'user_like', 'TimeOnPage','TimeOnMouse'])
+	writer.writerow(['# user_id','DOC_ID', 'user_like', 'TimeOnPage','TimeOnMouse', 'PageTimesMouse'])
 
 	counter = 0
 
