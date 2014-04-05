@@ -1,5 +1,6 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
+import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 import edu.ntnu.idi.goldfish.mahout.SMPreferenceArray;
@@ -27,7 +28,8 @@ public abstract class Preprocessor {
 		return pseudoRatings.contains(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 	}
 
-    public abstract DataModel preprocess(YowModel model) throws Exception;
+
+    protected abstract DataModel preprocess(DBModel model) throws Exception;
 
     /**
      * Write dataset to file with csv format

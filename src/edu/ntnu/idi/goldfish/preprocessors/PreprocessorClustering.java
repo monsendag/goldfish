@@ -2,15 +2,13 @@ package edu.ntnu.idi.goldfish.preprocessors;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.mahout.cf.taste.common.TasteException;
+import edu.ntnu.idi.goldfish.mahout.DBModel;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
@@ -20,7 +18,6 @@ import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 import weka.classifiers.meta.ClassificationViaClustering;
 import weka.clusterers.ClusterEvaluation;
-import weka.clusterers.FilteredClusterer;
 import weka.clusterers.SimpleKMeans;
 import weka.core.Instances;
 import weka.core.Instance;
@@ -93,9 +90,9 @@ public class PreprocessorClustering extends Preprocessor{
 	}
 
 	@Override
-	public DataModel preprocess(YowModel model) throws Exception {
-		List<YowModel.YowRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
-        for(YowModel.YowRow row : results) {
+	public DataModel preprocess(DBModel model) throws Exception {
+		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
+        for(DBModel.DBRow row : results) {
             Instance i = new Instance(1, new double[]{-1, row.timeonpage, row.timeonmouse});
             i.setDataset(data);
             int rating = (int) (cvc.classifyInstance(i)+1);
@@ -130,7 +127,7 @@ public class PreprocessorClustering extends Preprocessor{
 		
 		clusterer.buildClusterer(data);
 		
-		// evaluate clusterer
+		// evaluateOne clusterer
 	    ClusterEvaluation eval = new ClusterEvaluation();
 	    eval.setClusterer(clusterer);
 	    eval.evaluateClusterer(evalData);

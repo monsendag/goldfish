@@ -1,4 +1,4 @@
-package edu.ntnu.idi.goldfish.preprocessors;
+package edu.ntnu.idi.goldfish.mahout;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.mahout.cf.taste.common.Refreshable;
@@ -26,15 +26,12 @@ import java.util.*;
 import static org.jooq.impl.DSL.fieldByName;
 import static org.jooq.impl.DSL.tableByName;
 
-public class YowModel implements DataModel {
+public class DBModel implements DataModel {
 
-    static final long EXPLICIT = 0;
-    static final long TIMEONPAGE = 1;
-    static final long TIMEONMOUSE = 2;
+    public static final long EXPLICIT = 0;
+    public static final long TIMEONPAGE = 1;
+    public static final long TIMEONMOUSE = 2;
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
     DSLContext context;
     private Table<Record> table = tableByName("yow");
@@ -48,21 +45,17 @@ public class YowModel implements DataModel {
 
     public static void main(String[] args) throws Exception {
 
-        YowModel model = new YowModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
+        DBModel model = new DBModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
 //        Server webServer = Server.createWebServer("-webAllowOthers").start();
         System.out.println("jdbc:h2:mem:"+model.hashCode());
-        System.out.printf("users: %d, items: %d", model.getNumUsers(), model.getNumItems());
-
-
-//        System.out.println(res);
     }
 
-    public YowModel(File f) throws Exception {
+    public DBModel(File f) throws Exception {
         initDB();
         parseFile(f);
     }
 
-    public YowModel(FastByIDMap<PreferenceArray> userData) {
+    public DBModel(FastByIDMap<PreferenceArray> userData) {
         initDB();
         Field[] fields = new Field[]{userField, itemField, fbackField, valueField};
         Object[] values;
@@ -275,7 +268,7 @@ public class YowModel implements DataModel {
         return context.select(valueField).from(table).groupBy(userField, itemField, fbackField).fetchMap(fbackField, valueField);
     }
 
-    public List<YowRow> getFeedbackRows() {
+    public List<DBRow> getFeedbackRows() {
         String query = "" +
         "(SELECT\n" +
         "yow.userid AS userid, \n" +
@@ -294,15 +287,15 @@ public class YowModel implements DataModel {
 
         Result<Record> result = context.fetch(query);
 
-        List<YowRow> rows = new ArrayList<>();
+        List<DBRow> rows = new ArrayList<>();
         result.stream().forEach(r ->
-            rows.add(new YowRow(r.getValue(userField), r.getValue(itemField), r.getValue(explicitField), r.getValue(pageField), r.getValue(mouseField)))
+            rows.add(new DBRow(r.getValue(userField), r.getValue(itemField), r.getValue(explicitField), r.getValue(pageField), r.getValue(mouseField)))
         );
 
         return rows;
     }
 
-    public class YowRow {
+    public class DBRow {
 
         public final long userid;
         public final long itemid;
@@ -310,13 +303,12 @@ public class YowModel implements DataModel {
         public final float timeonpage;
         public final float timeonmouse;
 
-        public YowRow(long userid, long itemid, float rating, float timeonpage, float timeonmouse) {
+        public DBRow(long userid, long itemid, float rating, float timeonpage, float timeonmouse) {
             this.userid = userid;
             this.itemid = itemid;
             this.rating = rating;
             this.timeonpage = timeonpage;
             this.timeonmouse = timeonmouse;
         }
-
     }
 }

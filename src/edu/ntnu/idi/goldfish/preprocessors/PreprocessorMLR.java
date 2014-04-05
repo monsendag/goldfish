@@ -1,12 +1,10 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
-import edu.ntnu.idi.goldfish.mahout.SMDataModel;
+import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 
 import org.apache.commons.math3.exception.NumberIsTooSmallException;
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
-import org.apache.mahout.cf.taste.common.NoSuchItemException;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
 import org.apache.mahout.cf.taste.model.DataModel;
@@ -14,13 +12,10 @@ import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This class is used to map implicit feedback to explicit rating where it is possible.
@@ -38,15 +33,15 @@ public class PreprocessorMLR extends Preprocessor {
 
 
 	public static DataModel getPreprocessedDataModel(String path) throws Exception {
-		YowModel model;
-		model = new YowModel(new File(path));
+		DBModel model;
+		model = new DBModel(new File(path));
 		PreprocessorMLR pre = new PreprocessorMLR();
 		pre.preprocess(model);
 		return model;
 	}
 
 
-	public DataModel preprocess(YowModel model) {
+	public DataModel preprocess(DBModel model) {
 		try {
 			
 			double[] beta = globalLR(model, 2);
@@ -83,7 +78,7 @@ public class PreprocessorMLR extends Preprocessor {
 		
 	}
 	
-	private double[] globalLR(YowModel model, int numberOfIndependentVariables) throws TasteException {
+	private double[] globalLR(DBModel model, int numberOfIndependentVariables) throws TasteException {
 		
 		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);
 		

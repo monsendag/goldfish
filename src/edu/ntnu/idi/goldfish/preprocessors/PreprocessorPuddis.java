@@ -1,5 +1,6 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
+import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 
@@ -17,10 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This class is used to map implicit feedback to explicit rating where it is possible.
@@ -466,7 +465,7 @@ public class PreprocessorPuddis extends Preprocessor {
 		return null;
 	}
 
-	public DataModel preprocess(YowModel model) {
+	public DataModel preprocess(DBModel model) {
 		return null;
 	}
 
