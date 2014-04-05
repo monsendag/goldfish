@@ -75,8 +75,8 @@ public class PreprocessorPuddis extends Preprocessor {
 	 */
 	public void preprocess(SMDataModel model) throws TasteException {
 		
-		double[] beta = globalLR(model, 1);
-		boolean useGlobalLR = true;
+		double[] beta = globalLR(model, 3);
+		boolean useGlobalLR = false	;
 		int numberOfPseudoRatings = 0;
 		
 		// iterate through all items
@@ -113,10 +113,10 @@ public class PreprocessorPuddis extends Preprocessor {
 						pref.setValue(Math.round(pseudoRating), RATING_INDEX);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 						
-//						System.out.println(String.format("\nUser %d gave item %d a rating of %d. \n"
-//								+ "Page: %.0f, Mouse %.0f, pagemouse: %.0f \n%d \n", pref.getUserID(), pref.getItemID(), 
-//								Math.round(pseudoRating), feedback[TIME_ON_PAGE_INDEX], feedback[TIME_ON_MOUSE_INDEX], 
-//								feedback[TIME_PAGE_TIMES_MOUSE], ++numberOfPseudoRatings));
+						System.out.print(String.format("\nUser %d gave item %d a rating of %d. "
+								+ "Page: %.0f, mouse: %.0f %d", pref.getUserID(), pref.getItemID(), 
+								Math.round(pseudoRating), feedback[TIME_ON_PAGE_INDEX], feedback[TIME_ON_MOUSE_INDEX], 
+								++numberOfPseudoRatings));
 						
 					}
 					// do we have enough pairs of explicit and implicit feedback in order to map
@@ -160,21 +160,21 @@ public class PreprocessorPuddis extends Preprocessor {
 ////						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 ////								+ "lets give it 4", itemID));
 //					} 
-					else if(false && timeOnPageFeedback(feedback, 50000, 120000)){
+					else if(timeOnPageFeedback(feedback, 20000, 120000)){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
 						// 15 seconds on an article like the article
 						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/
 						// Morita and Shinoda (1994) concluded that the most effective threshold concerning
 						// reading time is 20 seconds, which yielded 30% recall and 70% precision
-						pref.setValue(5, 0);
+						pref.setValue(4, 0);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 //						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 //								+ "lets give it 4", itemID));
 					}
-					else if(false && timeOnPageFeedback(feedback, 30000, 50000)){
-						pref.setValue(4, 0);
-						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
-					}
+//					else if(timeOnPageFeedback(feedback, 30000, 50000)){
+//						pref.setValue(4, 0);
+//						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+//					}
 //					else if(timeOnMouseFeedback(feedback)){
 //						pref.setValue(4, 0);
 //						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
@@ -194,6 +194,7 @@ public class PreprocessorPuddis extends Preprocessor {
 				}
 			}
 		}
+		System.out.println("");
 	}
 	
 	private double[] globalLR(SMDataModel model, int numberOfIndependentVariables) throws TasteException {
