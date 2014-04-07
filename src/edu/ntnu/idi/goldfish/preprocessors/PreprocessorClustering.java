@@ -28,7 +28,7 @@ public class PreprocessorClustering extends Preprocessor{
 	private Instances data = null;
 	private final int NUM_CLUSTERS = 5;
 	
-	public static enum Clusterer { SimpleKMeans, DensityBased, EM, FarthestFirst, Cobweb, sIB, XMeans }
+	public static enum Clusterer { SimpleKMeans, DensityBased, EM, FarthestFirst, Cobweb, XMeans }
 	public static enum ClusterDataset { TimeOnPage, TimeOnPageAndMouse, PageTimesMouse}
 	
 	public void buildFarthestFirstClusterer() throws Exception{
@@ -136,9 +136,9 @@ public class PreprocessorClustering extends Preprocessor{
  		case Cobweb:
  			buildCobwebClusterer();
  			break;
- 		case sIB:
- 			buildsIBClusterer();
- 			break;
+// 		case sIB:
+// 			buildsIBClusterer();
+// 			break;
  		case XMeans:
  			buildXMeansClusterer();
  			break;
@@ -148,15 +148,25 @@ public class PreprocessorClustering extends Preprocessor{
  		}
  		
  		cvc.buildClassifier(data);
-// 		System.out.println(cvc.toString());
 
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		for(DBModel.DBRow row : results) {
-			Instance i = new Instance(1, new double[]{-1, row.timeonpage, row.timeonmouse});
+			Instance i = null;
+			switch (clusterDataset) {
+			case TimeOnPage:
+				i = new Instance(1, new double[]{-1, row.timeonpage});
+				break;
+			case TimeOnPageAndMouse:
+				i = new Instance(1, new double[]{-1, row.timeonpage, row.timeonmouse});
+			case PageTimesMouse:
+				i = new Instance(1, new double[]{-1, row.timeonpage, row.timeonmouse, row.pagetimesmouse});
+			default:
+				i = new Instance(1, new double[]{-1, row.timeonpage});
+				break;
+			}
+			
 			i.setDataset(data);
 			int rating = (int) (cvc.classifyInstance(i)+1); // zero indexed
-			
-//			System.out.format("classify: u: %d  i: %6d  estimate: %d\n", row.userid, row.itemid, rating);
 			
 			model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
 			pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
