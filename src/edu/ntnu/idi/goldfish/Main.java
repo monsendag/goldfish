@@ -3,7 +3,10 @@ package edu.ntnu.idi.goldfish;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.preprocessors.*;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis.PredMethod;
+
 import org.apache.commons.lang3.StringUtils;
+
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.functions.SMOreg;
 
@@ -42,15 +45,34 @@ public class Main {
                 .set("preprocessor", PreprocessorStat.class)
                 .set("average", 100);
 
+        Config puddis2 = new Lynx()
+	        .set("name", "puddis2")
+	        .set("model", yowSMImplicit.getModel())
+	        .set("average", 100)
+	        .set("minTimeOnPage", 20000)
+			.set("correlationLimit", 0.5)
+			.set("predictionMethod", PredMethod.LinearRegression);
+        configs.add(puddis2);
+        
         Config puddis = new Lynx()
                 .set("name", "puddis")
                 .set("model", yowSMImplicit.getModel())
-                .set("predictionMethod", PreprocessorPuddis.PredMethod.LinearRegression)
-                .set("minTimeOnPage", 20000)
-                .set("correlationLimit", 0.5)
-                .set("preprocessor", PreprocessorPuddis.class)
                 .set("average", 100);
 
+        Config conf;
+        for(int minT = 15000; minT <= 30000; minT+=5000) {
+	    	for(double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
+	    		for(PredMethod method : PredMethod.values()){
+	    			conf = puddis.clone()
+	    				.set("minTimeOnPage", minT)
+	    				.set("correlationLimit", corrLimit)
+	    				.set("predictionMethod", method);
+	    			
+	    			//configs.add(conf);   	
+	    		}
+	    	}
+        }
+        
 
         Config classifiers = new Lynx()
                 .set("model", yowImplicit.getModel())
@@ -58,9 +80,9 @@ public class Main {
                 .set("average", 5000);
 
         List<Class> classes = Arrays.asList(NaiveBayes.class, SMOreg.class);
-        classes.stream().forEach(c ->
-            configs.add(classifiers.clone().set("name", c.getSimpleName()).set("classifier", c))
-        );
+////        classes.stream().forEach(c ->
+////            configs.add(classifiers.clone().set("name", c.getSimpleName()).set("classifier", c))
+//        );
 
 
         Config clustering = new Lynx()
@@ -75,14 +97,14 @@ public class Main {
                 .set("preprocessor", PreprocessorMLR.class);
 
 
-//        configurations.add(baseLine);
+        configs.add(baseLine);
 //        configurations.add(stat);
 //        configurations.add(puddis);
-        configs.add(classifiers);
+//        configs.add(classifiers);
 //        configurations.add(clustering);
 //        configurations.add(mlr);
 
-        Columns columns = Columns.getPrintFormats("name", "average", "RMSE", "evalTime");
+        Columns columns = Columns.getPrintFormats("name", "average", "RMSE", "evalTime", "minTimeOnPage", "correlationLimit", "predictionMethod");
         results.setColumns(columns);
 
 		StopWatch.start("total evaluation");

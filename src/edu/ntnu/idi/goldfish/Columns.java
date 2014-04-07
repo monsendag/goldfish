@@ -2,6 +2,8 @@ package edu.ntnu.idi.goldfish;
 
 import org.apache.commons.lang3.StringUtils;
 
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
+
 import java.util.*;
 
 public class Columns extends LinkedHashMap<String, String> {
@@ -35,7 +37,10 @@ public class Columns extends LinkedHashMap<String, String> {
         columns.put("buildTime", "%4.0f");
         columns.put("recTime", "%2.0f");
         columns.put("evalTime", "%4.0f");
-
+        columns.put("minTimeOnPage", "%5d");
+        columns.put("correlationLimit", "%2.1f");
+        columns.put("predictionMethod", "%16s");
+        
         // filter by arguments
         columns.keySet().retainAll(Arrays.asList(properties));
 
@@ -56,6 +61,9 @@ public class Columns extends LinkedHashMap<String, String> {
         columns.put("buildTime", "%.0f");
         columns.put("recTime", "%.0f");
         columns.put("evalTime", "%0.f");
+        columns.put("minTimeOnPage", "%d");
+        columns.put("correlationLimit", "%.1f");
+        columns.put("predictionMethod", "%s");
 
         // filter by arguments
         columns.keySet().retainAll(Arrays.asList(properties));
