@@ -16,7 +16,6 @@ import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +29,7 @@ public class PreprocessorClustering extends Preprocessor{
 	private final int NUM_CLUSTERS = 5;
 	
 	public static enum Clusterer { SimpleKMeans, DensityBased, EM, FarthestFirst, Cobweb, sIB, XMeans }
-	public static enum ClusterDataset { TimeOnPage, TimeOnPageAndMouse, TimeOnPageAndMouseAndPageTimesMouse }
+	public static enum ClusterDataset { TimeOnPage, TimeOnPageAndMouse, PageTimesMouse}
 	
 	public void buildFarthestFirstClusterer() throws Exception{
 		FarthestFirst ff = new FarthestFirst();
@@ -106,7 +105,7 @@ public class PreprocessorClustering extends Preprocessor{
 		case TimeOnPageAndMouse:
 			path = "datasets/yow-userstudy/arff/yow-preprocess-clustering-timeonpage-timeonmouse.arff";
 			break;
-		case TimeOnPageAndMouseAndPageTimesMouse:
+		case PageTimesMouse:
 			path = "datasets/yow-userstudy/arff/yow-preprocess-clustering-timeonpage-timeonmouse-pagetimesmouse.arff";
 			break;
 		default:

@@ -20,9 +20,13 @@ public class Result extends HashMap<String, Object> {
         return this;
     }
 
+    public boolean has(String prop) {
+        return containsKey(prop) || (containsKey("config") && ((Config) get("config")).containsKey(prop));
+    }
+
     @SuppressWarnings("unchecked")
-    public <T> T get(String val) {
-        return containsKey(val) ? (T) super.get(val) : containsKey("config") ? ((Config) get("config")).get(val) : null;
+    public <T> T get(String prop) {
+        return containsKey(prop) ? (T) super.get(prop) : containsKey("config") ? ((Config) get("config")).get(prop) : null;
     }
 
     public Result remove(String prop) {
@@ -30,17 +34,20 @@ public class Result extends HashMap<String, Object> {
         return this;
     }
 
+
 	public String toString(Columns columns) {
-        List<String> values = columns.keySet().stream().map(col ->
-            String.format("%s: " + columns.get(col), col, get(col))
-        ).collect(Collectors.toList());
+        List<String> values = columns.keySet().stream().map(col -> {
+            Object value = has(col) ? get(col) : null;
+            return String.format("%s: " + columns.get(col), col, value);
+        }).collect(Collectors.toList());
         return StringUtils.join(values, " | ");
 	}
 	
 	public String toTSV(Columns columns) {
         List<String> values = new ArrayList<>();
         for(String col : columns.keySet()) {
-            values.add(String.format(columns.get(col), (Object)get(col)));
+            Object value = has(col) ? get(col) : null;
+            return String.format(columns.get(col), value);
         }
 		return StringUtils.join(values, "\t");
 	}
