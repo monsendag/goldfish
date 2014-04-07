@@ -26,12 +26,13 @@ public class PreprocessorMLR extends Preprocessor {
 		int numberOfIndependentVariables = config.get("numberOfIndependentVariables");
 		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);
 		
-		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
+		List<DBModel.DBRow> allResults = model.getFeedbackRows();
+		List<DBModel.DBRow> results = allResults.stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		
 		numberOfIndependentVariables = results.get(0).implicitfeedback.length < numberOfIndependentVariables ? 
 				results.get(0).implicitfeedback.length : numberOfIndependentVariables;
 
-		double[] beta = globalLR(model, numberOfIndependentVariables);
+		double[] beta = globalLR(allResults, numberOfIndependentVariables);
 		
 		for(DBModel.DBRow row : results) {
 			
@@ -56,8 +57,8 @@ public class PreprocessorMLR extends Preprocessor {
 		return model;
 	}
 	
-	private double[] globalLR(DBModel model, int numberOfIndependentVariables) throws TasteException {
-		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating > 0).collect(Collectors.toList());
+	private double[] globalLR(List<DBModel.DBRow> allResults, int numberOfIndependentVariables) throws TasteException {
+		List<DBModel.DBRow> results = allResults.stream().filter(row -> row.rating > 0).collect(Collectors.toList());
 		
 		double[] dependentVariables = new double[results.size()]; // the explicit ratings to infer
 		double[][] independentVariables = new double[results.size()][]; // the implicit feedback

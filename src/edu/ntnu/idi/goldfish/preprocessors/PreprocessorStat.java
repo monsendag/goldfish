@@ -1,13 +1,18 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
+import edu.ntnu.idi.goldfish.StopWatch;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
+
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.model.DataModel;
 
+import com.google.common.base.Stopwatch;
+
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class PreprocessorStat extends Preprocessor{
@@ -17,21 +22,22 @@ public class PreprocessorStat extends Preprocessor{
 	public static enum PredictionMethod { LinearRegression, ClosestNeighbor, EqualBins }
 	
 	public DataModel preprocess(Config config) throws TasteException {
-
         DBModel model = config.get("model");
         PredictionMethod predictionMethod = config.get("predictionMethod");
         int minTimeOnPage = config.get("minTimeOnPage");
         double correlationLimit = config.get("correlationLimit");
-
-		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
+        
+		List<DBModel.DBRow> allResults = model.getFeedbackRows();
+		List<DBModel.DBRow> results = allResults.stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		for (DBRow r : results) {
 			long itemID = r.itemid;
-			List<DBModel.DBRow> feedbackForItemID = model.getFeedbackRows().stream()
-					.filter(row -> row.rating > 0)
+			
+			List<DBModel.DBRow> feedbackForItemID = allResults.stream()
 					.filter(row -> row.itemid == itemID)
+					.filter(row -> row.rating > 0)
 					.collect(Collectors.toList());
 			
-			if(feedbackForItemID.size() >= THRESHOLD){
+			if(hasImplicit(r.implicitfeedback) && feedbackForItemID.size() >= THRESHOLD){
 				
 				double[] dependentVariables = new double[feedbackForItemID.size()]; // the explicit ratings to infer
 				double[][] independentVariables = new double[feedbackForItemID.size()][]; // the implicit feedback
@@ -82,7 +88,14 @@ public class PreprocessorStat extends Preprocessor{
 		
 		return model;
 	}
-
+	
+	public boolean hasImplicit(float[] implicitfeedback){
+		for (int i = 0; i < implicitfeedback.length; i++) {
+			if(implicitfeedback[i] > 0) return true;
+		}
+		return false;
+	}
+	
 	public double getCorrelation(double[] dv, double[][] iv, int feedbackIndex){
 		TrendLine t = new PolyTrendLine(1);
 		double[] itemFeedback = new double[iv.length];
@@ -96,7 +109,7 @@ public class PreprocessorStat extends Preprocessor{
 	}
 	
 	public int getBestCorrelated(double[] dv, double[][] iv){
-		int bestCorrelated = -1;
+		int bestCorrelated = 0;
 		double maxCorr = 0;
 		double tempCorr = 0;
 		

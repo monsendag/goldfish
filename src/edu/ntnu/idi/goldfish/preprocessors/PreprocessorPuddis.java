@@ -3,6 +3,7 @@ package edu.ntnu.idi.goldfish.preprocessors;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
+
 import org.apache.commons.math3.exception.NumberIsTooSmallException;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
@@ -31,6 +32,8 @@ public class PreprocessorPuddis extends Preprocessor {
 	private final int THRESHOLD = 3;
 	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
+	
+	public static enum PredMethod { LinearRegression, ClosestNeighbor, EqualBins }
 	
 	public boolean checkIfPreferenceHasImplicitFeedback(float[] feedback){
 		// start with index 1 because index 0 is explicit rating
@@ -64,7 +67,10 @@ public class PreprocessorPuddis extends Preprocessor {
 	 */
 	public DataModel preprocess(Config config) throws Exception {
         SMDataModel model = config.get("model");
-		
+        PredMethod predictionMethod = config.get("predictionMethod");
+        int minTimeOnPage = config.get("minTimeOnPage");
+        double correlationLimit = config.get("correlationLimit");
+        
 		double[] beta = globalLR(model, 3);
 		boolean useGlobalLR = false	;
 		int numberOfPseudoRatings = 0;
@@ -116,18 +122,24 @@ public class PreprocessorPuddis extends Preprocessor {
 						int bestCorrelated = getBestCorrelatedFeedback(prefs, feedback);
 						double correlation = getCorrelation(prefs, bestCorrelated);
 						
-						if (Math.abs(correlation) > 0.5) {
+						if (Math.abs(correlation) > correlationLimit) {
 							// we have now ensured that a relationship between the implicit and explicit feedback
 							// exist and will continue to find pseudoRatings
-							
-							// I: get pseudoRating based on linear regression
-							float pseudoRating = getPseudoRatingLinearRegression(prefs, pref, bestCorrelated, ratingPairs);
-							
-							// II: get pseudoRating based on closest neighbor
-//							float pseudoRating = getPseudoRatingClosestNeighbor(prefs, pref, bestCorrelated);
-							
-							// III: get pseudoRating based on rating bins
-//							float pseudoRating = getPseudoRatingEqualBins(pref, correlation, prefs, bestCorrelated);
+							float pseudoRating = 0;
+							switch (predictionMethod) {
+							case LinearRegression:
+								pseudoRating = getPseudoRatingLinearRegression(prefs, pref, bestCorrelated, ratingPairs);
+								break;
+							case ClosestNeighbor:
+								pseudoRating = getPseudoRatingClosestNeighbor(prefs, pref, bestCorrelated);
+								break;
+							case EqualBins:
+								pseudoRating = getPseudoRatingEqualBins(pref, correlation, prefs, bestCorrelated);
+								break;
+							default:
+								pseudoRating = getPseudoRatingLinearRegression(prefs, pref, bestCorrelated, ratingPairs);
+								break;
+							}
 							
 							// set explicit value as pseudoRating
 							pref.setValue(pseudoRating, 0); 
@@ -135,8 +147,6 @@ public class PreprocessorPuddis extends Preprocessor {
 							// remember the pseudoRatings to ensure they are only used in the training set
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 							
-//							System.out.println(String.format("User %d rated item %d with pseudorating: %.0f and correlation: %.2f",
-//									pref.getUserID(), pref.getItemID(), pseudoRating, correlation));
 						}
 					} 
 //					else if(timeOnPageAndTimeOnMouseCombined(feedback)){
@@ -150,7 +160,7 @@ public class PreprocessorPuddis extends Preprocessor {
 ////						System.out.println(String.format("User spent more than 15 seconds on item: %d, "
 ////								+ "lets give it 4", itemID));
 //					} 
-					else if(timeOnPageFeedback(feedback, 20000, 120000)){
+					else if(timeOnPageFeedback(feedback, minTimeOnPage, 120000)){
 						// according to CEO Tony Haile at Chartbeat people that spends more than 
 						// 15 seconds on an article like the article
 						// source: http://time.com/12933/what-you-think-you-know-about-the-web-is-wrong/

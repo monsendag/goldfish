@@ -27,20 +27,25 @@ public class Main {
         Config baseLine = new Lynx()
                 .set("name", "baseline")
                 .set("model", yowBaseline.getModel())
-                .set("average", 5);
+                .set("average", 100);
 
         Config stat = new Lynx()
                 .set("name", "stat")
                 .set("model", yowImplicit.getModel())
                 .set("predictionMethod", PreprocessorStat.PredictionMethod.LinearRegression)
+                .set("minTimeOnPage", 20000)
+                .set("correlationLimit", 0.5)
                 .set("preprocessor", PreprocessorStat.class)
-                .set("average", 10);
+                .set("average", 100);
 
         Config puddis = new Lynx()
                 .set("name", "puddis")
                 .set("model", yowSMImplicit.getModel())
+                .set("predictionMethod", PreprocessorPuddis.PredMethod.LinearRegression)
+                .set("minTimeOnPage", 20000)
+                .set("correlationLimit", 0.5)
                 .set("preprocessor", PreprocessorPuddis.class)
-                .set("average", 10);
+                .set("average", 100);
 
 
         Config classifiers = new Lynx()
