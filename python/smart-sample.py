@@ -23,11 +23,11 @@ f.close()
 with open('../datasets/yow-userstudy/python/yow-data.csv', 'rb') as f:
 	reader = csv.reader(f)
 	next(reader, None) # skip header
-	out_file = open('../datasets/yow-userstudy/python/yow-smart-sample-implicit-2.csv', 'wb')
+	out_file = open('../datasets/yow-userstudy/python/yow-smart-sample-implicit-3.csv', 'wb')
 	writer = csv.writer(out_file, delimiter=',')
 
 	# write header
-	writer.writerow(['# user_id','DOC_ID', 'user_like', 'TimeOnPage','TimeOnMouse', 'PageTimesMouse'])
+	writer.writerow(['# user_id','DOC_ID', 'user_like', 'TimeOnPage','TimeOnMouse'])
 
 	counter = 0
 
@@ -49,7 +49,7 @@ f.close()
 with open('../datasets/yow-userstudy/python/yow-smart-sample-implicit-2.csv', 'rb') as f:
 	reader = csv.reader(f)
 	next(reader, None) # skip header
-	out_file = open('../datasets/yow-userstudy/python/yow-smart-sample-explicit-2.csv', 'wb')
+	out_file = open('../datasets/yow-userstudy/python/yow-smart-sample-explicit-3.csv', 'wb')
 	writer = csv.writer(out_file, delimiter=',')
 
 	# write header

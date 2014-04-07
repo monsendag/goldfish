@@ -18,12 +18,12 @@ public enum DataSet {
 
             // yow userstudy
             case yowBaseline:
-                return new FileDataModel(new File("datasets/yow-userstudy/python/yow-smart-sample-explicit-2.csv"));
+                return new FileDataModel(new File("datasets/yow-userstudy/python/yow-smart-sample-explicit-3.csv"));
             // yow userstudy
             case yowImplicit:
-                return new DBModel(new File("datasets/yow-userstudy/python/yow-smart-sample-implicit-2.csv"));
+                return new DBModel(new File("datasets/yow-userstudy/python/yow-smart-sample-implicit-3.csv"));
             case yowSMImplicit:
-                return new SMDataModel(new File("datasets/yow-userstudy/python/yow-smart-sample-implicit-2.csv"));
+                return new SMDataModel(new File("datasets/yow-userstudy/python/yow-smart-sample-implicit-3.csv"));
             // claypool userstudy
             case claypool2k:
             	return new SMDataModel(new File("datasets/claypool/claypool-sample-exdupes-exinvalid-rating.csv"));

@@ -302,6 +302,8 @@ public class DBModel implements DataModel {
         public final float rating;
         public final float timeonpage;
         public final float timeonmouse;
+        public final float pagetimesmouse;
+        public final float[] implicitfeedback;
 
         public DBRow(long userid, long itemid, float rating, float timeonpage, float timeonmouse) {
             this.userid = userid;
@@ -309,6 +311,8 @@ public class DBModel implements DataModel {
             this.rating = rating;
             this.timeonpage = timeonpage;
             this.timeonmouse = timeonmouse;
+            this.pagetimesmouse = timeonpage * timeonmouse;
+            this.implicitfeedback = new float[]{timeonpage, timeonmouse, timeonpage*timeonmouse};
         }
     }
 }
