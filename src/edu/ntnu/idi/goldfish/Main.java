@@ -6,6 +6,8 @@ import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClassifier;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorMLR;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -36,9 +38,9 @@ public class Main {
         }
 
         Config puddis = new Lynx()
-                .set("name", "puddis")
-                .set("model", yowSMImplicit.getModel())
-                .set("preprocessor", PreprocessorPuddis.class);
+                .set("name", "lr")
+                .set("model", yowImplicit.getModel())
+                .set("preprocessor", PreprocessorStat.class);
 
         Config classifiers = new Lynx()
                 .set("name", "classifier")

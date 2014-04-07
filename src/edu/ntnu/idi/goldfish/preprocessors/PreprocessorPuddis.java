@@ -1,8 +1,10 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
 import edu.ntnu.idi.goldfish.mahout.DBModel;
+import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat.PredictionMethod;
 
 import org.apache.commons.math3.exception.NumberIsTooSmallException;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class is used to map implicit feedback to explicit rating where it is possible.
@@ -31,6 +34,7 @@ public class PreprocessorPuddis extends Preprocessor {
 	private final int THRESHOLD = 3;
 	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
+	
 
 	public static DataModel getPreprocessedDataModel(String path) throws TasteException, IOException {
 		SMDataModel model;
@@ -39,8 +43,6 @@ public class PreprocessorPuddis extends Preprocessor {
 		pre.preprocess(model);
 		return model;
 	}
-
-	
 	
 	public boolean checkIfPreferenceHasImplicitFeedback(float[] feedback){
 		// start with index 1 because index 0 is explicit rating
@@ -466,8 +468,11 @@ public class PreprocessorPuddis extends Preprocessor {
 		return null;
 	}
 
-	public DataModel preprocess(DBModel model) {
-		return null;
+	@Override
+	protected DataModel preprocess(DBModel model) throws Exception {
+		// Predicting ratings with linear regression is default
+		PreprocessorStat pre = new PreprocessorStat();
+		return pre.preprocess(model, PredictionMethod.LinearRegression);
 	}
 
 }
