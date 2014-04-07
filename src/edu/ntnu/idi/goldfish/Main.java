@@ -4,8 +4,11 @@ import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.preprocessors.*;
 import org.apache.commons.lang3.StringUtils;
+import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.functions.SMOreg;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static edu.ntnu.idi.goldfish.DataSet.*;
@@ -21,8 +24,9 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
-		List<Config> configurations = new ArrayList<>();
-		ResultList results = new ResultList();
+
+        List<Config> configs = new ArrayList<>();
+        ResultList results = new ResultList();
 
         Config baseLine = new Lynx()
                 .set("name", "baseline")
@@ -44,10 +48,15 @@ public class Main {
 
 
         Config classifiers = new Lynx()
-                .set("name", "classifier")
                 .set("model", yowImplicit.getModel())
                 .set("preprocessor", PreprocessorClassifier.class)
-                .set("average", 10);
+                .set("average", 5000);
+
+        List<Class> classes = Arrays.asList(NaiveBayes.class, SMOreg.class);
+        classes.stream().forEach(c ->
+            configs.add(classifiers.clone().set("name", c.getSimpleName()).set("classifier", c))
+        );
+
 
         Config clustering = new Lynx()
                 .set("name", "clustering")
@@ -61,24 +70,26 @@ public class Main {
                 .set("preprocessor", PreprocessorMLR.class);
 
 
-        configurations.add(baseLine);
-        configurations.add(stat);
-        configurations.add(puddis);
-//        configurations.add(classifiers);
+//        configurations.add(baseLine);
+//        configurations.add(stat);
+//        configurations.add(puddis);
+        configs.add(classifiers);
 //        configurations.add(clustering);
 //        configurations.add(mlr);
 
+        Columns columns = Columns.getPrintFormats("name", "average", "RMSE", "evalTime");
+        results.setColumns(columns);
+
 		StopWatch.start("total evaluation");
-//        System.out.format("Starting evaluation of %d configurations (%d users, %d items) \n", configurations.size(), dbModel.getNumUsers(), dbModel.getNumItems());
+        System.out.format("Starting evaluation of %d configurations \n", configs.size());
+        Evaluator.evaluate(configs, results, res -> System.out.println(res.toString(columns)));
 
-        Evaluator.evaluate(configurations, results);
-        results.setColumns("name", "average", "RMSE", "evalTime");
-
-        results.print();
+//        results.print();
         System.out.println(StringUtils.repeat("=", 190));
 //        results.printSummary();
+
+        System.out.format("Evaluated %d configurations in %s \n", configs.size(), StopWatch.str("total evaluation"));
         results.save();
 
-//        System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", configurations.size(), dbModel.getNumUsers(), dbModel.getNumItems(), StopWatch.str("total evaluation"));
-	}
+    }
 }
