@@ -49,6 +49,10 @@ public class PreprocessorMLR extends Preprocessor {
 		double[] beta = globalLR(model, numberOfIndependentVariables);
 		
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
+		
+		numberOfIndependentVariables = results.get(0).implicitfeedback.length < numberOfIndependentVariables ? 
+				results.get(0).implicitfeedback.length : numberOfIndependentVariables;
+		
 		for(DBModel.DBRow row : results) {
 			
 			float pseudoRating = (float) beta[0];
