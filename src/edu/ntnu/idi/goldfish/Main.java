@@ -45,18 +45,10 @@ public class Main {
                 .set("preprocessor", PreprocessorStat.class)
                 .set("average", 100);
 
-        Config puddis2 = new Lynx()
-	        .set("name", "puddis2")
-	        .set("model", yowSMImplicit.getModel())
-	        .set("average", 100)
-	        .set("minTimeOnPage", 20000)
-			.set("correlationLimit", 0.5)
-			.set("predictionMethod", PredMethod.LinearRegression);
-        configs.add(puddis2);
-        
         Config puddis = new Lynx()
                 .set("name", "puddis")
                 .set("model", yowSMImplicit.getModel())
+                .set("preprocessor", PreprocessorPuddis.class)
                 .set("average", 100);
 
         Config conf;
