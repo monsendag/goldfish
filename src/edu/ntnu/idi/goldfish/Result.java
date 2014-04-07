@@ -47,7 +47,7 @@ public class Result extends HashMap<String, Object> {
         List<String> values = new ArrayList<>();
         for(String col : columns.keySet()) {
             Object value = has(col) ? get(col) : null;
-            return String.format(columns.get(col), value);
+            values.add(String.format(columns.get(col), value));
         }
 		return StringUtils.join(values, "\t");
 	}
