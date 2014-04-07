@@ -10,14 +10,9 @@ import java.util.stream.Collectors;
 
 public class Result extends HashMap<String, Object> {
 
-    Config config;
 
     public Result() {
 
-    }
-
-    public Result(Config config) {
-        this.config = config;
     }
 
     public Result set(String prop, Object val) {
@@ -27,7 +22,12 @@ public class Result extends HashMap<String, Object> {
 
     @SuppressWarnings("unchecked")
     public <T> T get(String val) {
-        return containsKey(val) ? (T) super.get(val) : config!=null ? config.get(val) : null;
+        return containsKey(val) ? (T) super.get(val) : containsKey("config") ? ((Config) get("config")).get(val) : null;
+    }
+
+    public Result remove(String prop) {
+        super.remove(prop);
+        return this;
     }
 
 	public String toString(Columns columns) {

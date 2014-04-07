@@ -26,23 +26,28 @@ public class Main {
 
         Config baseLine = new Lynx()
                 .set("name", "baseline")
-                .set("model", yowBaseline.getModel());
+                .set("model", yowBaseline.getModel())
+                .set("average", 5);
 
         Config stat = new Lynx()
                 .set("name", "stat")
                 .set("model", yowImplicit.getModel())
                 .set("predictionMethod", PreprocessorStat.PredictionMethod.LinearRegression)
-                .set("preprocessor", PreprocessorStat.class);
+                .set("preprocessor", PreprocessorStat.class)
+                .set("average", 10);
 
         Config puddis = new Lynx()
                 .set("name", "puddis")
                 .set("model", yowSMImplicit.getModel())
-                .set("preprocessor", PreprocessorPuddis.class);
+                .set("preprocessor", PreprocessorPuddis.class)
+                .set("average", 10);
+
 
         Config classifiers = new Lynx()
                 .set("name", "classifier")
                 .set("model", yowImplicit.getModel())
-                .set("preprocessor", PreprocessorClassifier.class);
+                .set("preprocessor", PreprocessorClassifier.class)
+                .set("average", 10);
 
         Config clustering = new Lynx()
                 .set("name", "clustering")
@@ -62,16 +67,15 @@ public class Main {
 //        configurations.add(clustering);
 //        configurations.add(mlr);
 
-        results.setColumns("name", "RMSE", "evalTime");
-
 		StopWatch.start("total evaluation");
 //        System.out.format("Starting evaluation of %d configurations (%d users, %d items) \n", configurations.size(), dbModel.getNumUsers(), dbModel.getNumItems());
 
         Evaluator.evaluate(configurations, results);
+        results.setColumns("name", "average", "RMSE", "evalTime");
 
         results.print();
         System.out.println(StringUtils.repeat("=", 190));
-        results.printSummary();
+//        results.printSummary();
         results.save();
 
 //        System.out.format("Evaluated %d configurations (%d users, %d items) in %s \n", configurations.size(), dbModel.getNumUsers(), dbModel.getNumItems(), StopWatch.str("total evaluation"));

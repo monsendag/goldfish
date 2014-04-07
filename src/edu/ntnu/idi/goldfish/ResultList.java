@@ -58,7 +58,7 @@ public class ResultList extends ArrayList<Result> {
 	public void save(Columns columns) throws IOException {
         String output = toTSV(columns);
         String dateTime = String.format("%1$tY-%1$tm-%1$td-%1$tH%1$tM%1$tS", new Date());
-        String fileName = String.format("results/%s-%s%s.tsv", dateTime, Main.set.toString(), "");
+        String fileName = String.format("results/%s-%s%s.tsv", dateTime, "", "");
         File file = new File(fileName);
         Writer writer = new BufferedWriter(new FileWriter(file));
         writer.write(output);

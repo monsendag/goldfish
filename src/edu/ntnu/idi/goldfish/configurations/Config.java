@@ -47,6 +47,11 @@ public class Config extends HashMap<String, Object> {
         return this;
     }
 
+    public Config remove(String key) {
+        super.remove(key);
+        return this;
+    }
+
     public static synchronized Class<Config> setGlobal(String prop, Object val) {
         config.put(prop, val);
         return Config.class;

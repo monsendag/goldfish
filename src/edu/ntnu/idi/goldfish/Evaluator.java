@@ -3,6 +3,7 @@ package edu.ntnu.idi.goldfish;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.SMRMSEevaluator;
 import edu.ntnu.idi.goldfish.preprocessors.KMeansWrapper;
+import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.IRStatistics;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
@@ -18,14 +19,43 @@ import org.apache.mahout.common.distance.DistanceMeasure;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Evaluator {
 
-	public static void evaluate(List<Config> configurations, ResultList results) {
+	public static void evaluate(List<Config> configs, ResultList results) {
+        configs.parallelStream().forEach(config -> {
+            try {
+                if(config.containsKey("preprocessor")) {
+                    // do preprocessing
+                    Class<Preprocessor> pre = config.get("preprocessor");
+                    Preprocessor p = pre.newInstance();
+                    DataModel model = p.preprocess(config);
+                    config.set("model", model);
+                }
+                System.out.println((String) config.get("name"));
 
-        results.addAll(configurations.parallelStream().map(Evaluator::evaluateOne).collect(Collectors.toList()));
+                boolean doAverage = config.containsKey("average");
+                results.add(doAverage ? Evaluator.evaluateAverage(config) : Evaluator.evaluateOne(config));
+            }
+
+            catch(Exception e) {
+                e.printStackTrace();
+            }
+        });
 	}
+
+    /**
+     * Calculate the average of a set of iterations of each config
+     */
+    public static Result evaluateAverage(Config config) {
+          ResultList each = new ResultList();
+          int numIterations = config.get("average");
+          IntStream.range(1, numIterations).parallel().forEach(i -> {
+              each.add(Evaluator.evaluateOne(config));
+          });
+          return each.getAverage().set("config", config).remove("name");
+    }
 
     public static void evaluateClustered(DataModel dataModel, int numClusters, DistanceMeasure measure, List<Config> configurations, ResultList results) throws Exception {
         DataModel[] dataModels = KMeansWrapper.clusterUsers(dataModel, numClusters, measure, 0.5, 10, true, 0.0, true);
@@ -45,6 +75,7 @@ public class Evaluator {
         System.out.format("Evaluated %d clusters with %d configurations in %s\n", numClusters, configurations.size(), StopWatch.str("totaleval"));
     }
 
+
 	public static Result evaluateOne(Config config) {
         // we can't throw here because the method is called in a stream lambda
         try {
@@ -56,7 +87,7 @@ public class Evaluator {
             double eval = config.get("evaluationPercentage");
             RecommenderBuilder recBuilder = config.get("recommenderBuilder");
 
-            Result result = new Result(config);
+            Result result = new Result().set("config", config);
 
             if ((boolean) config.get("getRMSE")) {
                 // initialize evaluators

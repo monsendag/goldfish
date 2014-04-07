@@ -34,6 +34,7 @@ public class Columns extends HashMap<String, String> {
         columns.put("buildTime", "%4.0f");
         columns.put("recTime", "%2.0f");
         columns.put("evalTime", "%4.0f");
+        columns.put("average", "%4d");
 
         // filter by arguments
         columns.keySet().retainAll(Arrays.asList(properties));
@@ -54,6 +55,7 @@ public class Columns extends HashMap<String, String> {
         columns.put("buildTime", "%.0f");
         columns.put("recTime", "%.0f");
         columns.put("evalTime", "%0.f");
+        columns.put("average", "%d");
 
         // filter by arguments
         columns.keySet().retainAll(Arrays.asList(properties));
