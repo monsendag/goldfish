@@ -6,7 +6,6 @@ import edu.ntnu.idi.goldfish.mahout.DBModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
-import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.lazy.IBk;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -52,9 +51,10 @@ public class PreprocessorClassifier extends Preprocessor {
     public DataModel preprocess(Config config) throws Exception {
         DBModel model = config.get("model");
 
-        Classifier classifier = new NaiveBayes();
+        Class<Classifier> classifierClass = config.get("classifier");
+        Classifier classifier = classifierClass.newInstance();
 
-        Instances dataset = new ConverterUtils.DataSource("datasets/yow-userstudy/arff/yow-preprocess-clustering.arff").getDataSet();
+        Instances dataset = new ConverterUtils.DataSource("datasets/yow-userstudy/arff/yow-preprocess-clustering-timeonpage-timeonmouse.arff").getDataSet();
         dataset.setClassIndex(0);
 
         StopWatch.start("build-classifier");
