@@ -39,7 +39,7 @@ public class Main {
         Config baseLine = new Lynx()
                 .set("name", "baseline")
                 .set("model", yowBaseline.getModel())
-                .set("average", 10);
+                .set("average", 10000);
 
         configs.add(baseLine);
         /***********************************************************************************/
@@ -50,7 +50,7 @@ public class Main {
                     .set("name", "puddis")
                     .set("model", yowSMImplicit.getModel())
                     .set("preprocessor", PreprocessorPuddis.class)
-                    .set("average", 10);
+                    .set("average", 10000);
 
             Config conf;
             for (int minT = 15000; minT <= 30000; minT += 5000) {
@@ -77,9 +77,9 @@ public class Main {
                 .set("average", 10);
 
         List<Class> classes = Arrays.asList(NaiveBayes.class, SMOreg.class);
-        classes.stream().forEach(c ->
-            configs.add(classifiers.clone().set("name", c.getSimpleName()).set("classifier", c))
-        );
+//        classes.stream().forEach(c ->
+//            configs.add(classifiers.clone().set("name", c.getSimpleName()).set("classifier", c))
+//        );
 
         /***********************************************************************************/
         // PreprocessorClustering
@@ -98,7 +98,7 @@ public class Main {
                     conf = clustering.clone()
                             .set("clusterer", clusterer)
                             .set("clusterDataset", dataset);
-                    configs.add(conf);
+//                    configs.add(conf);
                 }
             }
         }
@@ -111,7 +111,7 @@ public class Main {
                     .set("name", "MLR")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 10);
+                    .set("average", 10000);
 
             Config conf;
             for (int i = 1; i <= 3; i++) {
@@ -123,8 +123,7 @@ public class Main {
 
         /***********************************************************************************/
 
-        Columns columns = Columns.getPrintFormats("name", "average", "RMSE", "evalTime", "minTimeOnPage", "correlationLimit",
-                "predictionMethod", "clusterer", "clusterDataset", "numberOfIndependentVariables", "classifier");
+        Columns columns = Columns.getPrintFormats("name", "average", "RMSE", "evalTime", "minTimeOnPage", "correlationLimit", "predictionMethod", "numberOfIndependentVariables");
         results.setColumns(columns);
 
 		StopWatch.start("total evaluation");
@@ -133,10 +132,10 @@ public class Main {
 
 //        results.print();
         System.out.println(StringUtils.repeat("=", 190));
-//        results.printSummary();
+        results.printSummary();
 
         System.out.format("Evaluated %d configurations in %s \n", configs.size(), StopWatch.str("total evaluation"));
-        results.save();
+        results.save(Columns.getSaveFormats("name", "average", "RMSE", "evalTime", "minTimeOnPage", "correlationLimit", "predictionMethod", "numberOfIndependentVariables"));
 
     }
 }
