@@ -3,7 +3,6 @@ package edu.ntnu.idi.goldfish.preprocessors;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
-
 import org.apache.commons.math3.exception.NumberIsTooSmallException;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
@@ -16,7 +15,6 @@ import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -196,7 +194,7 @@ public class PreprocessorPuddis extends Preprocessor {
 		}
 //		System.out.println("");
 
-        String tempPath = "/tmp/preprocessor-puddis-remove-invalid.csv";
+        String tempPath = String.format("/tmp/preprocessor-puddis-remove-invalid-%s.csv", Thread.currentThread().hashCode());
         writeDatasetToFileExplicit(model, tempPath);
 
         return new FileDataModel(new File(tempPath));
