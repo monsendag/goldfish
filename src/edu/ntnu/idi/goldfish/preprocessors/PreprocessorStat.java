@@ -78,6 +78,8 @@ public class PreprocessorStat extends Preprocessor{
 					
 					model.setPreference(r.userid, r.itemid, (float) Math.round(pseudoRating));
 					pseudoRatings.add(String.format("%d_%d", r.userid, r.itemid));
+					
+//					System.out.println(String.format("%d, %d, %.0f", r.userid, r.itemid, pseudoRating));
 				}
 				else if(timeOnPageFeedback(r.implicitfeedback, minTimeOnPage, 120000)){
 					model.setPreference(r.userid, r.itemid, 4);
