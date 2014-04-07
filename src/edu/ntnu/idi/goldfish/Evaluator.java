@@ -58,20 +58,20 @@ public class Evaluator {
 
             Result result = new Result(config);
 
-            if (config.get("getRMSE")) {
+            if ((boolean) config.get("getRMSE")) {
                 // initialize evaluators
                 AbstractDifferenceRecommenderEvaluator RMSE = new SMRMSEevaluator();
                 double rmse = RMSE.evaluate(recBuilder, null, model, train, eval);
                 result.set("RMSE", rmse);
             }
 
-            if (config.get("getAAD")) {
+            if ((boolean) config.get("getAAD")) {
                 AverageAbsoluteDifferenceRecommenderEvaluator AAD = new AverageAbsoluteDifferenceRecommenderEvaluator();
                 double aad = AAD.evaluate(recBuilder, null, model, train, eval);
                 result.set("AAD", aad);
             }
 
-            if (config.get("getIrStats")) {
+            if ((boolean) config.get("getIrStats")) {
                 RecommenderIRStatsEvaluator irEvaluator = new GenericRecommenderIRStatsEvaluator();
                 IRStatistics stats = irEvaluator.evaluate(recBuilder, null, model, null, config.get("topN"), config.get("relevanceThreshold"), eval);
                 double precision = stats.getPrecision();
@@ -81,7 +81,7 @@ public class Evaluator {
                       .set("recall", recall);
             }
 
-            if (config.get("getBuildTime")) {
+            if ((boolean) config.get("getBuildTime")) {
                 // calculate build time
                 StopWatch.start("buildTime");
                 recBuilder.buildRecommender(model);
@@ -89,7 +89,7 @@ public class Evaluator {
                 result.set("buildTime", (double)buildTime);
             }
 
-            if (config.get("getRecTime")) {
+            if ((boolean) config.get("getRecTime")) {
                 // calculate average recommendation time for x iterations
                 int iterations = config.get("getRecTimeIterations");
                 long recTime = getRecommendationTiming(recBuilder.buildRecommender(model), model, iterations, 10);
@@ -99,7 +99,7 @@ public class Evaluator {
             // get time of total configuration
             result.set("evalTime", (double)StopWatch.get("evalTime"));
 
-            if (config.get("showProgress")) {
+            if ((boolean) config.get("showProgress")) {
                 // print each result to show progress
                 System.out.println(result);
             }

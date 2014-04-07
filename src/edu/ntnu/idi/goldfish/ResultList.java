@@ -35,12 +35,12 @@ public class ResultList extends ArrayList<Result> {
     }
 
     public void save() throws IOException {
-        save(columns, "", "");
+        save(columns);
     }
 
     public void save(String... properties) throws IOException {
         Columns columns = Columns.getSaveFormats(properties);
-        save(columns, "", "");
+        save(columns);
     }
 	
 	public String toTSV(Columns columns) {
@@ -58,7 +58,7 @@ public class ResultList extends ArrayList<Result> {
 	public void save(Columns columns) throws IOException {
         String output = toTSV(columns);
         String dateTime = String.format("%1$tY-%1$tm-%1$td-%1$tH%1$tM%1$tS", new Date());
-        String fileName = String.format("results/%s-%s%s.tsv", dateTime, Main.set.toString(), appendToFileName);
+        String fileName = String.format("results/%s-%s%s.tsv", dateTime, Main.set.toString(), "");
         File file = new File(fileName);
         Writer writer = new BufferedWriter(new FileWriter(file));
         writer.write(output);
