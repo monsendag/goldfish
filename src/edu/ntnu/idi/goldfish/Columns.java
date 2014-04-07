@@ -65,7 +65,7 @@ public class Columns extends LinkedHashMap<String, String> {
         columns.put("recall", "%.3f");
         columns.put("buildTime", "%.0f");
         columns.put("recTime", "%.0f");
-        columns.put("evalTime", "%0.f");
+        columns.put("evalTime", "%.0f");
         columns.put("minTimeOnPage", "%d");
         columns.put("correlationLimit", "%.1f");
         columns.put("predictionMethod", "%s");
