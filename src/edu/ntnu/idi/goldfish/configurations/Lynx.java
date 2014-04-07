@@ -9,6 +9,7 @@ public class Lynx extends Config {
 
 	
 	public Lynx() {
+
         this
             .set("numFeatures", 10)
             .set("numIterations", 20)
@@ -22,7 +23,8 @@ public class Lynx extends Config {
             .set("learningRate", 0.01) // Learning rate (step size)
             .set("preventOverfitting", 0.1) // Parameter used to prevent overfitting
             .set("randomNoise", 0.01)  // Standard deviation for random initialization of features
-            .set("learningRateDecay", 1.0); // Multiplicative decay factor for learning_rate
+            .set("learningRateDecay", 1.0) // Multiplicative decay factor for learning_rate
+            .set("recommenderBuilder", getBuilder());
 
     }
 

@@ -35,6 +35,10 @@ public class Config extends HashMap<String, Object> {
 
     @SuppressWarnings("unchecked")
     public <T> T get(String property) {
+        if(!containsKey(property)) {
+            System.err.println("PROPERTY NOT FOUND!!! "+property);
+        }
+
         return (T) super.get(property);
     }
 

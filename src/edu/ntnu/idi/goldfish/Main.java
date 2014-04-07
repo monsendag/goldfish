@@ -2,6 +2,9 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClassifier;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorMLR;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,15 +31,35 @@ public class Main {
                 .set("name", "baseline")
                 .set("model", yowBaseline.getModel());
 
-        for(int i=0; i<10000; i++) {
+        for(int i=0; i<5; i++) {
             configurations.add(baseLine);
         }
 
-        Config puddis = new Config()
+        Config puddis = new Lynx()
                 .set("name", "puddis")
                 .set("model", yowSMImplicit.getModel())
                 .set("preprocessor", PreprocessorPuddis.class);
 
+        Config classifiers = new Lynx()
+                .set("name", "classifier")
+                .set("model", yowImplicit.getModel())
+                .set("preprocessor", PreprocessorClassifier.class);
+
+        Config clustering = new Lynx()
+                .set("name", "classifier")
+                .set("model", yowImplicit.getModel())
+                .set("preprocessor", PreprocessorClustering.class);
+
+        Config mlf = new Lynx()
+                .set("name", "classifier")
+                .set("model", yowImplicit.getModel())
+                .set("preprocessor", PreprocessorMLR.class);
+
+
+        configurations.add(puddis);
+        configurations.add(classifiers);
+        configurations.add(clustering);
+        configurations.add(mlf);
 
         results.setColumns("name", "RMSE", "evalTime");
 
@@ -45,7 +68,7 @@ public class Main {
 
         Evaluator.evaluate(configurations, results);
 
-//        results.print();
+        results.print();
         System.out.println(StringUtils.repeat("=", 190));
         results.printSummary();
         results.save();

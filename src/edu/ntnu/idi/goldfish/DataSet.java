@@ -18,7 +18,7 @@ public enum DataSet {
 
             // yow userstudy
             case yowBaseline:
-                return new DBModel(new File("datasets/yow-userstudy/python/yow-smart-sample-explicit-2.csv"));
+                return new FileDataModel(new File("datasets/yow-userstudy/python/yow-smart-sample-explicit-2.csv"));
             // yow userstudy
             case yowImplicit:
                 return new DBModel(new File("datasets/yow-userstudy/python/yow-smart-sample-implicit-2.csv"));

@@ -55,13 +55,9 @@ public class ResultList extends ArrayList<Result> {
 	}
 	
 
-	public void save(Columns columns, String prependToFile, String appendToFileName) throws IOException {
-        // prepend "-" to append if it's not empty
-        appendToFileName = appendToFileName.length() > 0 ? "-"+appendToFileName : "";
-
+	public void save(Columns columns) throws IOException {
+        String output = toTSV(columns);
         String dateTime = String.format("%1$tY-%1$tm-%1$td-%1$tH%1$tM%1$tS", new Date());
-
-        String output = prependToFile + toTSV(columns);
         String fileName = String.format("results/%s-%s%s.tsv", dateTime, Main.set.toString(), appendToFileName);
         File file = new File(fileName);
         Writer writer = new BufferedWriter(new FileWriter(file));
