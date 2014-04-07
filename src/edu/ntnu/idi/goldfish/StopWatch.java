@@ -8,19 +8,22 @@ public class StopWatch {
 	protected static HashMap<String, Long> starts = new HashMap<String,Long>();
 	protected static HashMap<String, Long> timings = new HashMap<String,Long>();
 	
-	
+	private static String id(String name) {
+        return ""+Thread.currentThread().hashCode()+name;
+    }
+
 	public static void start(String name) {
-		timings.remove(name);
-		starts.put(name, System.currentTimeMillis());
+		timings.remove(id(name));
+		starts.put(id(name), System.currentTimeMillis());
 	}
 	
 	public static void stop(String name) {
-		if(!starts.containsKey(name)) {
+		if(!starts.containsKey(id(name))) {
 			System.err.format("have no start timing for %s\n", name);
 			return;
 		}
-		if(!timings.containsKey(name)) {
-			timings.put(name, System.currentTimeMillis() - starts.get(name));			
+		if(!timings.containsKey(id(name))) {
+			timings.put(id(name), System.currentTimeMillis() - starts.get(id(name)));
 		}
 	}
 	
@@ -35,7 +38,7 @@ public class StopWatch {
 	
 	public static String str(String name) {
 		stop(name);
-		long time = timings.get(name);
+		long time = timings.get(id(name));
 		return getString(time);
 	}
 	
@@ -45,6 +48,6 @@ public class StopWatch {
 	
 	public static long get(String name) {
 		stop(name);
-		return timings.get(name);
+		return timings.get(id(name));
 	}
 }

@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
-public class Columns extends HashMap<String, String> {
+public class Columns extends LinkedHashMap<String, String> {
 
 	List<String> properties;
 	List<String> formats;
@@ -24,6 +24,7 @@ public class Columns extends HashMap<String, String> {
 
         Columns columns = new Columns();
         columns.put("name", "%-11s");
+        columns.put("average", "%4d");
         columns.put("similarity", "%19s");
         columns.put("numFeatures", "%5.2f");
         columns.put("TopN", "%3d");
@@ -34,7 +35,6 @@ public class Columns extends HashMap<String, String> {
         columns.put("buildTime", "%4.0f");
         columns.put("recTime", "%2.0f");
         columns.put("evalTime", "%4.0f");
-        columns.put("average", "%4d");
 
         // filter by arguments
         columns.keySet().retainAll(Arrays.asList(properties));
@@ -45,6 +45,7 @@ public class Columns extends HashMap<String, String> {
     public static Columns getSaveFormats(String... properties) {
         Columns columns = new Columns();
         columns.put("name", "%s");
+        columns.put("average", "%d");
         columns.put("similarity", "%s");
         columns.put("numFeatures", "%.2f");
         columns.put("TopN", "%d");
@@ -55,7 +56,6 @@ public class Columns extends HashMap<String, String> {
         columns.put("buildTime", "%.0f");
         columns.put("recTime", "%.0f");
         columns.put("evalTime", "%0.f");
-        columns.put("average", "%d");
 
         // filter by arguments
         columns.keySet().retainAll(Arrays.asList(properties));

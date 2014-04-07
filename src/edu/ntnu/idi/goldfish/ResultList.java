@@ -14,8 +14,16 @@ public class ResultList extends ArrayList<Result> {
 
 	}
 
+    public synchronized boolean add(Result res) {
+        return super.add(res);
+    }
+
+    public void setColumns(Columns columns){
+        this.columns = columns;
+    }
+
     public void setColumns(String... properties) {
-        columns = Columns.getPrintFormats(properties);
+        setColumns(Columns.getPrintFormats(properties));
     }
 
     public void print() {
@@ -34,34 +42,32 @@ public class ResultList extends ArrayList<Result> {
         forEach(r -> System.out.println(r.toString(columns)));
     }
 
+
+	public String toTSV(Columns columns) {
+		String out = "";
+		out += StringUtils.join(columns.keySet(), "\t") +"\n";
+        out += getTotal().toTSV(columns)+"\n";
+        out += getAverage().toTSV(columns)+"\n";
+		for (Result res : this) {
+			out += res.toTSV(columns)+"\n";
+		}
+        return out;
+	}
+
+
     public void save() throws IOException {
         save(columns);
     }
 
-    public void save(String... properties) throws IOException {
-        Columns columns = Columns.getSaveFormats(properties);
-        save(columns);
-    }
-	
-	public String toTSV(Columns columns) {
-		String out = "";
-		out += StringUtils.join(columns.keySet(), "\t") +"\n";
-        out += getTotal()+"\n";
-        out += getAverage()+"\n";
-		for (Result res : this) {
-			out += res.toTSV(columns)+"\n";
-		}
-		return out;
-	}
-	
 
-	public void save(Columns columns) throws IOException {
+    public void save(Columns columns) throws IOException {
         String output = toTSV(columns);
         String dateTime = String.format("%1$tY-%1$tm-%1$td-%1$tH%1$tM%1$tS", new Date());
         String fileName = String.format("results/%s-%s%s.tsv", dateTime, "", "");
         File file = new File(fileName);
         Writer writer = new BufferedWriter(new FileWriter(file));
         writer.write(output);
+        writer.close();
         System.out.println("Saved to file: " + fileName);
     }
 

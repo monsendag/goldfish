@@ -19,11 +19,12 @@ import org.apache.mahout.common.distance.DistanceMeasure;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 public class Evaluator {
 
-	public static void evaluate(List<Config> configs, ResultList results) {
+	public static void evaluate(List<Config> configs, ResultList results, Consumer<? super Result> callback) {
         configs.parallelStream().forEach(config -> {
             try {
                 if(config.containsKey("preprocessor")) {
@@ -33,10 +34,10 @@ public class Evaluator {
                     DataModel model = p.preprocess(config);
                     config.set("model", model);
                 }
-                System.out.println((String) config.get("name"));
 
-                boolean doAverage = config.containsKey("average");
-                results.add(doAverage ? Evaluator.evaluateAverage(config) : Evaluator.evaluateOne(config));
+                Result result = config.containsKey("average") ? Evaluator.evaluateAverage(config) : Evaluator.evaluateOne(config);
+                if(callback!= null) callback.accept(result);
+                results.add(result);
             }
 
             catch(Exception e) {
@@ -51,7 +52,7 @@ public class Evaluator {
     public static Result evaluateAverage(Config config) {
           ResultList each = new ResultList();
           int numIterations = config.get("average");
-          IntStream.range(1, numIterations).parallel().forEach(i -> {
+          IntStream.range(0, numIterations).parallel().forEach(i -> {
               each.add(Evaluator.evaluateOne(config));
           });
           return each.getAverage().set("config", config).remove("name");
@@ -77,6 +78,7 @@ public class Evaluator {
 
 
 	public static Result evaluateOne(Config config) {
+
         // we can't throw here because the method is called in a stream lambda
         try {
             StopWatch.start("evalTime");
