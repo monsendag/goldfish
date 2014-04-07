@@ -48,7 +48,7 @@ public class PreprocessorMLR extends Preprocessor {
 			// is pseudo rating > 5, then outlier feedback has been used and we don't want to use this pseudo rating
 			if(pseudoRating > 5) continue;
 			
-			System.out.format("linear regression: u: %d  i: %6d  estimate: %d\n", row.userid, row.itemid, Math.round(pseudoRating));
+//			System.out.format("linear regression: u: %d  i: %6d  estimate: %d\n", row.userid, row.itemid, Math.round(pseudoRating));
 			
 			model.setPreference(row.userid, row.itemid, (float) Math.round(pseudoRating));
 			pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
@@ -81,11 +81,11 @@ public class PreprocessorMLR extends Preprocessor {
 
 		double[] beta = regression.estimateRegressionParameters();      
 		
-		System.out.println("Regression parameters:");
-		for (int i = 0; i < beta.length; i++) {
-				System.out.print("B"+i+": " + beta[i] + ", ");
-		}
-		System.out.println("");
+//		System.out.println("Regression parameters:");
+//		for (int i = 0; i < beta.length; i++) {
+//				System.out.print("B"+i+": " + beta[i] + ", ");
+//		}
+//		System.out.println("");
 		
 		return beta;
 	}

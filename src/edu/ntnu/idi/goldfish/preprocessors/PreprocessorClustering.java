@@ -149,7 +149,7 @@ public class PreprocessorClustering extends Preprocessor{
  		}
  		
  		cvc.buildClassifier(data);
- 		System.out.println(cvc.toString());
+// 		System.out.println(cvc.toString());
 
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		for(DBModel.DBRow row : results) {
@@ -157,7 +157,7 @@ public class PreprocessorClustering extends Preprocessor{
 			i.setDataset(data);
 			int rating = (int) (cvc.classifyInstance(i)+1); // zero indexed
 			
-			System.out.format("classify: u: %d  i: %6d  estimate: %d\n", row.userid, row.itemid, rating);
+//			System.out.format("classify: u: %d  i: %6d  estimate: %d\n", row.userid, row.itemid, rating);
 			
 			model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
 			pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
