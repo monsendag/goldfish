@@ -9,6 +9,7 @@ import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import org.apache.mahout.cf.taste.common.NoSuchItemException;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
@@ -70,7 +71,7 @@ public class PreprocessorPuddis extends Preprocessor {
 	 * 		the model to preprocess
 	 * @throws TasteException
 	 */
-	public DataModel preprocess(Config config) throws TasteException {
+	public DataModel preprocess(Config config) throws Exception {
         SMDataModel model = config.get("model");
 		
 		double[] beta = globalLR(model, 3);
@@ -111,10 +112,10 @@ public class PreprocessorPuddis extends Preprocessor {
 						pref.setValue(Math.round(pseudoRating), RATING_INDEX);
 						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 						
-						System.out.print(String.format("\nUser %d gave item %d a rating of %d. "
-								+ "Page: %.0f, mouse: %.0f %d", pref.getUserID(), pref.getItemID(), 
-								Math.round(pseudoRating), feedback[TIME_ON_PAGE_INDEX], feedback[TIME_ON_MOUSE_INDEX], 
-								++numberOfPseudoRatings));
+//						System.out.print(String.format("\nUser %d gave item %d a rating of %d. "
+//								+ "Page: %.0f, mouse: %.0f %d", pref.getUserID(), pref.getItemID(),
+//								Math.round(pseudoRating), feedback[TIME_ON_PAGE_INDEX], feedback[TIME_ON_MOUSE_INDEX],
+//								++numberOfPseudoRatings));
 						
 					}
 					// do we have enough pairs of explicit and implicit feedback in order to map
@@ -143,8 +144,8 @@ public class PreprocessorPuddis extends Preprocessor {
 							// remember the pseudoRatings to ensure they are only used in the training set
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
 							
-							System.out.println(String.format("User %d rated item %d with pseudorating: %.0f and correlation: %.2f", 
-									pref.getUserID(), pref.getItemID(), pseudoRating, correlation));
+//							System.out.println(String.format("User %d rated item %d with pseudorating: %.0f and correlation: %.2f",
+//									pref.getUserID(), pref.getItemID(), pseudoRating, correlation));
 						}
 					} 
 //					else if(timeOnPageAndTimeOnMouseCombined(feedback)){
@@ -192,8 +193,12 @@ public class PreprocessorPuddis extends Preprocessor {
 				}
 			}
 		}
-		System.out.println("");
-        return model;
+//		System.out.println("");
+
+        String tempPath = "/tmp/preprocessor-puddis-remove-invalid.csv";
+        writeDatasetToFileExplicit(model, tempPath);
+
+        return new FileDataModel(new File(tempPath));
 	}
 	
 	private double[] globalLR(SMDataModel model, int numberOfIndependentVariables) throws TasteException {
@@ -251,11 +256,11 @@ public class PreprocessorPuddis extends Preprocessor {
 
 		double[] beta = regression.estimateRegressionParameters();      
 		
-		System.out.println("Regression parameters:");
+//		System.out.println("Regression parameters:");
 		for (int i = 0; i < beta.length; i++) {
-				System.out.print("B"+i+": " + beta[i] + ", ");
+//				System.out.print("B"+i+": " + beta[i] + ", ");
 		}
-		System.out.println("");
+//		System.out.println("");
 		
 		return beta;
 	}
