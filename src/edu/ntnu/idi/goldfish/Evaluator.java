@@ -51,7 +51,7 @@ public class Evaluator {
     public static Result evaluateAverage(Config config) {
           ResultList each = new ResultList();
           int numIterations = config.get("average");
-          IntStream.range(1, numIterations).parallel().forEach(i -> {
+          IntStream.range(0, numIterations).parallel().forEach(i -> {
               each.add(Evaluator.evaluateOne(config));
           });
           return each.getAverage().set("config", config).remove("name");
