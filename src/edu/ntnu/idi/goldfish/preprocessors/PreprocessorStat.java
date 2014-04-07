@@ -20,6 +20,8 @@ public class PreprocessorStat extends Preprocessor{
 
         DBModel model = config.get("model");
         PredictionMethod predictionMethod = config.get("predictionMethod");
+        int minTimeOnPage = config.get("minTimeOnPage");
+        double correlationLimit = config.get("correlationLimit");
 
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		for (DBRow r : results) {
@@ -51,7 +53,7 @@ public class PreprocessorStat extends Preprocessor{
 				int bestCorrelated = getBestCorrelated(dependentVariables, independentVariables);
 				double correlation = getCorrelation(dependentVariables, independentVariables, bestCorrelated);
 				
-				if(correlation > 0.5){
+				if(correlation > correlationLimit){
 					float pseudoRating = 0;
 					switch (predictionMethod) {
 					case LinearRegression:
@@ -71,7 +73,7 @@ public class PreprocessorStat extends Preprocessor{
 					model.setPreference(r.userid, r.itemid, (float) Math.round(pseudoRating));
 					pseudoRatings.add(String.format("%d_%d", r.userid, r.itemid));
 				}
-				else if(timeOnPageFeedback(r.implicitfeedback, 20000, 120000)){
+				else if(timeOnPageFeedback(r.implicitfeedback, minTimeOnPage, 120000)){
 					model.setPreference(r.userid, r.itemid, 4);
 					pseudoRatings.add(String.format("%d_%d", r.userid, r.itemid));
 				}
