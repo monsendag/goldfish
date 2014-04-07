@@ -1,6 +1,7 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
 import edu.ntnu.idi.goldfish.StopWatch;
+import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import weka.classifiers.Classifier;
@@ -48,7 +49,9 @@ public class PreprocessorClassifier extends Preprocessor {
     }
 
     @Override
-    public DataModel preprocess(DBModel model) throws Exception {
+    public DataModel preprocess(Config config) throws Exception {
+        DBModel model = config.get("model");
+
         Classifier classifier = new NaiveBayes();
 
         Instances dataset = new ConverterUtils.DataSource("datasets/yow-userstudy/arff/yow-preprocess-clustering.arff").getDataSet();

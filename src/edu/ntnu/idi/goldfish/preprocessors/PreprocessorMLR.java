@@ -1,22 +1,14 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
+import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
-import edu.ntnu.idi.goldfish.mahout.SMPreference;
-
-import org.apache.commons.math3.exception.NumberIsTooLargeException;
 import org.apache.commons.math3.exception.NumberIsTooSmallException;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
 import org.apache.mahout.cf.taste.model.DataModel;
-import org.apache.mahout.cf.taste.model.Preference;
-import org.apache.mahout.cf.taste.model.PreferenceArray;
-
-import weka.core.Instance;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,8 +109,9 @@ public class PreprocessorMLR extends Preprocessor {
 
 
 	@Override
-	protected DataModel preprocess(DBModel model) throws Exception {
+	public DataModel preprocess(Config config) throws Exception {
 		// time on page is default
+        DBModel model = config.get("model");
 		return preprocess(model, 1); 
 	}
 

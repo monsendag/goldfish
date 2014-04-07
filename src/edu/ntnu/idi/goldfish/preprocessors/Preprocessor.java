@@ -28,7 +28,7 @@ public abstract class Preprocessor {
 	}
 
 
-    protected abstract DataModel preprocess(Config config) throws Exception;
+    public abstract DataModel preprocess(Config config) throws Exception;
 
     /**
      * Write dataset to file with csv format

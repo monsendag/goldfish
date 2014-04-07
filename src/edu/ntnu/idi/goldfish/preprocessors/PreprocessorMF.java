@@ -1,5 +1,6 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
+import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
@@ -14,7 +15,9 @@ import org.apache.mahout.cf.taste.recommender.Recommender;
 public class PreprocessorMF extends Preprocessor {
 
     @Override
-    public DataModel preprocess(DBModel model) throws TasteException {
+    public DataModel preprocess(Config config) throws TasteException {
+
+        DBModel model = config.get("model");
         LongPrimitiveIterator userIter = model.getUserIDs();
 
         FastByIDMap<PreferenceArray> userData = new FastByIDMap<>();
