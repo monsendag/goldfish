@@ -50,8 +50,8 @@ public class Main {
                 .set("model", yowImplicit.getModel())
                 .set("preprocessor", PreprocessorClustering.class);
 
-        Config mlf = new Lynx()
-                .set("name", "classifier")
+        Config mlr = new Lynx()
+                .set("name", "mlr")
                 .set("model", yowImplicit.getModel())
                 .set("preprocessor", PreprocessorMLR.class);
 
@@ -59,7 +59,7 @@ public class Main {
         configurations.add(puddis);
         configurations.add(classifiers);
         configurations.add(clustering);
-        configurations.add(mlf);
+        configurations.add(mlr);
 
         results.setColumns("name", "RMSE", "evalTime");
 

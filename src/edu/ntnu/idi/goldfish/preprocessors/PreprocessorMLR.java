@@ -4,6 +4,7 @@ import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 
+import org.apache.commons.math3.exception.NumberIsTooLargeException;
 import org.apache.commons.math3.exception.NumberIsTooSmallException;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import org.apache.mahout.cf.taste.common.TasteException;
@@ -28,10 +29,6 @@ import java.util.stream.Collectors;
  */
 public class PreprocessorMLR extends Preprocessor {
 
-	private final int TIME_ON_PAGE_INDEX = 1;
-	private final int TIME_ON_MOUSE_INDEX = 2;
-	private final int RATING_INDEX = 0;
-	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
 
 	public static void main(String[] args) throws Exception {
@@ -54,16 +51,17 @@ public class PreprocessorMLR extends Preprocessor {
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		for(DBModel.DBRow row : results) {
 			
-			float pseudoRating = (float) beta[RATING_INDEX];
-			pseudoRating += beta[TIME_ON_PAGE_INDEX] * row.timeonpage;
-			pseudoRating += beta[TIME_ON_MOUSE_INDEX] * row.timeonmouse;
+			float pseudoRating = (float) beta[0];
+			for (int i = 0; i < numberOfIndependentVariables; i++) {
+				pseudoRating += beta[i] * row.implicitfeedback[i];
+			}
 			
 			// the beta0 is 3, have to manually set the lowest ratings
 			pseudoRating = row.timeonpage < 25000 ? 2 : pseudoRating;
 			pseudoRating = row.timeonpage < 10000 ? 1 : pseudoRating;
 			
-			// is pseudorating > 5, then outlier feedback has been used
-			pseudoRating = pseudoRating > 5 ? -1 : pseudoRating;
+			// is pseudo rating > 5, then outlier feedback has been used and we don't want to use this pseudo rating
+			if(pseudoRating > 5) continue;
 			
 			System.out.format("linear regression: u: %d  i: %6d  estimate: %d\n", row.userid, row.itemid, Math.round(pseudoRating));
 			
@@ -79,6 +77,10 @@ public class PreprocessorMLR extends Preprocessor {
 		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);
 		
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating > 0).collect(Collectors.toList());
+		
+		numberOfIndependentVariables = results.get(0).implicitfeedback.length < numberOfIndependentVariables ? 
+				results.get(0).implicitfeedback.length : numberOfIndependentVariables;
+		
 		double[] dependentVariables = new double[results.size()]; // the explicit ratings to infer
 		double[][] independentVariables = new double[results.size()][]; // the implicit feedback
 		double[] implicitFeedback = null;
@@ -87,9 +89,10 @@ public class PreprocessorMLR extends Preprocessor {
 		for (DBRow row : results) {
 			dependentVariables[index] = row.rating;
 			
-			implicitFeedback = new double[2];
-			implicitFeedback[0] = row.timeonpage;
-			implicitFeedback[1] = row.timeonmouse;
+			implicitFeedback = new double[numberOfIndependentVariables];
+			for (int i = 0; i < implicitFeedback.length; i++) {
+				implicitFeedback[i] = row.implicitfeedback[i];
+			}
 			independentVariables[index] = implicitFeedback;
 			index++;
 		}
