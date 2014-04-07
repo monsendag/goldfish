@@ -57,11 +57,11 @@ public class PreprocessorClassifier extends Preprocessor {
         Instances dataset = new ConverterUtils.DataSource("datasets/yow-userstudy/arff/yow-preprocess-clustering-timeonpage-timeonmouse.arff").getDataSet();
         dataset.setClassIndex(0);
 
-        StopWatch.start("build-classifier");
+//        StopWatch.start("build-classifier");
         classifier.buildClassifier(dataset);
-        StopWatch.print("build-classifier");
+//        StopWatch.print("build-classifier");
 
-        StopWatch.start("classify");
+//        StopWatch.start("classify");
         List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
         for(DBModel.DBRow row : results) {
             Instance un = new Instance(1, new double[]{0, row.timeonpage, row.timeonmouse});
@@ -71,7 +71,7 @@ public class PreprocessorClassifier extends Preprocessor {
             model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
             pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
         }
-        StopWatch.print("classify");
+//        StopWatch.print("classify");
         return model;
     }
 

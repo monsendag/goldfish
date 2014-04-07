@@ -25,7 +25,7 @@ import java.util.stream.IntStream;
 public class Evaluator {
 
 	public static void evaluate(List<Config> configs, ResultList results, Consumer<? super Result> callback) {
-        configs.parallelStream().forEach(config -> {
+        configs.stream().forEach(config -> {
             try {
                 if(config.containsKey("preprocessor")) {
                     // do preprocessing
@@ -52,7 +52,7 @@ public class Evaluator {
     public static Result evaluateAverage(Config config) {
           ResultList each = new ResultList();
           int numIterations = config.get("average");
-          IntStream.range(0, numIterations).parallel().forEach(i -> {
+          IntStream.range(0, numIterations).forEach(i -> {
               each.add(Evaluator.evaluateOne(config));
           });
           return each.getAverage().set("config", config).remove("name");
@@ -78,6 +78,7 @@ public class Evaluator {
 
 
 	public static Result evaluateOne(Config config) {
+        System.out.println(Thread.currentThread().hashCode());
 
         // we can't throw here because the method is called in a stream lambda
         try {

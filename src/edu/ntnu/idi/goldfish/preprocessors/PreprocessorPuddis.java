@@ -69,10 +69,6 @@ public class PreprocessorPuddis extends Preprocessor {
         int minTimeOnPage = config.get("minTimeOnPage");
         double correlationLimit = config.get("correlationLimit");
         
-		double[] beta = globalLR(model, 3);
-		boolean useGlobalLR = false	;
-		int numberOfPseudoRatings = 0;
-		
 		// iterate through all items
 		LongPrimitiveIterator it = model.getItemIDs();
 		while (it.hasNext()) {
@@ -91,31 +87,10 @@ public class PreprocessorPuddis extends Preprocessor {
 					boolean hasImplicit = checkIfPreferenceHasImplicitFeedback(feedback);
 					int ratingPairs = getNumberOfRatingPairs(prefs);
 					
-					if(useGlobalLR){
-						float pseudoRating = (float) beta[0];
-						for (int i = 1; i < beta.length; i++) {
-							pseudoRating += beta[i]*feedback[i];
-						}
-						
-						// the beta0 is 3, have to manually set the lowest ratings
-						pseudoRating = feedback[TIME_ON_PAGE_INDEX] < 25000 ? 2 : pseudoRating;
-						pseudoRating = feedback[TIME_ON_PAGE_INDEX] < 10000 ? 1 : pseudoRating;
-						
-						// is pseudorating > 5, then outlier feedback has been used
-						pseudoRating = pseudoRating > 5 ? -1 : pseudoRating;
-						
-						pref.setValue(Math.round(pseudoRating), RATING_INDEX);
-						pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
-						
-//						System.out.print(String.format("\nUser %d gave item %d a rating of %d. "
-//								+ "Page: %.0f, mouse: %.0f %d", pref.getUserID(), pref.getItemID(),
-//								Math.round(pseudoRating), feedback[TIME_ON_PAGE_INDEX], feedback[TIME_ON_MOUSE_INDEX],
-//								++numberOfPseudoRatings));
-						
-					}
+					
 					// do we have enough pairs of explicit and implicit feedback in order to map
 					// from implicit feedback to an explicit rating (pseudo rating) ?
-					else if (hasImplicit && ratingPairs >= THRESHOLD) {
+					if (hasImplicit && ratingPairs >= THRESHOLD) {
 
 						int bestCorrelated = getBestCorrelatedFeedback(prefs, feedback);
 						double correlation = getCorrelation(prefs, bestCorrelated);
@@ -144,6 +119,9 @@ public class PreprocessorPuddis extends Preprocessor {
 							
 							// remember the pseudoRatings to ensure they are only used in the training set
 							pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
+							
+//							System.out.println(String.format("%d, %d, %.0f", pref.getUserID(),
+//									pref.getItemID(), pseudoRating));
 							
 						}
 					} 
@@ -196,8 +174,10 @@ public class PreprocessorPuddis extends Preprocessor {
 
         String tempPath = String.format("/tmp/preprocessor-puddis-remove-invalid-%s.csv", Thread.currentThread().hashCode());
         writeDatasetToFileExplicit(model, tempPath);
+//        System.out.println("^PUDDIS^");
 
         return new FileDataModel(new File(tempPath));
+        
 	}
 	
 	private double[] globalLR(SMDataModel model, int numberOfIndependentVariables) throws TasteException {
