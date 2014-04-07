@@ -15,35 +15,23 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This class is used to map implicit feedback to explicit rating where it is possible.
+ * This class is used to map implicit feedback to explicit rating using multiple linear regression
  * @author Patrick Romstad and Dag Einar Monsen
  *
  */
 public class PreprocessorMLR extends Preprocessor {
 
-	private Map<String, Float> correlations = new HashMap<String, Float>();
-
-	public static void main(String[] args) throws Exception {
-		DataModel model = PreprocessorMLR.getPreprocessedDataModel("datasets/yow-userstudy/python/yow-smart-sample-implicit-2.csv");
-	}
-
-	public static DataModel getPreprocessedDataModel(String path) throws Exception {
-		DBModel model;
-		model = new DBModel(new File(path));
-		PreprocessorMLR pre = new PreprocessorMLR();
-		pre.preprocess(model, 2);
-		return model;
-	}
-
-
-	public DataModel preprocess(DBModel model, int numberOfIndependentVariables) throws TasteException {
-		
-		double[] beta = globalLR(model, numberOfIndependentVariables);
+	public DataModel preprocess(Config config) throws TasteException {
+		DBModel model = config.get("model");
+		int numberOfIndependentVariables = config.get("numberOfIndependentVariables");
+		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);
 		
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		
 		numberOfIndependentVariables = results.get(0).implicitfeedback.length < numberOfIndependentVariables ? 
 				results.get(0).implicitfeedback.length : numberOfIndependentVariables;
+
+		double[] beta = globalLR(model, numberOfIndependentVariables);
 		
 		for(DBModel.DBRow row : results) {
 			
@@ -69,13 +57,7 @@ public class PreprocessorMLR extends Preprocessor {
 	}
 	
 	private double[] globalLR(DBModel model, int numberOfIndependentVariables) throws TasteException {
-		
-		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);
-		
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating > 0).collect(Collectors.toList());
-		
-		numberOfIndependentVariables = results.get(0).implicitfeedback.length < numberOfIndependentVariables ? 
-				results.get(0).implicitfeedback.length : numberOfIndependentVariables;
 		
 		double[] dependentVariables = new double[results.size()]; // the explicit ratings to infer
 		double[][] independentVariables = new double[results.size()][]; // the implicit feedback
@@ -106,15 +88,4 @@ public class PreprocessorMLR extends Preprocessor {
 		
 		return beta;
 	}
-
-
-	@Override
-	public DataModel preprocess(Config config) throws Exception {
-		// time on page is default
-        DBModel model = config.get("model");
-		return preprocess(model, 1); 
-	}
-
-	
-
 }

@@ -32,15 +32,6 @@ public class PreprocessorPuddis extends Preprocessor {
 	
 	private Map<String, Float> correlations = new HashMap<String, Float>();
 	
-
-	public static DataModel getPreprocessedDataModel(String path) throws TasteException, IOException {
-		SMDataModel model;
-		model = new SMDataModel(new File(path));
-		PreprocessorPuddis pre = new PreprocessorPuddis();
-//		pre.preprocess(model);
-		return model;
-	}
-	
 	public boolean checkIfPreferenceHasImplicitFeedback(float[] feedback){
 		// start with index 1 because index 0 is explicit rating
 		for (int i = 1; i < feedback.length; i++) {

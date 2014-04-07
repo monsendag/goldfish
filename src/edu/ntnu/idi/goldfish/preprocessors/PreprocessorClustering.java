@@ -29,61 +29,8 @@ public class PreprocessorClustering extends Preprocessor{
 	private Instances data = null;
 	private final int NUM_CLUSTERS = 5;
 	
-	public static enum Clusterer { SimpleKMeans, DensityBased, EM, FarthestFirst, Cobweb, sIB, XMeans } 
-	
-	public static DataModel getPreprocessedDataModel(String path) throws Exception {
-		SMDataModel model;
-		model = new SMDataModel(new File(path));
-		PreprocessorClustering pre = new PreprocessorClustering(Clusterer.EM);
-		pre.preprocess(model);
-		return model;
-	}
-
-	public static void main(String[] args) throws Exception {
-		PreprocessorClustering pc = new PreprocessorClustering(Clusterer.SimpleKMeans);
-	}
-	
-	public PreprocessorClustering(Clusterer clusterer) throws Exception{
-		
-		// read the dataset and create instances for training and evaluating
-		BufferedReader reader = new BufferedReader(
-				new FileReader("datasets/yow-userstudy/arff/yow-preprocess-clustering.arff"));
-		data = new Instances(reader);
-		data.setClassIndex(0);
-		
-		// initialize ClassificationViaClustering
-		cvc = new ClassificationViaClustering();
-		
-		switch (clusterer) {
-		case SimpleKMeans:
-			buildSimpleKMeansClusterer();
-			break;
-		case DensityBased:
-			buildDensityBasedClusterer();
-			break;
-		case EM:
-			buildEMClusterer();
-			break;
-		case FarthestFirst:
-			buildFarthestFirstClusterer();
-			break;
-		case Cobweb:
-			buildCobwebClusterer();
-			break;
-		case sIB:
-			buildsIBClusterer();
-			break;
-		case XMeans:
-			buildXMeansClusterer();
-			break;
-		default:
-			buildSimpleKMeansClusterer();
-			break;
-		}
-		
-		cvc.buildClassifier(data);
-		System.out.println(cvc.toString());
-	}
+	public static enum Clusterer { SimpleKMeans, DensityBased, EM, FarthestFirst, Cobweb, sIB, XMeans }
+	public static enum ClusterDataset { TimeOnPage, TimeOnPageAndMouse, TimeOnPageAndMouseAndPageTimesMouse }
 	
 	public void buildFarthestFirstClusterer() throws Exception{
 		FarthestFirst ff = new FarthestFirst();
@@ -147,6 +94,62 @@ public class PreprocessorClustering extends Preprocessor{
 	@Override
 	public DataModel preprocess(Config config) throws Exception {
         DBModel model = config.get("model");
+        Clusterer clusterer = config.get("clusterer");
+        ClusterDataset clusterDataset = config.get("clusterDataset");
+        
+        // read the dataset and create instances for training and evaluating
+        String path = "";
+        switch (clusterDataset) {
+		case TimeOnPage:
+			path = "datasets/yow-userstudy/arff/yow-preprocess-clustering-timeonpage.arff";
+			break;
+		case TimeOnPageAndMouse:
+			path = "datasets/yow-userstudy/arff/yow-preprocess-clustering-timeonpage-timeonmouse.arff";
+			break;
+		case TimeOnPageAndMouseAndPageTimesMouse:
+			path = "datasets/yow-userstudy/arff/yow-preprocess-clustering-timeonpage-timeonmouse-pagetimesmouse.arff";
+			break;
+		default:
+			path = "datasets/yow-userstudy/arff/yow-preprocess-clustering-timeonpage.arff";
+			break;
+		}
+     	BufferedReader reader = new BufferedReader(
+     			new FileReader(path));
+     	data = new Instances(reader);
+     	data.setClassIndex(0);
+ 		
+ 		// initialize ClassificationViaClustering
+ 		cvc = new ClassificationViaClustering();
+ 		
+ 		switch (clusterer) {
+ 		case SimpleKMeans:
+ 			buildSimpleKMeansClusterer();
+ 			break;
+ 		case DensityBased:
+ 			buildDensityBasedClusterer();
+ 			break;
+ 		case EM:
+ 			buildEMClusterer();
+ 			break;
+ 		case FarthestFirst:
+ 			buildFarthestFirstClusterer();
+ 			break;
+ 		case Cobweb:
+ 			buildCobwebClusterer();
+ 			break;
+ 		case sIB:
+ 			buildsIBClusterer();
+ 			break;
+ 		case XMeans:
+ 			buildXMeansClusterer();
+ 			break;
+ 		default:
+ 			buildSimpleKMeansClusterer();
+ 			break;
+ 		}
+ 		
+ 		cvc.buildClassifier(data);
+ 		System.out.println(cvc.toString());
 
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		for(DBModel.DBRow row : results) {

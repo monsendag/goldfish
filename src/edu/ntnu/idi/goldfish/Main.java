@@ -57,6 +57,7 @@ public class Main {
         Config mlr = new Lynx()
                 .set("name", "mlr")
                 .set("model", yowImplicit.getModel())
+                .set("numberOfIndependentVariables", 1)
                 .set("preprocessor", PreprocessorMLR.class);
 
 
