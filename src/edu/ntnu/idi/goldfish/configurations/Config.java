@@ -33,6 +33,14 @@ public class Config extends HashMap<String, Object> {
         ;
     }
 
+    public Config(Config clonable) {
+        super(clonable);
+    }
+
+    public Config clone() {
+        return new Config(this);
+    }
+
     @SuppressWarnings("unchecked")
     public <T> T get(String property) {
         if(!containsKey(property)) {
