@@ -1,5 +1,6 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
+import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
@@ -144,7 +145,9 @@ public class PreprocessorClustering extends Preprocessor{
 	}
 		
 	@Override
-	public DataModel preprocess(DBModel model) throws Exception {
+	public DataModel preprocess(Config config) throws Exception {
+        DBModel model = config.get("model");
+
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		for(DBModel.DBRow row : results) {
 			Instance i = new Instance(1, new double[]{-1, row.timeonpage, row.timeonmouse});

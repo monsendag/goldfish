@@ -1,10 +1,9 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
-import edu.ntnu.idi.goldfish.mahout.DBModel;
+import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 import edu.ntnu.idi.goldfish.mahout.SMPreferenceArray;
-
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
@@ -29,7 +28,7 @@ public abstract class Preprocessor {
 	}
 
 
-    protected abstract DataModel preprocess(DBModel model) throws Exception;
+    protected abstract DataModel preprocess(Config config) throws Exception;
 
     /**
      * Write dataset to file with csv format

@@ -1,14 +1,14 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import edu.ntnu.idi.goldfish.configurations.Config;
+import edu.ntnu.idi.goldfish.mahout.DBModel;
+import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.model.DataModel;
 
-import edu.ntnu.idi.goldfish.mahout.DBModel;
-import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class PreprocessorStat extends Preprocessor{
 
@@ -16,8 +16,11 @@ public class PreprocessorStat extends Preprocessor{
 	
 	public static enum PredictionMethod { LinearRegression, ClosestNeighbor, EqualBins }
 	
-	public DataModel preprocess(DBModel model, PredictionMethod predictionMethod) throws TasteException {
-		
+	public DataModel preprocess(Config config) throws TasteException {
+
+        DBModel model = config.get("model");
+        PredictionMethod predictionMethod = config.get("predictionMethod");
+
 		List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		for (DBRow r : results) {
 			long itemID = r.itemid;
@@ -77,13 +80,7 @@ public class PreprocessorStat extends Preprocessor{
 		
 		return model;
 	}
-	
-	@Override
-	protected DataModel preprocess(DBModel model) throws Exception {
-		// Default: Linear Regression
-		return preprocess(model, PredictionMethod.LinearRegression);
-	}
-	
+
 	public double getCorrelation(double[] dv, double[][] iv, int feedbackIndex){
 		TrendLine t = new PolyTrendLine(1);
 		double[] itemFeedback = new double[iv.length];

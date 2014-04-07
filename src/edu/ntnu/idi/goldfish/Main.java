@@ -2,12 +2,7 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClassifier;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorMLR;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat;
-
+import edu.ntnu.idi.goldfish.preprocessors.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -33,14 +28,16 @@ public class Main {
                 .set("name", "baseline")
                 .set("model", yowBaseline.getModel());
 
-        for(int i=0; i<5; i++) {
-            configurations.add(baseLine);
-        }
+        Config stat = new Lynx()
+                .set("name", "stat")
+                .set("model", yowImplicit.getModel())
+                .set("predictionMethod", PreprocessorStat.PredictionMethod.LinearRegression)
+                .set("preprocessor", PreprocessorStat.class);
 
         Config puddis = new Lynx()
-                .set("name", "lr")
-                .set("model", yowImplicit.getModel())
-                .set("preprocessor", PreprocessorStat.class);
+                .set("name", "puddis")
+                .set("model", yowSMImplicit.getModel())
+                .set("preprocessor", PreprocessorPuddis.class);
 
         Config classifiers = new Lynx()
                 .set("name", "classifier")
@@ -48,7 +45,7 @@ public class Main {
                 .set("preprocessor", PreprocessorClassifier.class);
 
         Config clustering = new Lynx()
-                .set("name", "classifier")
+                .set("name", "clustering")
                 .set("model", yowImplicit.getModel())
                 .set("preprocessor", PreprocessorClustering.class);
 
@@ -58,10 +55,12 @@ public class Main {
                 .set("preprocessor", PreprocessorMLR.class);
 
 
+        configurations.add(baseLine);
+        configurations.add(stat);
         configurations.add(puddis);
-        configurations.add(classifiers);
-        configurations.add(clustering);
-        configurations.add(mlr);
+//        configurations.add(classifiers);
+//        configurations.add(clustering);
+//        configurations.add(mlr);
 
         results.setColumns("name", "RMSE", "evalTime");
 

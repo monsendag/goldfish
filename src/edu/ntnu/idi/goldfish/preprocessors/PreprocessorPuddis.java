@@ -1,11 +1,8 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
-import edu.ntnu.idi.goldfish.mahout.DBModel;
-import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
+import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat.PredictionMethod;
-
 import org.apache.commons.math3.exception.NumberIsTooSmallException;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
@@ -22,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * This class is used to map implicit feedback to explicit rating where it is possible.
@@ -40,7 +36,7 @@ public class PreprocessorPuddis extends Preprocessor {
 		SMDataModel model;
 		model = new SMDataModel(new File(path));
 		PreprocessorPuddis pre = new PreprocessorPuddis();
-		pre.preprocess(model);
+//		pre.preprocess(model);
 		return model;
 	}
 	
@@ -71,11 +67,11 @@ public class PreprocessorPuddis extends Preprocessor {
 	/**
 	 * For each missing explicit value (when implicit feedback exist), check if enough explicit-implicit
 	 * rating pairs exists, if so, create a pseudo rating and add it to the dataset  
-	 * @param model
 	 * 		the model to preprocess
 	 * @throws TasteException
 	 */
-	public void preprocess(SMDataModel model) throws TasteException {
+	public DataModel preprocess(Config config) throws TasteException {
+        SMDataModel model = config.get("model");
 		
 		double[] beta = globalLR(model, 3);
 		boolean useGlobalLR = false	;
@@ -197,6 +193,7 @@ public class PreprocessorPuddis extends Preprocessor {
 			}
 		}
 		System.out.println("");
+        return model;
 	}
 	
 	private double[] globalLR(SMDataModel model, int numberOfIndependentVariables) throws TasteException {
@@ -468,11 +465,5 @@ public class PreprocessorPuddis extends Preprocessor {
 		return null;
 	}
 
-	@Override
-	protected DataModel preprocess(DBModel model) throws Exception {
-		// Predicting ratings with linear regression is default
-		PreprocessorStat pre = new PreprocessorStat();
-		return pre.preprocess(model, PredictionMethod.LinearRegression);
-	}
 
 }
