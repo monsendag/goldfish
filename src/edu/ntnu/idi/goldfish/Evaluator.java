@@ -78,7 +78,6 @@ public class Evaluator {
 
 
 	public static Result evaluateOne(Config config) {
-        System.out.println(Thread.currentThread().hashCode());
 
         // we can't throw here because the method is called in a stream lambda
         try {
