@@ -50,6 +50,11 @@ public class Config extends HashMap<String, Object> {
         return (T) super.get(property);
     }
 
+    public <T> T get(String property, Object defaultValue) {
+        Object value = containsKey(property) ? super.get(property) : defaultValue;
+        return (T) value;
+    }
+
     public synchronized Config set(String prop, Object val) {
         super.put(prop, val);
         return this;
