@@ -43,9 +43,9 @@ public class Main {
         Config baseLine = new Lynx()
                 .set("name", "baseline")
                 .set("model", yowBaseline.getModel())
-                .set("average", 100);
+                .set("average", 10000);
 
-        configs.add(baseLine);
+//        configs.add(baseLine);
         /***********************************************************************************/
         // PreprocessorPuddis
 
@@ -69,26 +69,33 @@ public class Main {
                     }
                 }
             }
+
+        }
+        
+        /***********************************************************************************/
+        // PreprocessorStat
+        
+        {
+        	Config stat = new Lynx()
+		    	.set("name", "stat")
+		    	.set("model", yowImplicit.getModel())
+		    	.set("preprocessor", PreprocessorStat.class)
+		    	.set("average", 10000);
             
-            Config stat = new Lynx()
-            .set("name", "STAT")
-            .set("model", yowImplicit.getModel())
-            .set("preprocessor", PreprocessorStat.class)
-            .set("average", 1000)
-            .set("minTimeOnPage", 20000)
-            .set("correlationLimit", 0.5)
-            .set("predictionMethod", PredictionMethod.LinearRegression);
-//            configs.add(stat);
-            
-            Config pudd = new Lynx()
-            .set("name", "PUDD")
-            .set("model", yowSMImplicit.getModel())
-            .set("preprocessor", PreprocessorPuddis.class)
-            .set("average", 1000)
-            .set("minTimeOnPage", 20000)
-            .set("correlationLimit", 0.5)
-            .set("predictionMethod", PredMethod.LinearRegression);
-//            configs.add(pudd);
+            Config conf;
+            for (int minT = 15000; minT <= 30000; minT += 5000) {
+                for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
+                    for (PredictionMethod method : PredictionMethod.values()) {
+                        conf = stat.clone()
+                                .set("minTimeOnPage", minT)
+                                .set("correlationLimit", corrLimit)
+                                .set("predictionMethod", method);
+
+//                        configs.add(conf);
+                    }
+                }
+            }
+
         }
 
         /***********************************************************************************/
@@ -114,7 +121,7 @@ public class Main {
                     .set("name", "clustering")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorClustering.class)
-                    .set("average", 100);
+                    .set("average", 10000);
 
             Config conf;
             for(PreprocessorClustering.Clusterer clusterer : PreprocessorClustering.Clusterer.values()) {
@@ -135,13 +142,13 @@ public class Main {
                     .set("name", "MLR")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 1000);
+                    .set("average", 10000);
 
             Config conf;
             for (int i = 1; i <= 3; i++) {
                 conf = mlr.clone()
                         .set("numberOfIndependentVariables", i);
-                configs.add(conf);
+//                configs.add(conf);
             }
         }
 
