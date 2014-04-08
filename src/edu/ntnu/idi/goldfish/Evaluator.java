@@ -35,7 +35,12 @@ public class Evaluator {
                     config.set("model", model);
                 }
 
+
+                StopWatch.start("evalTime");
                 Result result = config.containsKey("average") ? Evaluator.evaluateAverage(config) : Evaluator.evaluateOne(config);
+                // get time of total evaluation
+                result.set("evalTime", (double)StopWatch.get("evalTime"));
+
                 if(callback!= null) callback.accept(result);
                 results.add(result);
             }
@@ -81,7 +86,6 @@ public class Evaluator {
 
         // we can't throw here because the method is called in a stream lambda
         try {
-            StopWatch.start("evalTime");
 
             // load common configuration settings
             DataModel model = config.get("model");
@@ -129,8 +133,6 @@ public class Evaluator {
                 result.set("recTime", (double)recTime);
             }
 
-            // get time of total configuration
-            result.set("evalTime", (double)StopWatch.get("evalTime"));
 
             if ((boolean) config.get("showProgress")) {
                 // print each result to show progress
