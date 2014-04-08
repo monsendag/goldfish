@@ -42,13 +42,13 @@ public class Main {
         /***********************************************************************************/
         // Baseline
 
-        if(false)
+//        if(false)
         {
 
             Config baseLine = new Lynx()
                     .set("name", "baseline")
                     .set("model", yowBaseline.getModel())
-                    .set("average", 10000);
+                    .set("average", 1);
 
             configs.add(baseLine);
         }
@@ -82,13 +82,13 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorStat
         
-        if(false)
+//        if(false)
         {
         	Config stat = new Lynx()
 		    	.set("name", "stat")
 		    	.set("model", yowImplicit.getModel())
 		    	.set("preprocessor", PreprocessorStat.class)
-		    	.set("average", 10000);
+		    	.set("average", 1);
 
             for (int minT = 15000; minT <= 30000; minT += 5000) {
                 for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
@@ -98,7 +98,7 @@ public class Main {
                                 .set("correlationLimit", corrLimit)
                                 .set("predictionMethod", method);
 
-//                        configs.add(conf);
+                        configs.add(config);
                     }
                 }
             }
@@ -107,39 +107,58 @@ public class Main {
         }
 
         /***********************************************************************************/
-
         // PreprocessorClustering
 
-        if(false)
-        {
-            Config clustering = new Lynx()
-                    .set("name", "clustering")
-                    .set("model", yowImplicit.getModel())
-                    .set("preprocessor", PreprocessorClustering.class)
-                    .set("average", 10000);
+//      if(false)
+      {
+          Config clustering = new Lynx()
+                  .set("name", "clustering")
+                  .set("model", yowImplicit.getModel())
+                  .set("preprocessor", PreprocessorClustering.class)
+                  .set("average", 1);
 
-            for(PreprocessorClustering.Clusterer clusterer : PreprocessorClustering.Clusterer.values()) {
-                for(PreprocessorClustering.ClusterDataset dataset : PreprocessorClustering.ClusterDataset.values()) {
-                    config = clustering.clone()
-                            .set("clusterer", clusterer)
-                            .set("clusterDataset", dataset);
-                    configs.add(config);
-                }
-            }
-
-            cols.add("clusterer", "clusterDataset");
-        }
-
+          for(Clusterer clusterer : Arrays.asList(Clusterer.SimpleKMeans, Clusterer.XMeans, Clusterer.DensityBased)) {
+              for(ClusterDataset dataset : ClusterDataset.values()) {
+              	for (DistFunc distFunc : Arrays.asList(DistFunc.Euclidean, DistFunc.Manhattan)) {
+              		config = clustering.clone()
+              				.set("clusterer", clusterer)
+              				.set("clusterDataset", dataset)
+              				.set("distFunc", distFunc);
+              		configs.add(config);
+					}
+              }
+          }
+          
+          for(Clusterer clusterer : Arrays.asList(Clusterer.Cobweb, Clusterer.EM, Clusterer.FarthestFirst)) {
+          	for(ClusterDataset dataset : ClusterDataset.values()) {
+                  config = clustering.clone()
+                          .set("clusterer", clusterer)
+                          .set("clusterDataset", dataset)
+                          .set("distFunc", DistFunc.None);
+                  configs.add(config);
+              }
+          }
+          
+          for (ClusterDataset dataset : ClusterDataset.values()) {
+				config = clustering.clone()
+						.set("clusterer", Clusterer.XMeans)
+						.set("clusterDataset", dataset)
+						.set("distFunc", DistFunc.Chebyshev);
+				configs.add(config);
+			}
+          
+          cols.add("clusterer", "clusterDataset", "distFunc");
+      }
         /***********************************************************************************/
         // PreprocessorMLR
 
-        if(false)
+//        if(false)
         {
             Config mlr = new Lynx()
                     .set("name", "MLR")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 10);
+                    .set("average", 1);
 
             for (int i = 1; i <= 3; i++) {
                 config = mlr.clone()
@@ -153,13 +172,13 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorSMOreg
 
-        if(false)
+//        if(false)
         {
             Config smoreg = new Lynx()
                     .set("name", "smoreg")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorSMOreg.class)
-                    .set("average", 10);
+                    .set("average", 1);
 
             for(double C = 1.0; C <= 2.0; C += 0.1) {
 
@@ -190,13 +209,13 @@ public class Main {
 
         /***********************************************************************************/
         // PreprocessorANN
-        if(false)
+//        if(false)
         {
             Config ann = new Lynx()
                     .set("name", "ann")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorANN.class)
-                    .set("average", 10);
+                    .set("average", 1);
 
 
             for (double learningRate = 0.1; learningRate <= 1; learningRate += 0.1) {
@@ -215,14 +234,14 @@ public class Main {
 
         /***********************************************************************************/
         // PreprocessorIBK
-        if(false)
+//        if(false)
         {
             Config ibk = new Lynx()
                     .set("name", "ibk")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorIBK.class)
                     .set("window", 0)
-                    .set("average", 10);
+                    .set("average", 1);
 
             for(DistanceWeighting weighting : DistanceWeighting.values()) {
                 for(ErrorMinimization minimization : ErrorMinimization.values()) {
@@ -244,79 +263,17 @@ public class Main {
         }
         /***********************************************************************************/
         // PreprocessorNaiveBayes
-        if(false)
+//        if(false)
         {
             Config naivebayes = new Lynx()
                     .set("name", "naivebayes")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorNaiveBayes.class)
-                    .set("average", 10);
+                    .set("average", 1);
 
             configs.add(naivebayes);
         }
-        /***********************************************************************************/
-        // PreprocessorClustering
-
-        if(false)
-        {
-            Config clustering = new Lynx()
-                    .set("name", "clustering")
-                    .set("model", yowImplicit.getModel())
-                    .set("preprocessor", PreprocessorClustering.class)
-                    .set("average", 10);
-
-            for(Clusterer clusterer : Arrays.asList(Clusterer.SimpleKMeans, Clusterer.XMeans, Clusterer.DensityBased)) {
-                for(ClusterDataset dataset : ClusterDataset.values()) {
-                	for (DistFunc distFunc : Arrays.asList(DistFunc.Euclidean, DistFunc.Manhattan)) {
-                		config = clustering.clone()
-                				.set("clusterer", clusterer)
-                				.set("clusterDataset", dataset)
-                				.set("distFunc", distFunc);
-                		configs.add(config);
-					}
-                }
-            }
-            
-            for(Clusterer clusterer : Arrays.asList(Clusterer.Cobweb, Clusterer.EM, Clusterer.FarthestFirst)) {
-            	for(ClusterDataset dataset : ClusterDataset.values()) {
-                    config = clustering.clone()
-                            .set("clusterer", clusterer)
-                            .set("clusterDataset", dataset)
-                            .set("distFunc", DistFunc.None);
-                    configs.add(config);
-                }
-            }
-            
-            for (ClusterDataset dataset : ClusterDataset.values()) {
-				config = clustering.clone()
-						.set("clusterer", Clusterer.XMeans)
-						.set("clusterDataset", dataset)
-						.set("distFunc", DistFunc.Chebyshev);
-				configs.add(config);
-			}
-            
-            cols.add("clusterer", "clusterDataset", "distFunc");
-        }
-
-        /***********************************************************************************/
-        // PreprocessorMLR
-        if(false)
-        {
-            Config mlr = new Lynx()
-                    .set("name", "MLR")
-                    .set("model", yowImplicit.getModel())
-                    .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 10);
-
-            for (int i = 1; i <= 3; i++) {
-                config = mlr.clone()
-                        .set("IVs", i);
-                configs.add(config);
-            }
-            
-            cols.add("IVs");
-        }
-
+       
         /***********************************************************************************/
 
 		StopWatch.start("total evaluation");
