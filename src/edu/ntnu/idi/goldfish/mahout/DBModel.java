@@ -47,6 +47,11 @@ public class DBModel implements DataModel {
 
     public static void main(String[] args) throws Exception {
         DBModel model = new DBModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
+
+        model.setPreference(5415, 12, 4L);
+
+        model.setPreference(5415, 12, 2L);
+        System.out.println(model.getPreferenceValue(5415, 12));
     }
 
     public void startServer() throws SQLException {
@@ -235,7 +240,17 @@ public class DBModel implements DataModel {
 
     @Override
     public void setPreference(long userID, long itemID, float value) throws TasteException {
-        context.update(table).set(valueField, value).where(userField.equal(userID).and(itemField.equal(itemID)).and(fbackField.equal(EXPLICIT))).execute();
+        Condition cond = userField.equal(userID).and(itemField.equal(itemID)).and(fbackField.equal(EXPLICIT));
+        int numRows = context.selectOne().from(table).where(cond).fetchCount();
+        UpdateConditionStep update = context.update(table).set(valueField, value).where(cond);
+        InsertValuesStep4 insert = context.insertInto(table, userField, itemField, fbackField, valueField).values(userID, itemID, EXPLICIT, value);
+
+        if(numRows > 0) {
+            update.execute();
+        }
+        else {
+            insert.execute();
+        }
     }
 
     @Override
