@@ -3,11 +3,20 @@ package edu.ntnu.idi.goldfish;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.preprocessors.*;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.ClusterDataset;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.Clusterer;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.DistFunc;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis.PredMethod;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat.PredictionMethod;
+
 import org.apache.commons.lang3.StringUtils;
 
+import weka.core.DistanceFunction;
+import weka.core.EuclideanDistance;
+import weka.core.ManhattanDistance;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static edu.ntnu.idi.goldfish.DataSet.*;
@@ -43,7 +52,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorPuddis
 
-//        if(false)
+        if(false)
         {
             Config puddis = new Lynx()
                     .set("name", "puddis")
@@ -69,7 +78,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorStat
         
-//        if(false)
+        if(false)
         {
         	Config stat = new Lynx()
 		    	.set("name", "stat")
@@ -95,7 +104,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorSMOreg
 
-//        if(false)
+        if(false)
         {
             Config smoreg = new Lynx()
                     .set("name", "smoreg")
@@ -112,7 +121,7 @@ public class Main {
 
         /***********************************************************************************/
         // PreprocessorANN
-//        if(false)
+        if(false)
         {
             Config ann = new Lynx()
                     .set("name", "ann")
@@ -126,7 +135,7 @@ public class Main {
 
         /***********************************************************************************/
         // PreprocessorIBK
-//        if(false)
+        if(false)
         {
 
             Config ibk = new Lynx()
@@ -139,7 +148,7 @@ public class Main {
         }
         /***********************************************************************************/
         // PreprocessorNaiveBayes
-//        if(false)
+        if(false)
         {
             Config naivebayes = new Lynx()
                     .set("name", "naivebayes")
@@ -159,16 +168,37 @@ public class Main {
                     .set("name", "clustering")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorClustering.class)
-                    .set("average", 10000);
+                    .set("average", 10);
 
-            for(PreprocessorClustering.Clusterer clusterer : PreprocessorClustering.Clusterer.values()) {
-                for(PreprocessorClustering.ClusterDataset dataset : PreprocessorClustering.ClusterDataset.values()) {
-                    conf = clustering.clone()
-                            .set("clusterer", clusterer)
-                            .set("clusterDataset", dataset);
-//                    configs.add(conf);
+            for(Clusterer clusterer : Arrays.asList(Clusterer.SimpleKMeans, Clusterer.XMeans, Clusterer.DensityBased)) {
+                for(ClusterDataset dataset : ClusterDataset.values()) {
+                	for (DistFunc distFunc : Arrays.asList(DistFunc.Euclidean, DistFunc.Manhattan)) {
+                		conf = clustering.clone()
+                				.set("clusterer", clusterer)
+                				.set("clusterDataset", dataset)
+                				.set("distFunc", distFunc);
+                		configs.add(conf);
+					}
                 }
             }
+            
+            for(Clusterer clusterer : Arrays.asList(Clusterer.Cobweb, Clusterer.EM, Clusterer.FarthestFirst)) {
+            	for(ClusterDataset dataset : ClusterDataset.values()) {
+                    conf = clustering.clone()
+                            .set("clusterer", clusterer)
+                            .set("clusterDataset", dataset)
+                            .set("distFunc", DistFunc.None);
+                    configs.add(conf);
+                }
+            }
+            
+            for (ClusterDataset dataset : ClusterDataset.values()) {
+				conf = clustering.clone()
+						.set("clusterer", Clusterer.XMeans)
+						.set("clusterDataset", dataset)
+						.set("distFunc", DistFunc.Chebyshev);
+				configs.add(conf);
+			}
         }
 
         /***********************************************************************************/
