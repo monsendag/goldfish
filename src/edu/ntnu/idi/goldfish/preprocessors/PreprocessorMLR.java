@@ -3,12 +3,15 @@ package edu.ntnu.idi.goldfish.preprocessors;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
+
 import org.apache.commons.math3.exception.NumberIsTooSmallException;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public class PreprocessorMLR extends Preprocessor {
 
-	public DataModel preprocess(Config config) throws TasteException {
+	public DataModel preprocess(Config config) throws TasteException, IOException {
 		DBModel model = config.get("model");
 		int numberOfIndependentVariables = config.get("numberOfIndependentVariables");
 		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);
@@ -49,8 +52,10 @@ public class PreprocessorMLR extends Preprocessor {
 			model.setPreference(row.userid, row.itemid, (float) Math.round(pseudoRating));
 			pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
 		}
+		String tempPath = String.format("/tmp/preprocessor-mrl-remove-invalid-%s.csv", Thread.currentThread().hashCode());
+		model.DBModelToCsv(model, tempPath);
 		
-		return model;
+		return new FileDataModel(new File(tempPath));
 	}
 	
 	private double[] globalLR(List<DBModel.DBRow> allResults, int numberOfIndependentVariables) throws TasteException {

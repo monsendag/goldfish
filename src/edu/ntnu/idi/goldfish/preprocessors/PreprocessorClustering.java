@@ -4,10 +4,13 @@ import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
+
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
+
 import weka.classifiers.meta.ClassificationViaClustering;
 import weka.clusterers.*;
 import weka.core.Instance;
@@ -16,6 +19,7 @@ import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.List;
@@ -172,7 +176,10 @@ public class PreprocessorClustering extends Preprocessor{
 			pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
 		}
 		
-		return model;
+		String tempPath = String.format("/tmp/preprocessor-clustering-remove-invalid-%s.csv", Thread.currentThread().hashCode());
+		model.DBModelToCsv(model, tempPath);
+		
+		return new FileDataModel(new File(tempPath));
 	}
 	
 	public void preprocess(SMDataModel model) throws Exception {
