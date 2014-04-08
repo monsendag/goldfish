@@ -32,7 +32,6 @@ public class Columns extends LinkedHashMap<String, String> {
     public Columns getPrintFormats() {
         Columns printFormats = new Columns(Columns.printFormats);
         printFormats.keySet().retainAll(cols);
-
         return printFormats;
     }
 
@@ -45,7 +44,7 @@ public class Columns extends LinkedHashMap<String, String> {
 
     static {
         printFormats.put("name", "%-11s");
-        printFormats.put("average", "%4d");
+        printFormats.put("average", "%4.0f");
         printFormats.put("similarity", "%19s");
         printFormats.put("numFeatures", "%5.2f");
         printFormats.put("TopN", "%3d");
@@ -65,7 +64,7 @@ public class Columns extends LinkedHashMap<String, String> {
         printFormats.put("kernel", "%20s");
 
         saveFormats.put("name", "%s");
-        saveFormats.put("average", "%d");
+        saveFormats.put("average", "%.0f");
         saveFormats.put("similarity", "%s");
         saveFormats.put("numFeatures", "%.2f");
         saveFormats.put("TopN", "%d");
