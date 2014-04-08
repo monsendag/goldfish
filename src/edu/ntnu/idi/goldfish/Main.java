@@ -2,21 +2,12 @@ package edu.ntnu.idi.goldfish;
 
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClassifier;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorMLR;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
+import edu.ntnu.idi.goldfish.preprocessors.*;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis.PredMethod;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat.PredictionMethod;
-
 import org.apache.commons.lang3.StringUtils;
 
-import weka.classifiers.bayes.NaiveBayes;
-import weka.classifiers.functions.SMOreg;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static edu.ntnu.idi.goldfish.DataSet.*;
@@ -35,6 +26,9 @@ public class Main {
 
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
+        ArrayList<String> cols = new ArrayList<>();
+
+        Config conf;
 
         /***********************************************************************************/
         // Baseline
@@ -49,6 +43,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorPuddis
 
+//        if(false)
         {
             Config puddis = new Lynx()
                     .set("name", "puddis")
@@ -56,7 +51,6 @@ public class Main {
                     .set("preprocessor", PreprocessorPuddis.class)
                     .set("average", 10000);
 
-            Config conf;
             for (int minT = 15000; minT <= 30000; minT += 5000) {
                 for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
                     for (PredMethod method : PredMethod.values()) {
@@ -75,14 +69,14 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorStat
         
+//        if(false)
         {
         	Config stat = new Lynx()
 		    	.set("name", "stat")
 		    	.set("model", yowImplicit.getModel())
 		    	.set("preprocessor", PreprocessorStat.class)
 		    	.set("average", 10000);
-            
-            Config conf;
+
             for (int minT = 15000; minT <= 30000; minT += 5000) {
                 for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
                     for (PredictionMethod method : PredictionMethod.values()) {
@@ -99,31 +93,74 @@ public class Main {
         }
 
         /***********************************************************************************/
-        // PreprocessorClassifier
+        // PreprocessorSMOreg
 
-        Config classifiers = new Lynx()
-                .set("name", "classifier")
-                .set("model", yowImplicit.getModel())
-                .set("preprocessor", PreprocessorClassifier.class)
-                .set("average", 10);
+//        if(false)
+        {
+            Config smoreg = new Lynx()
+                    .set("name", "smoreg")
+                    .set("model", yowImplicit.getModel())
+                    .set("preprocessor", PreprocessorSMOreg.class)
+                    .set("average", 10);
 
-        List<Class> classes = Arrays.asList(NaiveBayes.class, SMOreg.class);
-//        classes.stream().forEach(c ->
-//            configs.add(classifiers.clone().set("name", c.getSimpleName()).set("classifier", c))
-//        );
+            for (PreprocessorSMOreg.Kernel kernel : PreprocessorSMOreg.Kernel.values()) {
+                conf = smoreg.clone().set("kernel", kernel);
+                configs.add(conf);
+            }
 
+        }
+
+        /***********************************************************************************/
+        // PreprocessorANN
+//        if(false)
+        {
+            Config ann = new Lynx()
+                    .set("name", "ann")
+                    .set("model", yowImplicit.getModel())
+                    .set("preprocessor", PreprocessorANN.class)
+                    .set("average", 10);
+
+            configs.add(ann);
+        }
+
+
+        /***********************************************************************************/
+        // PreprocessorIBK
+//        if(false)
+        {
+
+            Config ibk = new Lynx()
+                    .set("name", "ibk")
+                    .set("model", yowImplicit.getModel())
+                    .set("preprocessor", PreprocessorIBK.class)
+                    .set("average", 10);
+
+            configs.add(ibk);
+        }
+        /***********************************************************************************/
+        // PreprocessorNaiveBayes
+//        if(false)
+        {
+            Config naivebayes = new Lynx()
+                    .set("name", "naivebayes")
+                    .set("model", yowImplicit.getModel())
+                    .set("preprocessor", PreprocessorNaiveBayes.class)
+                    .set("average", 10);
+
+
+            configs.add(naivebayes);
+        }
         /***********************************************************************************/
         // PreprocessorClustering
 
+//        if(false)
         {
-
             Config clustering = new Lynx()
                     .set("name", "clustering")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorClustering.class)
                     .set("average", 10000);
 
-            Config conf;
             for(PreprocessorClustering.Clusterer clusterer : PreprocessorClustering.Clusterer.values()) {
                 for(PreprocessorClustering.ClusterDataset dataset : PreprocessorClustering.ClusterDataset.values()) {
                     conf = clustering.clone()
@@ -144,7 +181,6 @@ public class Main {
                     .set("preprocessor", PreprocessorMLR.class)
                     .set("average", 10000);
 
-            Config conf;
             for (int i = 1; i <= 3; i++) {
                 conf = mlr.clone()
                         .set("numberOfIndependentVariables", i);
