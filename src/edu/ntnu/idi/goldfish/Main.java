@@ -240,7 +240,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorClustering
 
-//        if(false)
+        if(false)
         {
             Config clustering = new Lynx()
                     .set("name", "clustering")
@@ -277,6 +277,10 @@ public class Main {
 						.set("distFunc", DistFunc.Chebyshev);
 				configs.add(config);
 			}
+            
+            cols.add("clusterer");
+            cols.add("clusterDataset");
+            cols.add("distFunc");
         }
 
         /***********************************************************************************/
@@ -294,6 +298,8 @@ public class Main {
                         .set("IVs", i);
                 configs.add(config);
             }
+            
+            cols.add("IVs");
         }
 
         /***********************************************************************************/
