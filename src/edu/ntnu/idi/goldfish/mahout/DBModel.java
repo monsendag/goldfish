@@ -14,6 +14,7 @@ import org.apache.mahout.cf.taste.impl.model.GenericUserPreferenceArray;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
 import org.apache.mahout.cf.taste.model.PreferenceArray;
+import org.h2.tools.Server;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 
@@ -21,6 +22,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.*;
 
 import static org.jooq.impl.DSL.fieldByName;
@@ -44,10 +46,12 @@ public class DBModel implements DataModel {
     private Field<Float> mouseField = fieldByName(Float.class, "timeonmouse");
 
     public static void main(String[] args) throws Exception {
-
         DBModel model = new DBModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
-//        Server webServer = Server.createWebServer("-webAllowOthers").start();
-        System.out.println("jdbc:h2:mem:"+model.hashCode());
+    }
+
+    public void startServer() throws SQLException {
+        Server webServer = Server.createWebServer("-webAllowOthers").start();
+        System.out.println("Running server on http://localhost:8082 at jdbc:h2:mem:"+this.hashCode());
     }
 
     public DBModel(File f) throws Exception {
@@ -119,8 +123,8 @@ public class DBModel implements DataModel {
                     "userid BIGINT NOT NULL, " +
                     "itemid BIGINT NOT NULL, " +
                     "feedback BIGINT NOT NULL, " +
-                    "value INT NOT NULL " +
-                    "" +
+                    "value REAL NOT NULL, " +
+                    "PRIMARY KEY (userid,itemid,feedback)" +
                     ")").execute();
 
             // set indices
@@ -194,11 +198,10 @@ public class DBModel implements DataModel {
 
     @Override
     public Float getPreferenceValue(long userID, long itemID) throws TasteException {
-        return context.select(valueField).from(table)
+        return context.select().from(table)
                 .where(userField.equal(userID)
                         .and(itemField.equal(itemID))
-                        .and(fbackField.equal(EXPLICIT)))
-                .fetchOne(valueField);
+                        .and(fbackField.equal(EXPLICIT))).fetchOne(valueField);
     }
 
     @Override
@@ -232,7 +235,7 @@ public class DBModel implements DataModel {
 
     @Override
     public void setPreference(long userID, long itemID, float value) throws TasteException {
-        context.mergeInto(table, userField, itemField, fbackField, valueField).key(userField, itemField, fbackField).values(userID, itemID, EXPLICIT, value);
+        context.update(table).set(valueField, value).where(userField.equal(userID).and(itemField.equal(itemID)).and(fbackField.equal(EXPLICIT))).execute();
     }
 
     @Override
