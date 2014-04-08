@@ -43,7 +43,7 @@ public class Columns extends LinkedHashMap<String, String> {
         columns.put("predictionMethod", "%16s");
         columns.put("clusterer", "%13s");
         columns.put("clusterDataset", "%18s");
-        columns.put("numberOfIndependentVariables", "%1d");
+        columns.put("IVs", "%1d");
         columns.put("classifier", "%16s");
 
         // filter by arguments
@@ -71,7 +71,7 @@ public class Columns extends LinkedHashMap<String, String> {
         columns.put("predictionMethod", "%s");
         columns.put("clusterer", "%s");
         columns.put("clusterDataset", "%s");
-        columns.put("numberOfIndependentVariables", "%d");
+        columns.put("IVs", "%d");
         columns.put("classifier", "%s");
 
         // filter by arguments

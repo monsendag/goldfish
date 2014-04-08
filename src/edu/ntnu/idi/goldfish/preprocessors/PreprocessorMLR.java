@@ -26,7 +26,7 @@ public class PreprocessorMLR extends Preprocessor {
 
 	public DataModel preprocess(Config config) throws TasteException, IOException {
 		DBModel model = config.get("model");
-		int numberOfIndependentVariables = config.get("numberOfIndependentVariables");
+		int numberOfIndependentVariables = config.get("IVs");
 		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);
 		
 		List<DBModel.DBRow> allResults = model.getFeedbackRows();

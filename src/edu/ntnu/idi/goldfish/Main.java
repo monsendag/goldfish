@@ -179,18 +179,18 @@ public class Main {
                     .set("name", "MLR")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 10000);
+                    .set("average", 10);
 
             for (int i = 1; i <= 3; i++) {
                 conf = mlr.clone()
-                        .set("numberOfIndependentVariables", i);
+                        .set("IVs", i);
 //                configs.add(conf);
             }
         }
 
         /***********************************************************************************/
 
-        Columns columns = Columns.getPrintFormats("name", "average", "RMSE", "evalTime", "minTimeOnPage", "correlationLimit", "predictionMethod", "numberOfIndependentVariables");
+        Columns columns = Columns.getPrintFormats("name", "average", "RMSE", "evalTime", "minTimeOnPage", "correlationLimit", "predictionMethod", "IVs");
         results.setColumns(columns);
 
 		StopWatch.start("total evaluation");
