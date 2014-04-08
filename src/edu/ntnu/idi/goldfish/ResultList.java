@@ -22,10 +22,6 @@ public class ResultList extends ArrayList<Result> {
         this.columns = columns;
     }
 
-    public void setColumns(String... properties) {
-        setColumns(Columns.getPrintFormats(properties));
-    }
-
     public void print() {
         forEach(r -> System.out.println(r.toString(columns)));
     }
@@ -37,8 +33,7 @@ public class ResultList extends ArrayList<Result> {
 
 
 
-	public void print(String... properties) {
-        Columns columns = Columns.getPrintFormats(properties);
+	public void print(Columns columns) {
         forEach(r -> System.out.println(r.toString(columns)));
     }
 
