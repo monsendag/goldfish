@@ -26,24 +26,28 @@ public class Main {
 
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
-        ArrayList<String> cols = new ArrayList<>();
+        Columns cols = new Columns();
+        cols.add("name", "average", "RMSE", "evalTime");
 
-        Config conf;
+        Config config;
 
         /***********************************************************************************/
         // Baseline
 
+        if(false)
+        {
 
-        Config baseLine = new Lynx()
-                .set("name", "baseline")
-                .set("model", yowBaseline.getModel())
-                .set("average", 10000);
+            Config baseLine = new Lynx()
+                    .set("name", "baseline")
+                    .set("model", yowBaseline.getModel())
+                    .set("average", 10000);
 
-//        configs.add(baseLine);
+            configs.add(baseLine);
+        }
         /***********************************************************************************/
         // PreprocessorPuddis
 
-//        if(false)
+        if(false)
         {
             Config puddis = new Lynx()
                     .set("name", "puddis")
@@ -54,7 +58,7 @@ public class Main {
             for (int minT = 15000; minT <= 30000; minT += 5000) {
                 for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
                     for (PredMethod method : PredMethod.values()) {
-                        conf = puddis.clone()
+                        config = puddis.clone()
                                 .set("minTimeOnPage", minT)
                                 .set("correlationLimit", corrLimit)
                                 .set("predictionMethod", method);
@@ -64,12 +68,13 @@ public class Main {
                 }
             }
 
+            cols.add("minTimeOnPage", "correlationLimit", "predictionMethod");
         }
         
         /***********************************************************************************/
         // PreprocessorStat
         
-//        if(false)
+        if(false)
         {
         	Config stat = new Lynx()
 		    	.set("name", "stat")
@@ -80,7 +85,7 @@ public class Main {
             for (int minT = 15000; minT <= 30000; minT += 5000) {
                 for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
                     for (PredictionMethod method : PredictionMethod.values()) {
-                        conf = stat.clone()
+                        config = stat.clone()
                                 .set("minTimeOnPage", minT)
                                 .set("correlationLimit", corrLimit)
                                 .set("predictionMethod", method);
@@ -90,6 +95,51 @@ public class Main {
                 }
             }
 
+            cols.add("minTimeOnPage", "correlationLimit", "predictionMethod");
+        }
+
+        /***********************************************************************************/
+
+        // PreprocessorClustering
+
+        if(false)
+        {
+            Config clustering = new Lynx()
+                    .set("name", "clustering")
+                    .set("model", yowImplicit.getModel())
+                    .set("preprocessor", PreprocessorClustering.class)
+                    .set("average", 10000);
+
+            for(PreprocessorClustering.Clusterer clusterer : PreprocessorClustering.Clusterer.values()) {
+                for(PreprocessorClustering.ClusterDataset dataset : PreprocessorClustering.ClusterDataset.values()) {
+                    config = clustering.clone()
+                            .set("clusterer", clusterer)
+                            .set("clusterDataset", dataset);
+                    configs.add(config);
+                }
+            }
+
+            cols.add("clusterer", "clusterDataset");
+        }
+
+        /***********************************************************************************/
+        // PreprocessorMLR
+
+        if(false)
+        {
+            Config mlr = new Lynx()
+                    .set("name", "MLR")
+                    .set("model", yowImplicit.getModel())
+                    .set("preprocessor", PreprocessorMLR.class)
+                    .set("average", 10);
+
+            for (int i = 1; i <= 3; i++) {
+                config = mlr.clone()
+                        .set("IVs", i);
+                configs.add(config);
+            }
+
+            cols.add("IVs");
         }
 
         /***********************************************************************************/
@@ -104,9 +154,18 @@ public class Main {
                     .set("average", 10);
 
             for (PreprocessorSMOreg.Kernel kernel : PreprocessorSMOreg.Kernel.values()) {
-                conf = smoreg.clone().set("kernel", kernel);
-                configs.add(conf);
+                config = smoreg.clone();
+
+                config.set("kernel", kernel);
+                config.set("C", 1.0);
+                config.set("kernelCacheSize", 0);
+                config.set("kernelGamma", 0.01);
+                config.set("kernelExponent", 2.0);
+
+                configs.add(config);
             }
+
+            cols.add("kernel");
 
         }
 
@@ -120,7 +179,16 @@ public class Main {
                     .set("preprocessor", PreprocessorANN.class)
                     .set("average", 10);
 
-            configs.add(ann);
+            config = ann.clone();
+
+            config.set("learningRate", 0.3);
+            config.set("momentum", 0.2);
+            config.set("epochs", 500);
+            config.set("neurons", "a");
+
+            configs.add(config);
+
+            cols.add("learningRate");
         }
 
 
@@ -134,6 +202,16 @@ public class Main {
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorIBK.class)
                     .set("average", 10);
+
+            config = ibk.clone();
+
+            config.set("distanceMeasure", PreprocessorIBK.DistanceWeighting.Distance);
+            config.set("minimization", PreprocessorIBK.ErrorMinimization.MinimizeMeanAbsoluteError);
+            config.set("method", PreprocessorIBK.NeighborSearchMethod.BallTree);
+
+            config.set("K", 5);
+            config.set("window", 0);
+
 
             configs.add(ibk);
         }
@@ -151,58 +229,19 @@ public class Main {
             configs.add(naivebayes);
         }
         /***********************************************************************************/
-        // PreprocessorClustering
 
-//        if(false)
-        {
-            Config clustering = new Lynx()
-                    .set("name", "clustering")
-                    .set("model", yowImplicit.getModel())
-                    .set("preprocessor", PreprocessorClustering.class)
-                    .set("average", 10000);
-
-            for(PreprocessorClustering.Clusterer clusterer : PreprocessorClustering.Clusterer.values()) {
-                for(PreprocessorClustering.ClusterDataset dataset : PreprocessorClustering.ClusterDataset.values()) {
-                    conf = clustering.clone()
-                            .set("clusterer", clusterer)
-                            .set("clusterDataset", dataset);
-//                    configs.add(conf);
-                }
-            }
-        }
-
-        /***********************************************************************************/
-        // PreprocessorMLR
-
-        {
-            Config mlr = new Lynx()
-                    .set("name", "MLR")
-                    .set("model", yowImplicit.getModel())
-                    .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 10);
-
-            for (int i = 1; i <= 3; i++) {
-                conf = mlr.clone()
-                        .set("IVs", i);
-//                configs.add(conf);
-            }
-        }
-
-        /***********************************************************************************/
-
-        Columns columns = Columns.getPrintFormats("name", "average", "RMSE", "evalTime", "minTimeOnPage", "correlationLimit", "predictionMethod", "IVs");
-        results.setColumns(columns);
+        results.setColumns(cols.getPrintFormats());
 
 		StopWatch.start("total evaluation");
         System.out.format("Starting evaluation of %d configurations \n", configs.size());
-        Evaluator.evaluate(configs, results, res -> System.out.println(res.toString(columns)));
+        Evaluator.evaluate(configs, results, res -> System.out.println(res.toString(cols)));
 
 //        results.print();
         System.out.println(StringUtils.repeat("=", 190));
         results.printSummary();
 
         System.out.format("Evaluated %d configurations in %s \n", configs.size(), StopWatch.str("total evaluation"));
-        results.save(Columns.getSaveFormats("name", "average", "RMSE", "evalTime", "minTimeOnPage", "correlationLimit", "predictionMethod", "numberOfIndependentVariables"));
+        results.save(cols.getSaveFormats());
 
     }
 }
