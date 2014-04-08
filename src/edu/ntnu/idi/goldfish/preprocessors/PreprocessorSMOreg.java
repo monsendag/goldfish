@@ -20,13 +20,13 @@ public class PreprocessorSMOreg extends PreprocessorClassifier {
     public DataModel preprocess(Config config) throws Exception {
         Classifier classifier = new SMOreg();
 
-        Kernel kernel = config.get("kernel");
-        String kernelString = "weka.classifiers.functions.supportVector."+kernel;
-
         double C = config.get("C", 1.0);
         int kernelCacheSize = config.get("kernelCacheSize", 0);
         double kernelGamma = config.get("kernelGamma", 0.01);
         double kernelExponent = config.get("kernelExponent", 2.0);
+        Kernel kernel = config.get("kernel", Kernel.PolyKernel);
+
+        String kernelString = "weka.classifiers.functions.supportVector."+kernel;
 
         String kernelOptions;
         switch(kernel){

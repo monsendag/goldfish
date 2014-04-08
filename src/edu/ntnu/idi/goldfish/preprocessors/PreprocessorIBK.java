@@ -46,9 +46,9 @@ public class PreprocessorIBK extends PreprocessorClassifier {
     public DataModel preprocess(Config config) throws Exception {
         Classifier classifier = new IBk();
 
-        DistanceWeighting distanceMeasure = config.get("distanceMeasure");
-        ErrorMinimization minimization = config.get("minimization");
-        NeighborSearchMethod method = config.get("method");
+        DistanceWeighting distanceMeasure = config.get("distanceMeasure", DistanceWeighting.Distance);
+        ErrorMinimization minimization = config.get("minimization", ErrorMinimization.MinimizeMeanAbsoluteError);
+        NeighborSearchMethod method = config.get("method", NeighborSearchMethod.BallTree);
 
         int K = config.get("K", 5);
         int window = config.get("window", 0);
