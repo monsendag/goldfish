@@ -4,10 +4,13 @@ import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.preprocessors.*;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis.PredMethod;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorSMOreg.Kernel;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.*;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat.PredictionMethod;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static edu.ntnu.idi.goldfish.DataSet.*;
@@ -153,20 +156,31 @@ public class Main {
                     .set("preprocessor", PreprocessorSMOreg.class)
                     .set("average", 10);
 
-            for (PreprocessorSMOreg.Kernel kernel : PreprocessorSMOreg.Kernel.values()) {
-                config = smoreg.clone();
+            for(double C = 1.0; C <= 2.0; C += 0.1) {
 
-                config.set("kernel", kernel);
-                config.set("C", 1.0);
-                config.set("kernelCacheSize", 0);
-                config.set("kernelGamma", 0.01);
-                config.set("kernelExponent", 2.0);
+                // RBFKernel
+                for(double gamma = 1.0; gamma <= 2.0; gamma += 0.1) {
+                    config = smoreg.clone()
+                            .set("kernel", Kernel.RBFKernel)
+                            .set("C", C)
+                            .set("kernelGamma", gamma);
+                    configs.add(config);
+                }
 
-                configs.add(config);
+                // PolyKernel, NormalizedPolyKernel
+                List<Kernel> kernels = Arrays.asList(Kernel.PolyKernel, Kernel.NormalizedPolyKernel);
+                for(Kernel kernel : kernels) {
+                    for(double exponent = 1.0; exponent <= 2.0; exponent += 0.1) {
+                        config = smoreg.clone()
+                                .set("kernel", kernel)
+                                .set("C", C)
+                                .set("kernelExponent", exponent);
+                        configs.add(config);
+                    }
+                }
             }
 
-            cols.add("kernel");
-
+            cols.add("kernel", "C", "kernelGamma", "kernelExponent");
         }
 
         /***********************************************************************************/
@@ -179,41 +193,49 @@ public class Main {
                     .set("preprocessor", PreprocessorANN.class)
                     .set("average", 10);
 
-            config = ann.clone();
 
-            config.set("learningRate", 0.3);
-            config.set("momentum", 0.2);
-            config.set("epochs", 500);
-            config.set("neurons", "a");
+            for (double learningRate = 0.1; learningRate <= 1; learningRate += 0.1) {
+                for (double momentum = 0.2; momentum < 1; momentum += 0.1) {
 
-            configs.add(config);
-
+                    config = ann.clone()
+                        .set("learningRate", learningRate)
+                        .set("momentum", momentum)
+                        .set("epochs", 500)
+                        .set("neurons", "a");
+                    configs.add(config);
+                }
+            }
             cols.add("learningRate");
         }
-
 
         /***********************************************************************************/
         // PreprocessorIBK
 //        if(false)
         {
-
             Config ibk = new Lynx()
                     .set("name", "ibk")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorIBK.class)
+                    .set("window", 0)
                     .set("average", 10);
 
-            config = ibk.clone();
+            for(DistanceWeighting weighting : DistanceWeighting.values()) {
+                for(ErrorMinimization minimization : ErrorMinimization.values()) {
+                    for(NeighborSearchMethod method : NeighborSearchMethod.values()) {
 
-            config.set("distanceMeasure", PreprocessorIBK.DistanceWeighting.Distance);
-            config.set("minimization", PreprocessorIBK.ErrorMinimization.MinimizeMeanAbsoluteError);
-            config.set("method", PreprocessorIBK.NeighborSearchMethod.BallTree);
+                        for (int K = 1; K < 5; K++) {
+                            config = ibk.clone()
+                                .set("K", 5)
+                                .set("distanceMeasure", weighting)
+                                .set("minimization", minimization)
+                                .set("method", method);
 
-            config.set("K", 5);
-            config.set("window", 0);
+                            configs.add(config);
+                        }
+                    }
+                }
+            }
 
-
-            configs.add(ibk);
         }
         /***********************************************************************************/
         // PreprocessorNaiveBayes
@@ -235,8 +257,8 @@ public class Main {
 		StopWatch.start("total evaluation");
         System.out.format("Starting evaluation of %d configurations \n", configs.size());
         Evaluator.evaluate(configs, results, res -> System.out.println(res.toString(cols)));
-
 //        results.print();
+
         System.out.println(StringUtils.repeat("=", 190));
         results.printSummary();
 
