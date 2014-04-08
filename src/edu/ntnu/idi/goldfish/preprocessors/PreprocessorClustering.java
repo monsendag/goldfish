@@ -13,8 +13,12 @@ import org.apache.mahout.cf.taste.model.PreferenceArray;
 
 import weka.classifiers.meta.ClassificationViaClustering;
 import weka.clusterers.*;
+import weka.core.ChebyshevDistance;
+import weka.core.DistanceFunction;
+import weka.core.EuclideanDistance;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.ManhattanDistance;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 
@@ -34,6 +38,7 @@ public class PreprocessorClustering extends Preprocessor{
 	
 	public static enum Clusterer { SimpleKMeans, DensityBased, EM, FarthestFirst, Cobweb, XMeans }
 	public static enum ClusterDataset { TimeOnPage, TimeOnPageAndMouse, PageTimesMouse}
+	public static enum DistFunc { Euclidean, Manhattan, Chebyshev, None }
 	
 	public void buildFarthestFirstClusterer() throws Exception{
 		FarthestFirst ff = new FarthestFirst();
@@ -49,16 +54,18 @@ public class PreprocessorClustering extends Preprocessor{
 		cvc.setClusterer(hc);
 	}
 	
-	public void buildSimpleKMeansClusterer() throws Exception{
+	public void buildSimpleKMeansClusterer(DistanceFunction distanceFunction) throws Exception{
 		SimpleKMeans skm = new SimpleKMeans();
 		skm.setNumClusters(NUM_CLUSTERS);
+		skm.setDistanceFunction(distanceFunction);
 
 		cvc.setClusterer(skm);
 	}
 	
-	public void buildDensityBasedClusterer() throws Exception{
+	public void buildDensityBasedClusterer(DistanceFunction distanceFunction) throws Exception{
 		SimpleKMeans skm = new SimpleKMeans();
 		skm.setNumClusters(NUM_CLUSTERS);
+		skm.setDistanceFunction(distanceFunction);
 		
 		MakeDensityBasedClusterer dbc = new MakeDensityBasedClusterer();
 		dbc.setClusterer(skm);
@@ -86,10 +93,11 @@ public class PreprocessorClustering extends Preprocessor{
 		cvc.setClusterer(s);
 	}
 	
-	public void buildXMeansClusterer(){
+	public void buildXMeansClusterer(DistanceFunction distanceFunction){
 		XMeans xm = new XMeans();
 		xm.setMaxNumClusters(NUM_CLUSTERS);
 		xm.setMinNumClusters(NUM_CLUSTERS);
+		xm.setDistanceF(distanceFunction);
 		
 		cvc.setClusterer(xm);
 	}
@@ -99,6 +107,25 @@ public class PreprocessorClustering extends Preprocessor{
         DBModel model = config.get("model");
         Clusterer clusterer = config.get("clusterer");
         ClusterDataset clusterDataset = config.get("clusterDataset");
+        DistFunc distFunc = config.get("distFunc");
+        DistanceFunction distanceFunction = null;
+        
+        switch (distFunc) {
+		case Euclidean:
+			distanceFunction = new EuclideanDistance();
+			break;
+		case Manhattan:
+			distanceFunction = new ManhattanDistance();
+			break;
+		case Chebyshev:
+			distanceFunction = new ChebyshevDistance();
+		case None:
+			distanceFunction = null;
+			break;
+		default:
+			distanceFunction = new EuclideanDistance();
+			break;
+		}
         
         // read the dataset and create instances for training and evaluating
         String path = "";
@@ -126,10 +153,10 @@ public class PreprocessorClustering extends Preprocessor{
  		
  		switch (clusterer) {
  		case SimpleKMeans:
- 			buildSimpleKMeansClusterer();
+ 			buildSimpleKMeansClusterer(distanceFunction);
  			break;
  		case DensityBased:
- 			buildDensityBasedClusterer();
+ 			buildDensityBasedClusterer(distanceFunction);
  			break;
  		case EM:
  			buildEMClusterer();
@@ -144,10 +171,10 @@ public class PreprocessorClustering extends Preprocessor{
 // 			buildsIBClusterer();
 // 			break;
  		case XMeans:
- 			buildXMeansClusterer();
+ 			buildXMeansClusterer(distanceFunction);
  			break;
  		default:
- 			buildSimpleKMeansClusterer();
+ 			buildSimpleKMeansClusterer(distanceFunction);
  			break;
  		}
  		

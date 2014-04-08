@@ -3,9 +3,14 @@ package edu.ntnu.idi.goldfish;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.preprocessors.*;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.ClusterDataset;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.Clusterer;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.DistFunc;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.DistanceWeighting;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.ErrorMinimization;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.NeighborSearchMethod;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis.PredMethod;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorSMOreg.Kernel;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.*;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat.PredictionMethod;
 import org.apache.commons.lang3.StringUtils;
 
@@ -148,7 +153,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorSMOreg
 
-//        if(false)
+        if(false)
         {
             Config smoreg = new Lynx()
                     .set("name", "smoreg")
@@ -185,7 +190,7 @@ public class Main {
 
         /***********************************************************************************/
         // PreprocessorANN
-//        if(false)
+        if(false)
         {
             Config ann = new Lynx()
                     .set("name", "ann")
@@ -210,7 +215,7 @@ public class Main {
 
         /***********************************************************************************/
         // PreprocessorIBK
-//        if(false)
+        if(false)
         {
             Config ibk = new Lynx()
                     .set("name", "ibk")
@@ -239,7 +244,7 @@ public class Main {
         }
         /***********************************************************************************/
         // PreprocessorNaiveBayes
-//        if(false)
+        if(false)
         {
             Config naivebayes = new Lynx()
                     .set("name", "naivebayes")
@@ -251,13 +256,77 @@ public class Main {
             configs.add(naivebayes);
         }
         /***********************************************************************************/
+        // PreprocessorClustering
+
+        if(false)
+        {
+            Config clustering = new Lynx()
+                    .set("name", "clustering")
+                    .set("model", yowImplicit.getModel())
+                    .set("preprocessor", PreprocessorClustering.class)
+                    .set("average", 10);
+
+            for(Clusterer clusterer : Arrays.asList(Clusterer.SimpleKMeans, Clusterer.XMeans, Clusterer.DensityBased)) {
+                for(ClusterDataset dataset : ClusterDataset.values()) {
+                	for (DistFunc distFunc : Arrays.asList(DistFunc.Euclidean, DistFunc.Manhattan)) {
+                		config = clustering.clone()
+                				.set("clusterer", clusterer)
+                				.set("clusterDataset", dataset)
+                				.set("distFunc", distFunc);
+                		configs.add(config);
+					}
+                }
+            }
+            
+            for(Clusterer clusterer : Arrays.asList(Clusterer.Cobweb, Clusterer.EM, Clusterer.FarthestFirst)) {
+            	for(ClusterDataset dataset : ClusterDataset.values()) {
+                    config = clustering.clone()
+                            .set("clusterer", clusterer)
+                            .set("clusterDataset", dataset)
+                            .set("distFunc", DistFunc.None);
+                    configs.add(config);
+                }
+            }
+            
+            for (ClusterDataset dataset : ClusterDataset.values()) {
+				config = clustering.clone()
+						.set("clusterer", Clusterer.XMeans)
+						.set("clusterDataset", dataset)
+						.set("distFunc", DistFunc.Chebyshev);
+				configs.add(config);
+			}
+            
+            cols.add("clusterer");
+            cols.add("clusterDataset");
+            cols.add("distFunc");
+        }
+
+        /***********************************************************************************/
+        // PreprocessorMLR
+        if(false)
+        {
+            Config mlr = new Lynx()
+                    .set("name", "MLR")
+                    .set("model", yowImplicit.getModel())
+                    .set("preprocessor", PreprocessorMLR.class)
+                    .set("average", 10);
+
+            for (int i = 1; i <= 3; i++) {
+                config = mlr.clone()
+                        .set("IVs", i);
+                configs.add(config);
+            }
+            
+            cols.add("IVs");
+        }
+
+        /***********************************************************************************/
 
         results.setColumns(cols.getPrintFormats());
 
 		StopWatch.start("total evaluation");
         System.out.format("Starting evaluation of %d configurations \n", configs.size());
         Evaluator.evaluate(configs, results, res -> System.out.println(res.toString(cols)));
-//        results.print();
 
         System.out.println(StringUtils.repeat("=", 190));
         results.printSummary();
