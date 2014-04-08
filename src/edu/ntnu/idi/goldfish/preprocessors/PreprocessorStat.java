@@ -37,7 +37,7 @@ public class PreprocessorStat extends Preprocessor{
 					.filter(row -> row.rating > 0)
 					.collect(Collectors.toList());
 			
-			if(hasImplicit(r.implicitfeedback) && feedbackForItemID.size() >= THRESHOLD){
+			if(hasImplicit(r.implicitfeedback) && enoughImplicitFeedback(feedbackForItemID)){
 				
 				double[] dependentVariables = new double[feedbackForItemID.size()]; // the explicit ratings to infer
 				double[][] independentVariables = new double[feedbackForItemID.size()][]; // the implicit feedback
@@ -81,13 +81,14 @@ public class PreprocessorStat extends Preprocessor{
 					
 //					System.out.println(String.format("%d, %d, %.0f", r.userid, r.itemid, pseudoRating));
 				}
-				else if(timeOnPageFeedback(r.implicitfeedback, minTimeOnPage, 120000)){
-					model.setPreference(r.userid, r.itemid, 4);
-					pseudoRatings.add(String.format("%d_%d", r.userid, r.itemid));
-				}
+			}
+			else if(timeOnPageFeedback(r.implicitfeedback, minTimeOnPage, 120000)){
+				model.setPreference(r.userid, r.itemid, 4);
+				pseudoRatings.add(String.format("%d_%d", r.userid, r.itemid));
 			}
 		}
-		
+
+		model.DBModelToCsv(model, "datasets/DBModeltest.csv");
 		return model;
 	}
 	
@@ -98,13 +99,27 @@ public class PreprocessorStat extends Preprocessor{
 		return false;
 	}
 	
+	public boolean enoughImplicitFeedback(List<DBModel.DBRow> feedbackForItemID ){
+		int[] feedbackCount = new int[feedbackForItemID.get(0).implicitfeedback.length];
+		for (DBRow row : feedbackForItemID) {
+			for (int i = 0; i < row.implicitfeedback.length; i++) {
+				if(row.implicitfeedback[i] > 0) {
+					feedbackCount[i] += 1;
+				}
+			}
+		}
+		
+		for (int i = 0; i < feedbackCount.length; i++) {
+			if(feedbackCount[i] >= THRESHOLD) return true;
+		}
+		return false;
+	}
+	
 	public double getCorrelation(double[] dv, double[][] iv, int feedbackIndex){
-		TrendLine t = new PolyTrendLine(1);
 		double[] itemFeedback = new double[iv.length];
 		for (int i = 0; i < iv.length; i++) {
 			itemFeedback[i] = iv[i][feedbackIndex];
 		}
-		t.setValues(dv, itemFeedback);
 
 		PearsonsCorrelation pc = new PearsonsCorrelation();
 		return Math.abs(pc.correlation(dv, itemFeedback));
