@@ -4,9 +4,11 @@ import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.SMDataModel;
 import edu.ntnu.idi.goldfish.mahout.SMPreference;
 import edu.ntnu.idi.goldfish.mahout.SMPreferenceArray;
+
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.model.Preference;
+import org.apache.mahout.cf.taste.model.PreferenceArray;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -36,25 +38,23 @@ public abstract class Preprocessor {
      * @param filename
      *            url with location and filename
      */
-    public static void writeModel(SMDataModel model, String path) {
+    public static void writeDataModelToCsv(DataModel model, String path) {
         try {
             FileWriter writer = new FileWriter(new File(path));
 
             Iterator<Long> users = model.getUserIDs();
             while (users.hasNext()) {
                 long userId = users.next();
-                SMPreferenceArray preferences = model.getSMPreferencesFromUser(userId);
+                PreferenceArray preferences = model.getPreferencesFromUser(userId);
                 Iterator<Preference> it = preferences.iterator();
 
                 float rating = 0;
-                float readIndex = 0;
                 long itemId = 0;
                 while (it.hasNext()) {
-                    SMPreference p = (SMPreference) it.next();
-                    rating = p.getValue(0); // explicit
-                    readIndex = p.getValue(1); // readindex
+                    Preference p = it.next();
+                    rating = p.getValue(); // explicit
                     itemId = p.getItemID(); // item
-                    writer.append(String.format("%d,%d,%.0f,%.1f", userId, itemId, rating, readIndex));
+                    writer.append(String.format("%d,%d,%.0f", userId, itemId, rating));
                     writer.append("\n");
                 }
                 writer.flush();

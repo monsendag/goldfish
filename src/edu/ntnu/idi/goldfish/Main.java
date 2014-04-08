@@ -7,7 +7,11 @@ import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorMLR;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis.PredMethod;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat.PredictionMethod;
+
 import org.apache.commons.lang3.StringUtils;
+
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.functions.SMOreg;
 
@@ -39,7 +43,7 @@ public class Main {
         Config baseLine = new Lynx()
                 .set("name", "baseline")
                 .set("model", yowBaseline.getModel())
-                .set("average", 10000);
+                .set("average", 100);
 
         configs.add(baseLine);
         /***********************************************************************************/
@@ -61,10 +65,30 @@ public class Main {
                                 .set("correlationLimit", corrLimit)
                                 .set("predictionMethod", method);
 
-                        configs.add(conf);
+//                        configs.add(conf);
                     }
                 }
             }
+            
+            Config stat = new Lynx()
+            .set("name", "STAT")
+            .set("model", yowImplicit.getModel())
+            .set("preprocessor", PreprocessorStat.class)
+            .set("average", 1000)
+            .set("minTimeOnPage", 20000)
+            .set("correlationLimit", 0.5)
+            .set("predictionMethod", PredictionMethod.LinearRegression);
+//            configs.add(stat);
+            
+            Config pudd = new Lynx()
+            .set("name", "PUDD")
+            .set("model", yowSMImplicit.getModel())
+            .set("preprocessor", PreprocessorPuddis.class)
+            .set("average", 1000)
+            .set("minTimeOnPage", 20000)
+            .set("correlationLimit", 0.5)
+            .set("predictionMethod", PredMethod.LinearRegression);
+//            configs.add(pudd);
         }
 
         /***********************************************************************************/
@@ -90,7 +114,7 @@ public class Main {
                     .set("name", "clustering")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorClustering.class)
-                    .set("average", 10);
+                    .set("average", 100);
 
             Config conf;
             for(PreprocessorClustering.Clusterer clusterer : PreprocessorClustering.Clusterer.values()) {
@@ -111,7 +135,7 @@ public class Main {
                     .set("name", "MLR")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 10000);
+                    .set("average", 1000);
 
             Config conf;
             for (int i = 1; i <= 3; i++) {

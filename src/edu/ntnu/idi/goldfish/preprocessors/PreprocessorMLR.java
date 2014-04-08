@@ -41,10 +41,6 @@ public class PreprocessorMLR extends Preprocessor {
 				pseudoRating += beta[i] * row.implicitfeedback[i];
 			}
 			
-			// the beta0 is 3, have to manually set the lowest ratings
-			pseudoRating = row.timeonpage < 25000 ? 2 : pseudoRating;
-			pseudoRating = row.timeonpage < 10000 ? 1 : pseudoRating;
-			
 			// is pseudo rating > 5, then outlier feedback has been used and we don't want to use this pseudo rating
 			if(pseudoRating > 5) continue;
 			
@@ -80,12 +76,6 @@ public class PreprocessorMLR extends Preprocessor {
 		regression.newSampleData(dependentVariables, independentVariables);
 
 		double[] beta = regression.estimateRegressionParameters();      
-		
-//		System.out.println("Regression parameters:");
-//		for (int i = 0; i < beta.length; i++) {
-//				System.out.print("B"+i+": " + beta[i] + ", ");
-//		}
-//		System.out.println("");
 		
 		return beta;
 	}
