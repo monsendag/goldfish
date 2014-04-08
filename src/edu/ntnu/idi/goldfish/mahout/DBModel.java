@@ -19,9 +19,12 @@ import org.jooq.impl.DSL;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.jooq.impl.DSL.fieldByName;
 import static org.jooq.impl.DSL.tableByName;
@@ -293,6 +296,31 @@ public class DBModel implements DataModel {
         );
 
         return rows;
+    }
+    
+    public void DBModelToCsv(DBModel model, String path){
+    	try {
+            FileWriter writer = new FileWriter(new File(path));
+            float rating = 0;
+            long itemId = 0;
+            long userId = 0;
+
+            List<DBModel.DBRow> allResults = model.getFeedbackRows();
+            List<DBModel.DBRow> results = allResults.stream().filter(row -> row.rating > 0).collect(Collectors.toList());
+            for (DBRow r : results) {
+            	rating = r.rating;
+            	itemId = r.itemid;
+            	userId = r.userid;
+
+            	writer.append(String.format("%d,%d,%.0f", userId, itemId, rating));
+                writer.append("\n");
+                writer.flush();
+            }
+            writer.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public class DBRow {
