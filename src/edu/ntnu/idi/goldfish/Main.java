@@ -252,7 +252,6 @@ public class Main {
                     .set("preprocessor", PreprocessorNaiveBayes.class)
                     .set("average", 10);
 
-
             configs.add(naivebayes);
         }
         /***********************************************************************************/
@@ -322,14 +321,12 @@ public class Main {
 
         /***********************************************************************************/
 
-        results.setColumns(cols.getPrintFormats());
-
 		StopWatch.start("total evaluation");
         System.out.format("Starting evaluation of %d configurations \n", configs.size());
-        Evaluator.evaluate(configs, results, res -> System.out.println(res.toString(cols)));
+        Evaluator.evaluate(configs, results, res -> System.out.println(res.toString(cols.getPrintFormats())));
 
         System.out.println(StringUtils.repeat("=", 190));
-        results.printSummary();
+        results.printSummary(cols.getPrintFormats());
 
         System.out.format("Evaluated %d configurations in %s \n", configs.size(), StopWatch.str("total evaluation"));
         results.save(cols.getSaveFormats());

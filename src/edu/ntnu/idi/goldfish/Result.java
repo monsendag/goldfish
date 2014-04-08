@@ -34,7 +34,6 @@ public class Result extends HashMap<String, Object> {
         return this;
     }
 
-
 	public String toString(Columns columns) {
         List<String> values = columns.keySet().stream().map(col -> {
             Object value = has(col) ? get(col) : null;

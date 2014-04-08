@@ -8,7 +8,6 @@ import java.util.Date;
 
 public class ResultList extends ArrayList<Result> {
 
-    Columns columns;
 
 	public ResultList() {
 
@@ -18,20 +17,10 @@ public class ResultList extends ArrayList<Result> {
         return super.add(res);
     }
 
-    public void setColumns(Columns columns){
-        this.columns = columns;
-    }
-
-    public void print() {
-        forEach(r -> System.out.println(r.toString(columns)));
-    }
-
-    public void printSummary() {
+    public void printSummary(Columns columns) {
         System.out.println(getTotal().toString(columns));
         System.out.println(getAverage().toString(columns));
     }
-
-
 
 	public void print(Columns columns) {
         forEach(r -> System.out.println(r.toString(columns)));
@@ -48,12 +37,6 @@ public class ResultList extends ArrayList<Result> {
 		}
         return out;
 	}
-
-
-    public void save() throws IOException {
-        save(columns);
-    }
-
 
     public void save(Columns columns) throws IOException {
         String output = toTSV(columns);
@@ -78,7 +61,7 @@ public class ResultList extends ArrayList<Result> {
         // for each property, calculate totals and set them on total object
         for(String property : properties) {
             Result first = get(0);
-            if (first.containsKey(property)) {
+            if (first.has(property)) {
                 double sum = 0;
                 for (Result res : this) {
                     Number value = res.get(property);
@@ -97,7 +80,7 @@ public class ResultList extends ArrayList<Result> {
         int N = size();
 
         for(String property : properties) {
-            if(total.containsKey(property)) {
+            if(total.has(property)) {
                 // the returned type can be Double or Long, so we need to check in order to cast to the right primitive
                 // too bad java generics doesn't support primitives
                 Number sum = total.get(property);
