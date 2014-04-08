@@ -278,9 +278,7 @@ public class Main {
 				configs.add(config);
 			}
             
-            cols.add("clusterer");
-            cols.add("clusterDataset");
-            cols.add("distFunc");
+            cols.add("clusterer", "clusterDataset", "distFunc");
         }
 
         /***********************************************************************************/
