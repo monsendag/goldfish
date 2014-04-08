@@ -61,6 +61,7 @@ public class Columns extends LinkedHashMap<String, String> {
         printFormats.put("predictionMethod", "%16s");
         printFormats.put("clusterer", "%13s");
         printFormats.put("clusterDataset", "%18s");
+        printFormats.put("distFunc", "%9s");
         printFormats.put("IVs", "%1d");
         printFormats.put("kernel", "%20s");
 
@@ -81,6 +82,7 @@ public class Columns extends LinkedHashMap<String, String> {
         saveFormats.put("predictionMethod", "%s");
         saveFormats.put("clusterer", "%s");
         saveFormats.put("clusterDataset", "%s");
+        printFormats.put("distFunc", "%s");
         saveFormats.put("IVs", "%d");
         saveFormats.put("kernel", "%s");
     }
