@@ -48,7 +48,7 @@ public class Main {
             Config baseLine = new Lynx()
                     .set("name", "baseline")
                     .set("model", yowBaseline.getModel())
-                    .set("average", 1);
+                    .set("average", 10000);
 
             configs.add(baseLine);
         }
@@ -88,7 +88,7 @@ public class Main {
 		    	.set("name", "stat")
 		    	.set("model", yowImplicit.getModel())
 		    	.set("preprocessor", PreprocessorStat.class)
-		    	.set("average", 1);
+		    	.set("average", 10000);
 
             for (int minT = 15000; minT <= 30000; minT += 5000) {
                 for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
@@ -115,7 +115,7 @@ public class Main {
                   .set("name", "clustering")
                   .set("model", yowImplicit.getModel())
                   .set("preprocessor", PreprocessorClustering.class)
-                  .set("average", 1);
+                  .set("average", 10000);
 
           for(Clusterer clusterer : Arrays.asList(Clusterer.SimpleKMeans, Clusterer.XMeans, Clusterer.DensityBased)) {
               for(ClusterDataset dataset : ClusterDataset.values()) {
@@ -158,7 +158,7 @@ public class Main {
                     .set("name", "MLR")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 1);
+                    .set("average", 10000);
 
             for (int i = 1; i <= 3; i++) {
                 config = mlr.clone()
@@ -178,27 +178,27 @@ public class Main {
                     .set("name", "smoreg")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorSMOreg.class)
-                    .set("average", 1);
+                    .set("average", 5000);
 
-            for(double C = 1.0; C <= 2.0; C += 0.1) {
+            for(double Cn = -15; Cn <= 15; Cn += 1) {
 
                 // RBFKernel
-                for(double gamma = 1.0; gamma <= 2.0; gamma += 0.1) {
+                for(double gammaN = -15; gammaN <= 15; gammaN += 0.3) {
                     config = smoreg.clone()
                             .set("kernel", Kernel.RBFKernel)
-                            .set("C", C)
-                            .set("kernelGamma", gamma);
+                            .set("C", Math.pow(2, Cn))
+                            .set("kernelGamma", Math.pow(2, gammaN));
                     configs.add(config);
                 }
 
                 // PolyKernel, NormalizedPolyKernel
                 List<Kernel> kernels = Arrays.asList(Kernel.PolyKernel, Kernel.NormalizedPolyKernel);
                 for(Kernel kernel : kernels) {
-                    for(double exponent = 1.0; exponent <= 2.0; exponent += 0.1) {
+                    for(double exponentN = -15; exponentN <= 15; exponentN += 0.5) {
                         config = smoreg.clone()
                                 .set("kernel", kernel)
-                                .set("C", C)
-                                .set("kernelExponent", exponent);
+                                .set("C", Cn)
+                                .set("kernelExponent", Math.pow(2, exponentN));
                         configs.add(config);
                     }
                 }
@@ -215,15 +215,15 @@ public class Main {
                     .set("name", "ann")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorANN.class)
-                    .set("average", 1);
+                    .set("average", 5000);
 
 
-            for (double learningRate = 0.1; learningRate <= 1; learningRate += 0.1) {
-                for (double momentum = 0.2; momentum < 1; momentum += 0.1) {
+            for (double learningRateN = -15; learningRateN <= 15; learningRateN += 0.5) {
+                for (double momentumN = -15; momentumN < 15; momentumN += 0.5) {
 
                     config = ann.clone()
-                        .set("learningRate", learningRate)
-                        .set("momentum", momentum)
+                        .set("learningRate", Math.pow(2, learningRateN))
+                        .set("momentum", Math.pow(2, momentumN))
                         .set("epochs", 500)
                         .set("neurons", "a");
                     configs.add(config);
@@ -241,15 +241,15 @@ public class Main {
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorIBK.class)
                     .set("window", 0)
-                    .set("average", 1);
+                    .set("average", 5000);
 
             for(DistanceWeighting weighting : DistanceWeighting.values()) {
                 for(ErrorMinimization minimization : ErrorMinimization.values()) {
                     for(NeighborSearchMethod method : NeighborSearchMethod.values()) {
 
-                        for (int K = 1; K < 5; K++) {
+                        for (int K = 1; K < 10; K++) {
                             config = ibk.clone()
-                                .set("K", 5)
+                                .set("K", K)
                                 .set("distanceMeasure", weighting)
                                 .set("minimization", minimization)
                                 .set("method", method);
@@ -259,7 +259,6 @@ public class Main {
                     }
                 }
             }
-
         }
         /***********************************************************************************/
         // PreprocessorNaiveBayes
@@ -269,7 +268,7 @@ public class Main {
                     .set("name", "naivebayes")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorNaiveBayes.class)
-                    .set("average", 1);
+                    .set("average", 10000);
 
             configs.add(naivebayes);
         }
