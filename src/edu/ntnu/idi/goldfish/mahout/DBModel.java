@@ -1,5 +1,7 @@
 package edu.ntnu.idi.goldfish.mahout;
 
+import com.google.common.collect.BiMap;
+import com.mongodb.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.mahout.cf.taste.common.Refreshable;
 import org.apache.mahout.cf.taste.common.TasteException;
@@ -19,7 +21,6 @@ import org.jooq.*;
 import org.jooq.impl.DSL;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
@@ -49,12 +50,7 @@ public class DBModel implements DataModel {
     private Field<Float> mouseField = fieldByName(Float.class, "timeonmouse");
 
     public static void main(String[] args) throws Exception {
-        DBModel model = new DBModel(new File("datasets/yow-userstudy/exdupes-like-timeonpage-timeonmouse.csv"));
 
-        model.setPreference(5415, 12, 4L);
-
-        model.setPreference(5415, 12, 2L);
-        System.out.println(model.getPreferenceValue(5415, 12));
     }
 
     public void startServer() throws SQLException {
@@ -65,6 +61,87 @@ public class DBModel implements DataModel {
     public DBModel(File f) throws Exception {
         initDB();
         parseFile(f);
+    }
+
+    private void parseFile(File f) throws Exception {
+        Scanner sc = new Scanner(f);
+        while (sc.hasNextLine()) {
+            parseLine(sc.nextLine());
+        }
+    }
+
+    private void parseLine(String line) throws Exception {
+        // Ignore empty lines and comments
+        if (line.isEmpty() || line.charAt(0) == '#') {
+            return;
+        }
+
+        Scanner sc = new Scanner(line).useDelimiter(",");
+
+        long userID = sc.nextLong();
+        long itemID = sc.nextLong();
+
+        float explicit = sc.nextFloat();
+        float timeonpage = sc.nextFloat();
+        float timeonmouse = sc.nextFloat();
+
+        if (explicit > 0) {
+            setPreference(userID, itemID, EXPLICIT, explicit);
+        }
+        if(timeonpage > 0) {
+            setPreference(userID, itemID, TIMEONPAGE, timeonpage);
+        }
+        if(timeonmouse > 0) {
+            setPreference(userID, itemID, TIMEONMOUSE, timeonmouse);
+        }
+    }
+
+
+    public DBModel(String host, int port, String username, String password, String database, String collection, BiMap<String, Long> userMaps, BiMap<String, Long> itemMaps) throws Exception {
+        initDB();
+        LoadFromMongo(host, port, username, password, database, collection, userMaps, itemMaps);
+    }
+
+    public void LoadFromMongo(String host, int port, String username, String password, String database, String collection, BiMap<String, Long> userMaps, BiMap<String, Long> itemMaps) throws Exception {
+
+        long userIncrement = 0;
+        long itemIncrement = 0;
+
+        MongoClient client = new MongoClient(host, port);
+        DB db = client.getDB(database);
+        db.authenticate(username,password.toCharArray());
+
+        DBCollection coll = db.getCollection(collection);
+        DBCursor cursor = coll.find();
+        while(cursor.hasNext()) {
+            DBObject next = cursor.next();
+            String rawUserID = String.valueOf(next.get("user_id"));
+            String rawItemID = String.valueOf(next.get("article_id"));
+            String rawExplicit = String.valueOf(next.get("rating"));
+            String rawTimeonpage = String.valueOf(next.get("time_spent"));
+
+            if(rawUserID.equals("null") || rawItemID.equals("null") || rawTimeonpage.equals("null")) continue;
+
+            if(!userMaps.containsKey(rawUserID)) {
+                userMaps.put(rawUserID, ++userIncrement);
+            }
+            if(!itemMaps.containsKey(rawItemID)) {
+                itemMaps.put(rawItemID, ++itemIncrement);
+            }
+
+            long userID = userMaps.get(rawUserID);
+            long itemID = itemMaps.get(rawItemID);
+
+            float explicit = rawExplicit == null ? -1f : Float.parseFloat(rawExplicit);
+            float timeonpage = Float.parseFloat(rawTimeonpage);
+
+            if(timeonpage > 0 && !hasPreference(userID, itemID, EXPLICIT)) {
+                setPreference(userID, itemID, TIMEONPAGE, timeonpage);
+                if(explicit > 0) {
+                    setPreference(userID, itemID, EXPLICIT, explicit);
+                }
+            }
+        }
     }
 
     public DBModel(FastByIDMap<PreferenceArray> userData) {
@@ -83,40 +160,6 @@ public class DBModel implements DataModel {
         }
     }
 
-    private void parseFile(File f) throws FileNotFoundException {
-        Scanner sc = new Scanner(f);
-        while (sc.hasNextLine()) {
-            parseLine(sc.nextLine());
-        }
-    }
-
-    private void parseLine(String line) {
-        // Ignore empty lines and comments
-        if (line.isEmpty() || line.charAt(0) == '#') {
-            return;
-        }
-
-        Scanner sc = new Scanner(line).useDelimiter(",");
-
-        long userID = sc.nextLong();
-        long itemID = sc.nextLong();
-
-        float explicit = sc.nextFloat();
-        float timeonpage = sc.nextFloat();
-        float timeonmouse = sc.nextFloat();
-
-        Field[] fields = new Field[]{userField, itemField, fbackField, valueField};
-
-        if (explicit > 0) {
-            context.insertInto(table, fields).values(new Object[]{userID, itemID, EXPLICIT, explicit}).execute();
-        }
-        if(timeonpage > 0) {
-            context.insertInto(table, fields).values(new Object[]{userID, itemID, TIMEONPAGE, timeonpage}).execute();
-        }
-        if(timeonmouse > 0) {
-            context.insertInto(table, fields).values(new Object[]{userID, itemID, TIMEONMOUSE, timeonmouse}).execute();
-        }
-    }
 
     private void initDB() {
         try {
@@ -243,10 +286,14 @@ public class DBModel implements DataModel {
 
     @Override
     public void setPreference(long userID, long itemID, float value) throws TasteException {
-        Condition cond = userField.equal(userID).and(itemField.equal(itemID)).and(fbackField.equal(EXPLICIT));
+        setPreference(userID, itemID, EXPLICIT, value);
+    }
+
+    public void setPreference(long userID, long itemID, long feedback, float value) throws TasteException {
+        Condition cond = userField.equal(userID).and(itemField.equal(itemID)).and(fbackField.equal(feedback));
         int numRows = context.selectOne().from(table).where(cond).fetchCount();
         UpdateConditionStep update = context.update(table).set(valueField, value).where(cond);
-        InsertValuesStep4 insert = context.insertInto(table, userField, itemField, fbackField, valueField).values(userID, itemID, EXPLICIT, value);
+        InsertValuesStep4 insert = context.insertInto(table, userField, itemField, fbackField, valueField).values(userID, itemID, feedback, value);
 
         if(numRows > 0) {
             update.execute();
@@ -254,6 +301,12 @@ public class DBModel implements DataModel {
         else {
             insert.execute();
         }
+    }
+
+    public boolean hasPreference(long userID, long itemID, long feedback) {
+        Condition cond = userField.equal(userID).and(itemField.equal(itemID)).and(fbackField.equal(feedback));
+        int numRows = context.selectOne().from(table).where(cond).fetchCount();
+        return numRows > 0;
     }
 
     @Override
@@ -319,9 +372,9 @@ public class DBModel implements DataModel {
     public void DBModelToCsv(DBModel model, String path){
     	try {
             FileWriter writer = new FileWriter(new File(path));
-            float rating = 0;
-            long itemId = 0;
-            long userId = 0;
+            float rating;
+            long itemId;
+            long userId;
 
             List<DBModel.DBRow> allResults = model.getFeedbackRows();
             List<DBModel.DBRow> results = allResults.stream().filter(row -> row.rating > 0).collect(Collectors.toList());
