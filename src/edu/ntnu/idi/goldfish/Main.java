@@ -22,6 +22,8 @@ import static edu.ntnu.idi.goldfish.DataSet.*;
 
 public class Main {
 
+    public int i = 1;
+
     public static DataSet set;
 	
 	// disable Mahout logging output
@@ -31,6 +33,10 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
+        new Main();
+    }
+
+    public Main() throws Exception {
 
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
@@ -42,13 +48,13 @@ public class Main {
         /***********************************************************************************/
         // Baseline
 
-//        if(false)
+        if(false)
         {
 
             Config baseLine = new Lynx()
                     .set("name", "baseline")
                     .set("model", yowBaseline.getModel())
-                    .set("average", 10000);
+                    .set("average", 5000);
 
             configs.add(baseLine);
         }
@@ -88,7 +94,7 @@ public class Main {
 		    	.set("name", "stat")
 		    	.set("model", yowImplicit.getModel())
 		    	.set("preprocessor", PreprocessorStat.class)
-		    	.set("average", 10000);
+		    	.set("average", 5000);
 
             for (int minT = 15000; minT <= 30000; minT += 5000) {
                 for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
@@ -158,7 +164,7 @@ public class Main {
                     .set("name", "MLR")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 10000);
+                    .set("average", 5000);
 
             for (int i = 1; i <= 3; i++) {
                 config = mlr.clone()
@@ -180,10 +186,10 @@ public class Main {
                     .set("preprocessor", PreprocessorSMOreg.class)
                     .set("average", 5000);
 
-            for(double Cn = -15; Cn <= 15; Cn += 1) {
+            for(double Cn = -10; Cn <= 10; Cn += 1) {
 
                 // RBFKernel
-                for(double gammaN = -15; gammaN <= 15; gammaN += 0.3) {
+                for(double gammaN = -6; gammaN <= 6; gammaN += 1) {
                     config = smoreg.clone()
                             .set("kernel", Kernel.RBFKernel)
                             .set("C", Math.pow(2, Cn))
@@ -194,7 +200,7 @@ public class Main {
                 // PolyKernel, NormalizedPolyKernel
                 List<Kernel> kernels = Arrays.asList(Kernel.PolyKernel, Kernel.NormalizedPolyKernel);
                 for(Kernel kernel : kernels) {
-                    for(double exponentN = -15; exponentN <= 15; exponentN += 0.5) {
+                    for(double exponentN = -6; exponentN <= 6; exponentN += 0.5) {
                         config = smoreg.clone()
                                 .set("kernel", kernel)
                                 .set("C", Cn)
@@ -218,12 +224,12 @@ public class Main {
                     .set("average", 5000);
 
 
-            for (double learningRateN = -15; learningRateN <= 15; learningRateN += 0.5) {
-                for (double momentumN = -15; momentumN < 15; momentumN += 0.5) {
+            for (double learningRate = 0.1; learningRate <= 1; learningRate += 0.1) {
+                for (double momentum = 0.1; momentum <= 1; momentum += 0.1) {
 
                     config = ann.clone()
-                        .set("learningRate", Math.pow(2, learningRateN))
-                        .set("momentum", Math.pow(2, momentumN))
+                        .set("learningRate", learningRate)
+                        .set("momentum", momentum)
                         .set("epochs", 500)
                         .set("neurons", "a");
                     configs.add(config);
@@ -268,7 +274,7 @@ public class Main {
                     .set("name", "naivebayes")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorNaiveBayes.class)
-                    .set("average", 10000);
+                    .set("average", 5000);
 
             configs.add(naivebayes);
         }
@@ -277,7 +283,8 @@ public class Main {
 
 		StopWatch.start("total evaluation");
         System.out.format("Starting evaluation of %d configurations \n", configs.size());
-        Evaluator.evaluate(configs, results, res -> System.out.println(res.toString(cols.getPrintFormats())));
+
+        Evaluator.evaluate(configs, results, res -> System.out.println((this.i++) + "|"+res.toString(cols.getPrintFormats())));
 
         System.out.println(StringUtils.repeat("=", 190));
         results.printSummary(cols.getPrintFormats());
