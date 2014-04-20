@@ -9,16 +9,14 @@ import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.DistFunc;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.DistanceWeighting;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.ErrorMinimization;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.NeighborSearchMethod;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorPuddis.PredMethod;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorSMOreg.Kernel;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat.PredictionMethod;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-import static edu.ntnu.idi.goldfish.DataSet.*;
+import static edu.ntnu.idi.goldfish.DataSet.yowBaseline;
+import static edu.ntnu.idi.goldfish.DataSet.yowImplicit;
 
 public class Main {
 
@@ -33,10 +31,23 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
-        new Main();
+        new Main(args);
     }
 
-    public Main() throws Exception {
+    public Main(String[] args) throws Exception {
+
+        Set<String> options = new HashSet<String>(Arrays.asList(args));
+
+        boolean doBaseline, doStat, doClustering, doMlr, doSmoreg, doAnn, doIbk, doNaiveBayes;
+        doBaseline = options.contains("-baseline");
+        doStat = options.contains("-stat");
+        doClustering = options.contains("-clustering");
+        doMlr = options.contains("-mlr");
+        doSmoreg = options.contains("-smoreg");
+        doAnn = options.contains("-ann");
+        doIbk = options.contains("-ibk");
+        doNaiveBayes = options.contains("-naivebayes");
+//        doBaseline = doStat = doClustering = doMlr = doSmoreg = doAnn = doIbk = doNaiveBayes = true;
 
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
@@ -48,7 +59,7 @@ public class Main {
         /***********************************************************************************/
         // Baseline
 
-        if(false)
+        if(doBaseline)
         {
 
             Config baseLine = new Lynx()
@@ -62,7 +73,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorStat
         
-//        if(false)
+        if(doStat)
         {
         	Config stat = new Lynx()
 		    	.set("name", "stat")
@@ -89,7 +100,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorClustering
 
-//      if(false)
+      if(doClustering)
       {
           Config clustering = new Lynx()
                   .set("name", "clustering")
@@ -132,7 +143,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorMLR
 
-//        if(false)
+        if(doMlr)
         {
             Config mlr = new Lynx()
                     .set("name", "MLR")
@@ -152,7 +163,7 @@ public class Main {
         /***********************************************************************************/
         // PreprocessorSMOreg
 
-//        if(false)
+        if(doSmoreg)
         {
             Config smoreg = new Lynx()
                     .set("name", "smoreg")
@@ -189,7 +200,7 @@ public class Main {
 
         /***********************************************************************************/
         // PreprocessorANN
-//        if(false)
+        if(doAnn)
         {
             Config ann = new Lynx()
                     .set("name", "ann")
@@ -214,7 +225,7 @@ public class Main {
 
         /***********************************************************************************/
         // PreprocessorIBK
-//        if(false)
+        if(doIbk)
         {
             Config ibk = new Lynx()
                     .set("name", "ibk")
@@ -242,7 +253,7 @@ public class Main {
         }
         /***********************************************************************************/
         // PreprocessorNaiveBayes
-//        if(false)
+        if(doNaiveBayes)
         {
             Config naivebayes = new Lynx()
                     .set("name", "naivebayes")
