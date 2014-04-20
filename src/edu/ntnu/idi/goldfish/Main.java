@@ -58,32 +58,6 @@ public class Main {
 
             configs.add(baseLine);
         }
-        /***********************************************************************************/
-        // PreprocessorPuddis
-
-        if(false)
-        {
-            Config puddis = new Lynx()
-                    .set("name", "puddis")
-                    .set("model", yowSMImplicit.getModel())
-                    .set("preprocessor", PreprocessorPuddis.class)
-                    .set("average", 10000);
-
-            for (int minT = 15000; minT <= 30000; minT += 5000) {
-                for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
-                    for (PredMethod method : PredMethod.values()) {
-                        config = puddis.clone()
-                                .set("minTimeOnPage", minT)
-                                .set("correlationLimit", corrLimit)
-                                .set("predictionMethod", method);
-
-//                        configs.add(conf);
-                    }
-                }
-            }
-
-            cols.add("minTimeOnPage", "correlationLimit", "predictionMethod");
-        }
         
         /***********************************************************************************/
         // PreprocessorStat
