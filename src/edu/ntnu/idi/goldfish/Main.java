@@ -289,10 +289,13 @@ public class Main {
        
         /***********************************************************************************/
 
-		StopWatch.start("total evaluation");
-        System.out.format("Starting evaluation of %d configurations \n", configs.size());
+        int total = configs.size();
 
-        Evaluator.evaluate(configs, results, res -> System.out.println((this.i++) + "|"+res.toString(cols.getPrintFormats())));
+		StopWatch.start("total evaluation");
+        System.out.format("Starting evaluation of %d configurations.. \n", total);
+
+        Evaluator.evaluate(configs, results, res ->
+                System.out.format("%s  %5d/%d | %s\n", String.format("%1$tm-%1$td %1$tH:%1$tM:%1$tS", new Date()), this.i++, total, res.toString(cols.getPrintFormats())));
 
         System.out.println(StringUtils.repeat("=", 190));
         results.printSummary(cols.getPrintFormats());
