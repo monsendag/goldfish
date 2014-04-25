@@ -63,6 +63,9 @@ public class Columns extends LinkedHashMap<String, String> {
         printFormats.put("distFunc", "%9s");
         printFormats.put("IVs", "%1d");
         printFormats.put("kernel", "%20s");
+        printFormats.put("C", "%20s");
+        printFormats.put("kernelGamma", "%6.3f");
+        printFormats.put("kernelExponent", "%6.3f");
 
         saveFormats.put("name", "%s");
         saveFormats.put("average", "%.0f");
@@ -84,6 +87,9 @@ public class Columns extends LinkedHashMap<String, String> {
         printFormats.put("distFunc", "%s");
         saveFormats.put("IVs", "%d");
         saveFormats.put("kernel", "%s");
+        printFormats.put("C", "%s");
+        printFormats.put("kernelGamma", "%.4f");
+        printFormats.put("kernelExponent", "%.4f");
     }
 
 
