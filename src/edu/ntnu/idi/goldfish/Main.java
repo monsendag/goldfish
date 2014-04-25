@@ -83,23 +83,37 @@ public class Main {
         
         if(doStat)
         {
-        	Config stat = new Lynx()
-		    	.set("name", "stat")
-		    	.set("model", yowImplicit.getModel())
-		    	.set("preprocessor", PreprocessorStat.class)
-		    	.set("average", average);
+//        	Config stat = new Lynx()
+//		    	.set("name", "stat")
+//		    	.set("model", yowImplicit.getModel())
+//		    	.set("preprocessor", PreprocessorStat.class)
+//		    	.set("average", average);
+//
+//            for (int minT = 15000; minT <= 30000; minT += 5000) {
+//                for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
+//                    for (PredictionMethod method : PredictionMethod.values()) {
+//                        config = stat.clone()
+//                                .set("minTimeOnPage", minT)
+//                                .set("correlationLimit", corrLimit)
+//                                .set("predictionMethod", method);
+//
+//                        configs.add(config);
+//                    }
+//                }
+//            }
 
-            for (int minT = 15000; minT <= 30000; minT += 5000) {
-                for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
-                    for (PredictionMethod method : PredictionMethod.values()) {
-                        config = stat.clone()
-                                .set("minTimeOnPage", minT)
-                                .set("correlationLimit", corrLimit)
-                                .set("predictionMethod", method);
+            Config stat2 = new Lynx()
+                    .set("name", "stat2")
+                    .set("model", yowImplicit.getModel())
+                    .set("preprocessor", PreprocessorStat.class)
+                    .set("average", average)
+                    .set("correlationLimit", -1.0)
+                    .set("predictionMethod", PredictionMethod.LinearRegression);
 
-                        configs.add(config);
-                    }
-                }
+            for (int i = 15000; i <= 30000; i += 5000) {
+                config = stat2.clone()
+                        .set("minTimeOnPage", i);
+				configs.add(config);
             }
 
             cols.add("minTimeOnPage", "%5d", "%d");

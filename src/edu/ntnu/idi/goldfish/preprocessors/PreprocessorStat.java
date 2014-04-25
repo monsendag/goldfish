@@ -1,21 +1,16 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
-import edu.ntnu.idi.goldfish.StopWatch;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
-
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 
-import com.google.common.base.Stopwatch;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class PreprocessorStat extends Preprocessor{
@@ -40,7 +35,7 @@ public class PreprocessorStat extends Preprocessor{
 					.filter(row -> row.rating > 0)
 					.collect(Collectors.toList());
 			
-			if(hasImplicit(r.implicitfeedback) && enoughImplicitFeedback(feedbackForItemID)){
+			if(false && hasImplicit(r.implicitfeedback) && enoughImplicitFeedback(feedbackForItemID)){
 				
 				double[] dependentVariables = new double[feedbackForItemID.size()]; // the explicit ratings to infer
 				double[][] independentVariables = new double[feedbackForItemID.size()][]; // the implicit feedback
