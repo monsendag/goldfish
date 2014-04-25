@@ -36,6 +36,8 @@ public class Main {
 
     public Main(String[] args) throws Exception {
 
+        System.out.println("Loading configurations..");
+
         Set<String> options = new HashSet<String>(Arrays.asList(args));
 
         boolean doBaseline, doStat, doClustering, doMlr, doSmoreg, doAnn, doIbk, doNaiveBayes;
