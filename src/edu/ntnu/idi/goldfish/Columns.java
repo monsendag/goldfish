@@ -70,6 +70,10 @@ public class Columns extends LinkedHashMap<String, String> {
         printFormats.put("momentum", "%6.3f");
         printFormats.put("epochs", "%4d");
         printFormats.put("neurons", "%2s");
+        printFormats.put("K", "%2d");
+        printFormats.put("distanceMeasure", "%15s");
+        printFormats.put("minimization", "%25s");
+        printFormats.put("method", "%10s");
 
         saveFormats.put("name", "%s");
         saveFormats.put("average", "%.0f");
@@ -98,6 +102,10 @@ public class Columns extends LinkedHashMap<String, String> {
         printFormats.put("momentum", "%.4f");
         printFormats.put("epochs", "%d");
         printFormats.put("neurons", "%s");
+        printFormats.put("K", "%d");
+        printFormats.put("distanceMeasure", "%s");
+        printFormats.put("minimization", "%s");
+        printFormats.put("method", "%s");
     }
 
 

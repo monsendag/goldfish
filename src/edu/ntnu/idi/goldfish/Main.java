@@ -250,6 +250,7 @@ public class Main {
                     }
                 }
             }
+            cols.add("K", "distanceMeasure", "minimization", "method");
         }
         /***********************************************************************************/
         // PreprocessorNaiveBayes
