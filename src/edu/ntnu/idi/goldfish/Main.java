@@ -56,6 +56,8 @@ public class Main {
 
         Config config;
 
+        int average = 5000;
+
         /***********************************************************************************/
         // Baseline
 
@@ -65,7 +67,7 @@ public class Main {
             Config baseLine = new Lynx()
                     .set("name", "baseline")
                     .set("model", yowBaseline.getModel())
-                    .set("average", 5000);
+                    .set("average", average);
 
             configs.add(baseLine);
         }
@@ -79,7 +81,7 @@ public class Main {
 		    	.set("name", "stat")
 		    	.set("model", yowImplicit.getModel())
 		    	.set("preprocessor", PreprocessorStat.class)
-		    	.set("average", 5000);
+		    	.set("average", average);
 
             for (int minT = 15000; minT <= 30000; minT += 5000) {
                 for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
@@ -106,7 +108,7 @@ public class Main {
                   .set("name", "clustering")
                   .set("model", yowImplicit.getModel())
                   .set("preprocessor", PreprocessorClustering.class)
-                  .set("average", 10000);
+                  .set("average", average);
 
           for(Clusterer clusterer : Arrays.asList(Clusterer.SimpleKMeans, Clusterer.XMeans, Clusterer.DensityBased)) {
               for(ClusterDataset dataset : ClusterDataset.values()) {
@@ -149,7 +151,7 @@ public class Main {
                     .set("name", "MLR")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorMLR.class)
-                    .set("average", 5000);
+                    .set("average", average);
 
             for (int i = 1; i <= 3; i++) {
                 config = mlr.clone()
@@ -169,7 +171,7 @@ public class Main {
                     .set("name", "smoreg")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorSMOreg.class)
-                    .set("average", 5000);
+                    .set("average", average);
 
             for(double Cn = -10; Cn <= 10; Cn += 1) {
 
@@ -206,7 +208,7 @@ public class Main {
                     .set("name", "ann")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorANN.class)
-                    .set("average", 5000);
+                    .set("average", average);
 
 
             for (double learningRate = 0.1; learningRate <= 1; learningRate += 0.1) {
@@ -232,7 +234,7 @@ public class Main {
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorIBK.class)
                     .set("window", 0)
-                    .set("average", 5000);
+                    .set("average", average);
 
             for(DistanceWeighting weighting : DistanceWeighting.values()) {
                 for(ErrorMinimization minimization : ErrorMinimization.values()) {
@@ -260,7 +262,7 @@ public class Main {
                     .set("name", "naivebayes")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorNaiveBayes.class)
-                    .set("average", 5000);
+                    .set("average", average);
 
             configs.add(naivebayes);
         }
