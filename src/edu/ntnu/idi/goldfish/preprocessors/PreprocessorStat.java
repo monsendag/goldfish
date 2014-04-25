@@ -24,6 +24,7 @@ public class PreprocessorStat extends Preprocessor{
         PredictionMethod predictionMethod = config.get("predictionMethod");
         int minTimeOnPage = config.get("minTimeOnPage");
         double correlationLimit = config.get("correlationLimit");
+        int rating = config.get("rating");
         
 		List<DBModel.DBRow> allResults = model.getFeedbackRows();
 		List<DBModel.DBRow> results = allResults.stream().filter(row -> row.rating == 0).collect(Collectors.toList());
@@ -81,7 +82,7 @@ public class PreprocessorStat extends Preprocessor{
 				}
 			}
 			else if(timeOnPageFeedback(r.implicitfeedback, minTimeOnPage, 120000)){
-				model.setPreference(r.userid, r.itemid, 4);
+				model.setPreference(r.userid, r.itemid, rating);
 				pseudoRatings.add(String.format("%d_%d", r.userid, r.itemid));
 			}
 		}

@@ -111,14 +111,18 @@ public class Main {
                     .set("predictionMethod", PredictionMethod.LinearRegression);
 
             for (int i = 15000; i <= 30000; i += 5000) {
-                config = stat2.clone()
-                        .set("minTimeOnPage", i);
-				configs.add(config);
+            	for (int j = 4; j <= 5; j++) {
+            		config = stat2.clone()
+            				.set("minTimeOnPage", i)
+            				.set("rating", j);
+            		configs.add(config);
+				}
             }
 
             cols.add("minTimeOnPage", "%5d", "%d");
             cols.add("correlationLimit", "%2.1f", "%.1f");
             cols.add("predictionMethod", "%16s", "%s");
+            cols.add("rating", "%d", "%d");
         }
 
         /***********************************************************************************/
