@@ -1,112 +1,34 @@
 package edu.ntnu.idi.goldfish;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-public class Columns extends LinkedHashMap<String, String> {
-
+public class Columns {
     List<String> cols;
 
-    private static Columns printFormats = new Columns();
-    private static Columns saveFormats = new Columns();
-
+    private LinkedHashMap<String, String> printFormats;
+    private LinkedHashMap<String, String> saveFormats;
 
 	public Columns() {
         cols = new ArrayList<>();
-	}
-
-    public Columns(Columns cols) {
-        super(cols);
+        printFormats = new LinkedHashMap<>();
+        saveFormats = new LinkedHashMap<>();
     }
 
-    public void add(String col) {
-        cols.add(col);
+    public void add(String name, String printFormat, String saveFormat) {
+        cols.add(name);
+        printFormats.put(name, printFormat);
+        saveFormats.put(name, saveFormat);
     }
 
-    public void add(String... cols) {
-        Collections.addAll(this.cols, cols);
-    }
-
-    public Columns getPrintFormats() {
-        Columns printFormats = new Columns(Columns.printFormats);
-        printFormats.keySet().retainAll(cols);
+    public Map<String, String> getPrintFormats() {
         return printFormats;
     }
 
-    public Columns getSaveFormats() {
-        Columns saveFormats = new Columns(Columns.saveFormats);
-        saveFormats.keySet().retainAll(cols);
-
+    public Map<String, String> getSaveFormats() {
         return saveFormats;
     }
-
-    static {
-        printFormats.put("name", "%-11s");
-        printFormats.put("average", "%4.0f");
-        printFormats.put("similarity", "%19s");
-        printFormats.put("numFeatures", "%5.2f");
-        printFormats.put("TopN", "%3d");
-        printFormats.put("RMSE", "%6.3f");
-        printFormats.put("AAD", "%6.3f");
-        printFormats.put("precision", "%6.3f");
-        printFormats.put("recall", "%6.3f");
-        printFormats.put("buildTime", "%4.0f");
-        printFormats.put("recTime", "%2.0f");
-        printFormats.put("evalTime", "%4.0f");
-        printFormats.put("minTimeOnPage", "%5d");
-        printFormats.put("correlationLimit", "%2.1f");
-        printFormats.put("predictionMethod", "%16s");
-        printFormats.put("clusterer", "%13s");
-        printFormats.put("clusterDataset", "%18s");
-        printFormats.put("distFunc", "%9s");
-        printFormats.put("IVs", "%1d");
-        printFormats.put("kernel", "%20s");
-        printFormats.put("C", "%20s");
-        printFormats.put("kernelGamma", "%6.3f");
-        printFormats.put("kernelExponent", "%6.3f");
-        printFormats.put("learningRate", "%6.3f");
-        printFormats.put("momentum", "%6.3f");
-        printFormats.put("epochs", "%4d");
-        printFormats.put("neurons", "%2s");
-        printFormats.put("K", "%2d");
-        printFormats.put("distanceMeasure", "%15s");
-        printFormats.put("minimization", "%25s");
-        printFormats.put("method", "%10s");
-
-        saveFormats.put("name", "%s");
-        saveFormats.put("average", "%.0f");
-        saveFormats.put("similarity", "%s");
-        saveFormats.put("numFeatures", "%.2f");
-        saveFormats.put("TopN", "%d");
-        saveFormats.put("RMSE", "%.3f");
-        saveFormats.put("AAD", "%.3f");
-        saveFormats.put("precision", "%.3f");
-        saveFormats.put("recall", "%.3f");
-        saveFormats.put("buildTime", "%.0f");
-        saveFormats.put("recTime", "%.0f");
-        saveFormats.put("evalTime", "%.0f");
-        saveFormats.put("minTimeOnPage", "%d");
-        saveFormats.put("correlationLimit", "%.1f");
-        saveFormats.put("predictionMethod", "%s");
-        saveFormats.put("clusterer", "%s");
-        saveFormats.put("clusterDataset", "%s");
-        printFormats.put("distFunc", "%s");
-        saveFormats.put("IVs", "%d");
-        saveFormats.put("kernel", "%s");
-        printFormats.put("C", "%s");
-        printFormats.put("kernelGamma", "%.4f");
-        printFormats.put("kernelExponent", "%.4f");
-        printFormats.put("learningRate", "%.4f");
-        printFormats.put("momentum", "%.4f");
-        printFormats.put("epochs", "%d");
-        printFormats.put("neurons", "%s");
-        printFormats.put("K", "%d");
-        printFormats.put("distanceMeasure", "%s");
-        printFormats.put("minimization", "%s");
-        printFormats.put("method", "%s");
-    }
-
 
 }

@@ -54,7 +54,11 @@ public class Main {
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
         Columns cols = new Columns();
-        cols.add("name", "average", "RMSE", "evalTime");
+
+        cols.add("name", "%-11s", "%s");
+        cols.add("average", "%4.0f", "%.0f");
+        cols.add("RMSE", "%6.3f", "%.3f");
+        cols.add("evalTime", "%4.0f", "%.0f");
 
         Config config;
 
@@ -98,7 +102,9 @@ public class Main {
                 }
             }
 
-            cols.add("minTimeOnPage", "correlationLimit", "predictionMethod");
+            cols.add("minTimeOnPage", "%5d", "%d");
+            cols.add("correlationLimit", "%2.1f", "%.1f");
+            cols.add("predictionMethod", "%16s", "%s");
         }
 
         /***********************************************************************************/
@@ -141,8 +147,9 @@ public class Main {
 						.set("distFunc", DistFunc.Chebyshev);
 				configs.add(config);
 			}
-          
-          cols.add("clusterer", "clusterDataset", "distFunc");
+          cols.add("clusterer", "%13s", "%s");
+          cols.add("clusterDataset", "%18s", "%s");
+          cols.add("distFunc", "%9s", "%s");
       }
         /***********************************************************************************/
         // PreprocessorMLR
@@ -161,7 +168,7 @@ public class Main {
                 configs.add(config);
             }
 
-            cols.add("IVs");
+            cols.add("IVs", "%2d", "%d");
         }
 
         /***********************************************************************************/
@@ -199,7 +206,10 @@ public class Main {
                 }
             }
 
-            cols.add("kernel", "C", "kernelGamma", "kernelExponent");
+            cols.add("kernel", "%20s", "%s");
+            cols.add("C", "%6.5f", "%.5f");
+            cols.add("kernelGamma", "%6.5f", "%.5f");
+            cols.add("kernelExponent", "%6.5f", "%.5f");
         }
 
         /***********************************************************************************/
@@ -224,7 +234,11 @@ public class Main {
                     configs.add(config);
                 }
             }
-            cols.add("learningRate", "momentum", "epochs", "neurons");
+
+            cols.add("learningRate", "%6.5f", "%.5f");
+            cols.add("momentum", "%6.5f", "%.5f");
+            cols.add("epochs", "%4d", "%d");
+            cols.add("neurons", "%s", "%s");
         }
 
         /***********************************************************************************/
@@ -254,7 +268,11 @@ public class Main {
                     }
                 }
             }
-            cols.add("K", "distanceMeasure", "minimization", "method");
+
+            cols.add("K", "%2d", "%d");
+            cols.add("distanceMeasure", "%15s", "%s");
+            cols.add("minimization", "%25s", "%s");
+            cols.add("method", "%10s", "%s");
         }
         /***********************************************************************************/
         // PreprocessorNaiveBayes

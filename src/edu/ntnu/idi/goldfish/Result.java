@@ -3,9 +3,9 @@ package edu.ntnu.idi.goldfish;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Result extends HashMap<String, Object> {
@@ -34,20 +34,17 @@ public class Result extends HashMap<String, Object> {
         return this;
     }
 
-	public String toString(Columns columns) {
-        List<String> values = columns.keySet().stream().map(col -> {
-            Object value = has(col) ? get(col) : null;
-            return String.format("%s: " + columns.get(col), col, value);
-        }).collect(Collectors.toList());
+	public String toString(Map<String, String> columns) {
+        List<String> values = columns.keySet().stream().map(col ->
+                has(col) ? String.format("%s: " + columns.get(col), col, get(col)) : "-")
+        .collect(Collectors.toList());
         return StringUtils.join(values, " | ");
 	}
 	
-	public String toTSV(Columns columns) {
-        List<String> values = new ArrayList<>();
-        for(String col : columns.keySet()) {
-            Object value = has(col) ? get(col) : null;
-            values.add(String.format(columns.get(col), value));
-        }
-		return StringUtils.join(values, "\t");
+	public String toTSV(Map<String, String> columns) {
+        List<String> values = columns.keySet().stream().map(col ->
+                has(col) ? String.format("%s" + columns.get(col), "", get(col)) : "null")
+        .collect(Collectors.toList());
+        return StringUtils.join(values, "\t");
 	}
 }

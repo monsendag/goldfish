@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 public class ResultList extends ArrayList<Result> {
 
@@ -17,17 +18,16 @@ public class ResultList extends ArrayList<Result> {
         return super.add(res);
     }
 
-    public void printSummary(Columns columns) {
+    public void printSummary(Map<String, String> columns) {
         System.out.println(getTotal().toString(columns));
         System.out.println(getAverage().toString(columns));
     }
 
-	public void print(Columns columns) {
+	public void print(Map<String, String> columns) {
         forEach(r -> System.out.println(r.toString(columns)));
     }
 
-
-	public String toTSV(Columns columns) {
+	public String toTSV(Map<String, String> columns) {
 		String out = "";
 		out += StringUtils.join(columns.keySet(), "\t") +"\n";
         out += getTotal().toTSV(columns)+"\n";
@@ -38,7 +38,7 @@ public class ResultList extends ArrayList<Result> {
         return out;
 	}
 
-    public void save(Columns columns) throws IOException {
+    public void save(Map<String, String> columns) throws IOException {
         String output = toTSV(columns);
         String dateTime = String.format("%1$tY-%1$tm-%1$td-%1$tH%1$tM%1$tS", new Date());
         String fileName = String.format("results/%s-%s%s.tsv", dateTime, "", "");
@@ -50,6 +50,7 @@ public class ResultList extends ArrayList<Result> {
     }
 
     public Result getTotal() {
+        // list of properties relevant to calculate totals of
         String[] properties = new String[]{"RMSE", "AAD", "precision", "recall", "buildTime", "recTime", "evalTime", "average"};
 
         // create result object
@@ -74,6 +75,7 @@ public class ResultList extends ArrayList<Result> {
     }
 
     public Result getAverage() {
+        // list of properties relevant to calculate averages of
         String[] properties = new String[]{"RMSE", "AAD", "precision", "recall", "buildTime", "recTime", "evalTime", "average"};
         Result total = getTotal();
         Result average = new Result().set("name", "# AVERAGE");
