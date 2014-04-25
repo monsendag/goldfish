@@ -220,7 +220,7 @@ public class Main {
                     configs.add(config);
                 }
             }
-            cols.add("learningRate");
+            cols.add("learningRate", "momentum", "epochs", "neurons");
         }
 
         /***********************************************************************************/
