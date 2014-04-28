@@ -60,7 +60,7 @@ public class PreprocessorPuddis extends Preprocessor {
 	 * 		the model to preprocess
 	 * @throws TasteException
 	 */
-	public DataModel preprocess(Config config) throws Exception {
+	public DataModel getProcessedModel(Config config) throws Exception {
         SMDataModel model = config.get("model");
         PredMethod predictionMethod = config.get("predictionMethod");
         int minTimeOnPage = config.get("minTimeOnPage");

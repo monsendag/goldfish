@@ -91,7 +91,7 @@ public class PreprocessorClustering extends Preprocessor {
 	}
 		
 	@Override
-	public DataModel preprocess(Config config) throws Exception {
+	public DataModel getProcessedModel(Config config) throws Exception {
         DBModel model = config.get("model");
         Clusterer clusterer = config.get("clusterer");
         ClusterDataset clusterDataset = config.get("clusterDataset");

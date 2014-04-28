@@ -17,7 +17,7 @@ public class PreprocessorSMOreg extends PreprocessorClassifier {
     }
 
     @Override
-    public DataModel preprocess(Config config) throws Exception {
+    public DataModel getProcessedModel(Config config) throws Exception {
         Classifier classifier = new SMOreg();
 
         double C = config.get("C", 1.0);

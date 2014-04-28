@@ -16,7 +16,7 @@ public class PreprocessorTime extends Preprocessor{
 
 	public static enum PredictionMethod { LinearRegression, ClosestNeighbor, EqualBins }
 	
-	public DataModel preprocess(Config config) throws TasteException, IOException {
+	public DataModel getProcessedModel(Config config) throws TasteException, IOException {
         DBModel model = config.get("model");
         int minTimeOnPage = config.get("minTimeOnPage");
         int rating = config.get("rating");

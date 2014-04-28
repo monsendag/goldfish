@@ -19,7 +19,7 @@ import java.util.Set;
 
 public abstract class Preprocessor {
 	
-	protected static Set<String> pseudoRatings = new HashSet<String>();
+	protected static Set<String> pseudoRatings = new HashSet<>();
 	protected final int RATING_INDEX = 0;
 	protected final int TIME_ON_PAGE_INDEX = 1;
 	protected final int TIME_ON_MOUSE_INDEX = 2;
@@ -30,13 +30,18 @@ public abstract class Preprocessor {
 	}
 
 
-    public abstract DataModel preprocess(Config config) throws Exception;
+    public final DataModel preprocess(Config config) throws Exception {
+        pseudoRatings = new HashSet<>();
+        DataModel processed = getProcessedModel(config);
+        config.set("pseudoRatings", pseudoRatings.size());
+        return processed;
+    }
+
+    public abstract DataModel getProcessedModel(Config config) throws Exception;
 
     /**
      * Write dataset to file with csv format
-     *
-     * @param filename
-     *            url with location and filename
+     * @param path url with location and filename
      */
     public static void writeDataModelToCsv(DataModel model, String path) {
         try {

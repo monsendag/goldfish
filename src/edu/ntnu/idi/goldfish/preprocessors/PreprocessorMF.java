@@ -15,7 +15,7 @@ import org.apache.mahout.cf.taste.recommender.Recommender;
 public class PreprocessorMF extends Preprocessor {
 
     @Override
-    public DataModel preprocess(Config config) throws TasteException {
+    public DataModel getProcessedModel(Config config) throws TasteException {
 
         DBModel model = config.get("model");
         LongPrimitiveIterator userIter = model.getUserIDs();

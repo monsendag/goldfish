@@ -13,7 +13,7 @@ public class PreprocessorNaiveBayes extends PreprocessorClassifier {
 
 
     @Override
-    public DataModel preprocess(Config config) throws Exception {
+    public DataModel getProcessedModel(Config config) throws Exception {
         Classifier classifier = new NaiveBayes();
 
         String options = "";

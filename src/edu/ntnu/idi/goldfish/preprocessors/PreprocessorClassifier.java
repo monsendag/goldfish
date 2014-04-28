@@ -39,6 +39,4 @@ public abstract class PreprocessorClassifier extends Preprocessor {
         return new FileDataModel(new File(tempPath));
     }
 
-    public abstract DataModel preprocess(Config config) throws Exception;
-
 }

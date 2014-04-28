@@ -43,7 +43,7 @@ public class PreprocessorIBK extends PreprocessorClassifier {
     }
 
     @Override
-    public DataModel preprocess(Config config) throws Exception {
+    public DataModel getProcessedModel(Config config) throws Exception {
         Classifier classifier = new IBk();
 
         DistanceWeighting distanceMeasure = config.get("distanceMeasure", DistanceWeighting.Distance);

@@ -12,9 +12,7 @@ import org.apache.mahout.cf.taste.model.DataModel;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -24,7 +22,7 @@ import java.util.stream.Collectors;
  */
 public class PreprocessorMLR extends Preprocessor {
 
-	public DataModel preprocess(Config config) throws TasteException, IOException {
+	public DataModel getProcessedModel(Config config) throws TasteException, IOException {
 		DBModel model = config.get("model");
 		int numberOfIndependentVariables = config.get("IVs");
 		if(numberOfIndependentVariables == 0) throw new NumberIsTooSmallException(numberOfIndependentVariables, 1, true);

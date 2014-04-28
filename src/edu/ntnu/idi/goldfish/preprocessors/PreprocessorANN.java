@@ -11,7 +11,7 @@ import weka.core.converters.ConverterUtils;
 public class PreprocessorANN extends PreprocessorClassifier {
 
     @Override
-    public DataModel preprocess(Config config) throws Exception {
+    public DataModel getProcessedModel(Config config) throws Exception {
         Classifier classifier = new MultilayerPerceptron();
 
         double learningRate = config.get("learningRate", 0.3);
