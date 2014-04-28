@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class PreprocessorClustering extends Preprocessor{
+public class PreprocessorClustering extends Preprocessor {
 
 	private ClassificationViaClustering cvc = null;
 	private Instances data = null;
