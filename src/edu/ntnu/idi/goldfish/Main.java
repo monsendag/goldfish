@@ -43,14 +43,14 @@ public class Main {
         boolean doBaseline, doStat, doClustering, doMlr, doSmoreg, doAnn, doIbk, doNaiveBayes, doTime;
         doBaseline = options.contains("-baseline");
         doStat = options.contains("-stat");
+        doTime = options.contains("-time");
         doClustering = options.contains("-clustering");
         doMlr = options.contains("-mlr");
         doSmoreg = options.contains("-smoreg");
         doAnn = options.contains("-ann");
         doIbk = options.contains("-ibk");
         doNaiveBayes = options.contains("-naivebayes");
-        doTime = options.contains("-time");
-//        doBaseline = doStat = doClustering = doMlr = doSmoreg = doAnn = doIbk = doNaiveBayes = true;
+        doBaseline = doStat = doTime = doClustering = doMlr = doSmoreg = doAnn = doIbk = doNaiveBayes = true;
 
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
@@ -64,7 +64,7 @@ public class Main {
 
         Config config;
 
-        int average = 10;
+        int average = 2;
 
         /***********************************************************************************/
         // Baseline
@@ -89,7 +89,8 @@ public class Main {
 		    	.set("name", "stat")
 		    	.set("model", yowImplicit.getModel())
 		    	.set("preprocessor", PreprocessorStat.class)
-		    	.set("average", average);
+		    	.set("average", average)
+                .set("rating", 4);
 
             for (int minT = 15000; minT <= 30000; minT += 5000) {
                 for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
@@ -119,7 +120,7 @@ public class Main {
         	 Config time = new Lynx()
              .set("name", "time")
              .set("model", yowImplicit.getModel())
-             .set("preprocessor", PreprocessorStat.class)
+             .set("preprocessor", PreprocessorTime.class)
              .set("average", average);
 
 		     for (int i = 15000; i <= 30000; i += 5000) {
