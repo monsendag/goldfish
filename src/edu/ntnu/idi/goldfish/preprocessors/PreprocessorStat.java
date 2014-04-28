@@ -5,10 +5,7 @@ import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
-import org.apache.mahout.cf.taste.model.DataModel;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,7 +16,7 @@ public class PreprocessorStat extends Preprocessor{
 	
 	public static enum PredictionMethod { LinearRegression, ClosestNeighbor, EqualBins }
 	
-	public DataModel getProcessedModel(Config config) throws TasteException, IOException {
+	public DBModel getProcessedModel(Config config) throws TasteException, IOException {
         DBModel model = config.get("model");
         PredictionMethod predictionMethod = config.get("predictionMethod");
         int minTimeOnPage = config.get("minTimeOnPage");
@@ -76,20 +73,17 @@ public class PreprocessorStat extends Preprocessor{
 					}
 					
 					model.setPreference(r.userid, r.itemid, (float) Math.round(pseudoRating));
-					pseudoRatings.add(String.format("%d_%d", r.userid, r.itemid));
+					addPseudoPref(r.userid, r.itemid);
 					
 //					System.out.println(String.format("%d, %d, %.0f", r.userid, r.itemid, pseudoRating));
 				}
 			}
 			else if(timeOnPageFeedback(r.implicitfeedback, minTimeOnPage, 120000)){
 				model.setPreference(r.userid, r.itemid, rating);
-				pseudoRatings.add(String.format("%d_%d", r.userid, r.itemid));
+				addPseudoPref(r.userid, r.itemid);
 			}
 		}
-
-		String tempPath = String.format("/tmp/preprocessor-stat-remove-invalid-%s.csv", Thread.currentThread().hashCode());
-		model.DBModelToCsv(model, tempPath);
-		return new FileDataModel(new File(tempPath));
+		return model;
 	}
 	
 	public boolean hasImplicit(float[] implicitfeedback){

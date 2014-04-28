@@ -1,7 +1,7 @@
 package edu.ntnu.idi.goldfish.preprocessors;
 
 import edu.ntnu.idi.goldfish.configurations.Config;
-import org.apache.mahout.cf.taste.model.DataModel;
+import edu.ntnu.idi.goldfish.mahout.DBModel;
 import weka.classifiers.Classifier;
 import weka.classifiers.functions.SMOreg;
 import weka.core.Instances;
@@ -17,7 +17,7 @@ public class PreprocessorSMOreg extends PreprocessorClassifier {
     }
 
     @Override
-    public DataModel getProcessedModel(Config config) throws Exception {
+    public DBModel getProcessedModel(Config config) throws Exception {
         Classifier classifier = new SMOreg();
 
         double C = config.get("C", 1.0);

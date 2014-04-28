@@ -2,8 +2,6 @@ package edu.ntnu.idi.goldfish.preprocessors;
 
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
-import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
-import org.apache.mahout.cf.taste.model.DataModel;
 import weka.classifiers.meta.ClassificationViaClustering;
 import weka.clusterers.*;
 import weka.core.*;
@@ -11,7 +9,6 @@ import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.List;
@@ -91,7 +88,7 @@ public class PreprocessorClustering extends Preprocessor {
 	}
 		
 	@Override
-	public DataModel getProcessedModel(Config config) throws Exception {
+	public DBModel getProcessedModel(Config config) throws Exception {
         DBModel model = config.get("model");
         Clusterer clusterer = config.get("clusterer");
         ClusterDataset clusterDataset = config.get("clusterDataset");
@@ -188,13 +185,10 @@ public class PreprocessorClustering extends Preprocessor {
 			int rating = (int) (cvc.classifyInstance(i)+1); // zero indexed
 			
 			model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
-			pseudoRatings.add(String.format("%d_%d", row.userid, row.itemid));
+			addPseudoPref(row.userid, row.itemid);
 		}
 		
-		String tempPath = String.format("/tmp/preprocessor-clustering-remove-invalid-%s.csv", Thread.currentThread().hashCode());
-		model.DBModelToCsv(model, tempPath);
-		
-		return new FileDataModel(new File(tempPath));
+		return model;
 	}
 	
 	public void ManualClassificationViaClustering() throws Exception{

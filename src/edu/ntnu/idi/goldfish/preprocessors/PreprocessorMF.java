@@ -5,7 +5,6 @@ import edu.ntnu.idi.goldfish.mahout.DBModel;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
-import org.apache.mahout.cf.taste.impl.model.GenericDataModel;
 import org.apache.mahout.cf.taste.impl.recommender.svd.ALSWRFactorizer;
 import org.apache.mahout.cf.taste.impl.recommender.svd.SVDRecommender;
 import org.apache.mahout.cf.taste.model.DataModel;
@@ -15,7 +14,7 @@ import org.apache.mahout.cf.taste.recommender.Recommender;
 public class PreprocessorMF extends Preprocessor {
 
     @Override
-    public DataModel getProcessedModel(Config config) throws TasteException {
+    public DBModel getProcessedModel(Config config) throws TasteException {
 
         DBModel model = config.get("model");
         LongPrimitiveIterator userIter = model.getUserIDs();
@@ -50,7 +49,7 @@ public class PreprocessorMF extends Preprocessor {
                 long itemID = itemIter.next();
 
                 if(prefModel.getPreferenceValue(DBModel.EXPLICIT, itemID) == null) {
-                    pseudoRatings.add(String.format("%d_%d", DBModel.EXPLICIT, itemID));
+                    addPseudoPref(userID, itemID);
                     float pref = rec.estimatePreference(DBModel.EXPLICIT, itemID);
                     System.out.printf("estimated: user: %d, item: %d, pref: %.2f\n", userID, itemID, pref);
                     prefModel.setPreference(DBModel.EXPLICIT, itemID, pref);
@@ -61,6 +60,6 @@ public class PreprocessorMF extends Preprocessor {
             explicitPrefs.setUserID(0, userID);
             userData.put(userID, explicitPrefs);
         }
-        return new GenericDataModel(userData);
+        return new DBModel(userData);
     }
 }

@@ -387,14 +387,14 @@ public class DBModel implements DataModel {
         return rows;
     }
     
-    public void DBModelToCsv(DBModel model, String path){
+    public void toCSV(String path){
     	try {
             FileWriter writer = new FileWriter(new File(path));
             float rating;
             long itemId;
             long userId;
 
-            List<DBModel.DBRow> allResults = model.getFeedbackRows();
+            List<DBModel.DBRow> allResults = getFeedbackRows();
             List<DBModel.DBRow> results = allResults.stream().filter(row -> row.rating > 0).collect(Collectors.toList());
             for (DBRow r : results) {
             	rating = r.rating;
