@@ -311,7 +311,7 @@ public class DBModel implements DataModel {
 
     @Override
     public void removePreference(long userID, long itemID) throws TasteException {
-        context.delete(table).where(userField.equal(userID).and(itemField.equal(itemID)));
+        context.delete(table).where(userField.equal(userID).and(itemField.equal(itemID)).and(fbackField.equal(EXPLICIT))).execute();
     }
 
     @Override
