@@ -280,6 +280,14 @@ public class DBModel implements DataModel {
         return context.selectCount().from(table).groupBy(userField).fetchCount();
     }
 
+    public int getNumPrefs() throws TasteException {
+        return getNumPrefs(EXPLICIT);
+    }
+
+    public int getNumPrefs(long fbackID) throws TasteException {
+        return context.select().from(table).where(fbackField.equal(fbackID)).fetchCount();
+    }
+
     @Override
     public int getNumUsersWithPreferenceFor(long itemID) throws TasteException {
         return context.selectDistinct(userField).from(table)
