@@ -40,7 +40,7 @@ public class Main {
 
         Set<String> options = new HashSet<String>(Arrays.asList(args));
 
-        boolean doBaseline, doStat, doClustering, doMlr, doSmoreg, doAnn, doIbk, doNaiveBayes;
+        boolean doBaseline, doStat, doClustering, doMlr, doSmoreg, doAnn, doIbk, doNaiveBayes, doTime;
         doBaseline = options.contains("-baseline");
         doStat = options.contains("-stat");
         doClustering = options.contains("-clustering");
@@ -49,7 +49,9 @@ public class Main {
         doAnn = options.contains("-ann");
         doIbk = options.contains("-ibk");
         doNaiveBayes = options.contains("-naivebayes");
+        doTime = options.contains("-time");
 //        doBaseline = doStat = doClustering = doMlr = doSmoreg = doAnn = doIbk = doNaiveBayes = true;
+        doTime = true;
 
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
@@ -62,7 +64,7 @@ public class Main {
 
         Config config;
 
-        int average = 5000;
+        int average = 10;
 
         /***********************************************************************************/
         // Baseline
@@ -83,48 +85,56 @@ public class Main {
         
         if(doStat)
         {
-//        	Config stat = new Lynx()
-//		    	.set("name", "stat")
-//		    	.set("model", yowImplicit.getModel())
-//		    	.set("preprocessor", PreprocessorStat.class)
-//		    	.set("average", average);
-//
-//            for (int minT = 15000; minT <= 30000; minT += 5000) {
-//                for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
-//                    for (PredictionMethod method : PredictionMethod.values()) {
-//                        config = stat.clone()
-//                                .set("minTimeOnPage", minT)
-//                                .set("correlationLimit", corrLimit)
-//                                .set("predictionMethod", method);
-//
-//                        configs.add(config);
-//                    }
-//                }
-//            }
+        	Config stat = new Lynx()
+		    	.set("name", "stat")
+		    	.set("model", yowImplicit.getModel())
+		    	.set("preprocessor", PreprocessorStat.class)
+		    	.set("average", average);
 
-            Config stat2 = new Lynx()
-                    .set("name", "stat2")
-                    .set("model", yowImplicit.getModel())
-                    .set("preprocessor", PreprocessorStat.class)
-                    .set("average", average)
-                    .set("correlationLimit", -1.0)
-                    .set("predictionMethod", PredictionMethod.LinearRegression);
+            for (int minT = 15000; minT <= 30000; minT += 5000) {
+                for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
+                    for (PredictionMethod method : PredictionMethod.values()) {
+                        config = stat.clone()
+                                .set("minTimeOnPage", minT)
+                                .set("correlationLimit", corrLimit)
+                                .set("predictionMethod", method);
 
-            for (int i = 15000; i <= 30000; i += 5000) {
-            	for (int j = 4; j <= 5; j++) {
-            		config = stat2.clone()
-            				.set("minTimeOnPage", i)
-            				.set("rating", j);
-            		configs.add(config);
-				}
+                        configs.add(config);
+                    }
+                }
             }
 
+           
             cols.add("minTimeOnPage", "%5d", "%d");
             cols.add("correlationLimit", "%2.1f", "%.1f");
             cols.add("predictionMethod", "%16s", "%s");
-            cols.add("rating", "%d", "%d");
         }
 
+        /***********************************************************************************/
+        // Time
+
+        if(doTime)
+        {
+
+        	 Config time = new Lynx()
+             .set("name", "time")
+             .set("model", yowImplicit.getModel())
+             .set("preprocessor", PreprocessorStat.class)
+             .set("average", average);
+
+		     for (int i = 15000; i <= 30000; i += 5000) {
+		     	for (int j = 4; j <= 5; j++) {
+		     		config = time.clone()
+		     				.set("minTimeOnPage", i)
+		     				.set("rating", j);
+		     		configs.add(config);
+					}
+		     	}
+		     
+		     cols.add("minTimeOnPage", "%5d", "%d");
+		     cols.add("rating", "%d", "%d");
+        }
+        
         /***********************************************************************************/
         // PreprocessorClustering
 

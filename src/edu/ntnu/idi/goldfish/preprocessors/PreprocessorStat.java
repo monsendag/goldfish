@@ -36,7 +36,7 @@ public class PreprocessorStat extends Preprocessor{
 					.filter(row -> row.rating > 0)
 					.collect(Collectors.toList());
 			
-			if(false && hasImplicit(r.implicitfeedback) && enoughImplicitFeedback(feedbackForItemID)){
+			if(hasImplicit(r.implicitfeedback) && enoughImplicitFeedback(feedbackForItemID)){
 				
 				double[] dependentVariables = new double[feedbackForItemID.size()]; // the explicit ratings to infer
 				double[][] independentVariables = new double[feedbackForItemID.size()][]; // the implicit feedback

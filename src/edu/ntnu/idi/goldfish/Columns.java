@@ -1,18 +1,18 @@
 package edu.ntnu.idi.goldfish;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Columns {
-    List<String> cols;
+    Set<String> cols;
 
     private LinkedHashMap<String, String> printFormats;
     private LinkedHashMap<String, String> saveFormats;
 
 	public Columns() {
-        cols = new ArrayList<>();
+        cols = new HashSet<>();
         printFormats = new LinkedHashMap<>();
         saveFormats = new LinkedHashMap<>();
     }
