@@ -51,7 +51,6 @@ public class Main {
         doNaiveBayes = options.contains("-naivebayes");
         doTime = options.contains("-time");
 //        doBaseline = doStat = doClustering = doMlr = doSmoreg = doAnn = doIbk = doNaiveBayes = true;
-        doTime = true;
 
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
@@ -60,6 +59,7 @@ public class Main {
         cols.add("name", "%-11s", "%s");
         cols.add("average", "%4.0f", "%.0f");
         cols.add("RMSE", "%6.3f", "%.3f");
+        cols.add("pseudoRatings", "%4d", "%d");
         cols.add("evalTime", "%4.0f", "%.0f");
 
         Config config;
