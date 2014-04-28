@@ -62,7 +62,7 @@ public class PreprocessorStat extends Preprocessor{
 						pseudoRating = getPseudoRatingLinearRegression(dependentVariables, independentVariables, bestCorrelated, r.implicitfeedback);
 						break;
 					case ClosestNeighbor:
-						pseudoRating = getPseudoRatingClosestNeighbor(independentVariables, bestCorrelated, r.implicitfeedback);
+						pseudoRating = getPseudoRatingClosestNeighbor(dependentVariables, independentVariables, bestCorrelated, r.implicitfeedback);
 						break;
 					case EqualBins:
 						pseudoRating = getPseudoRatingEqualBins(independentVariables, bestCorrelated, r.implicitfeedback, correlation);
@@ -147,7 +147,7 @@ public class PreprocessorStat extends Preprocessor{
 		return (float) Math.round(t.predict(implicitfeedback[bestCorrelated]));
 	}
 	
-	private float getPseudoRatingClosestNeighbor(double[][] iv, int bestCorrelated, float[] implicitFeedback) {
+	private float getPseudoRatingClosestNeighbor(double[] dv, double[][] iv, int bestCorrelated, float[] implicitFeedback) {
 		float diff = Float.MAX_VALUE;
 		float closestPref = 0;
 		
@@ -155,7 +155,7 @@ public class PreprocessorStat extends Preprocessor{
 			float tempDiff = (float) Math.abs(implicitFeedback[bestCorrelated] - iv[i][bestCorrelated]);
 			if(tempDiff < diff){
 				diff = tempDiff;
-				closestPref = (float) iv[i][bestCorrelated];
+				closestPref = (float) dv[i];
 			}
 		}
 
