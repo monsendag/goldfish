@@ -50,7 +50,7 @@ public class Main {
         doAnn = options.contains("-ann");
         doIbk = options.contains("-ibk");
         doNaiveBayes = options.contains("-naivebayes");
-        doBaseline = doStat = doTime = doClustering = doMlr = doSmoreg = doAnn = doIbk = doNaiveBayes = true;
+//        doBaseline = doStat = doTime = doClustering = doMlr = doSmoreg = doAnn = doIbk = doNaiveBayes = true;
 
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
@@ -64,7 +64,7 @@ public class Main {
 
         Config config;
 
-        int average = 2;
+        int average = 5000;
 
         /***********************************************************************************/
         // Baseline
@@ -253,7 +253,7 @@ public class Main {
 
 
             for (double learningRate = 0.1; learningRate <= 1; learningRate += 0.1) {
-                for (double momentum = 0.1; momentum <= 1; momentum += 0.1) {
+                for (double momentum : new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}) {
 
                     config = ann.clone()
                         .set("learningRate", learningRate)
