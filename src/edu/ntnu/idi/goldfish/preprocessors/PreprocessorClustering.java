@@ -209,39 +209,6 @@ public class PreprocessorClustering extends Preprocessor{
 		return new FileDataModel(new File(tempPath));
 	}
 	
-	public void preprocess(SMDataModel model) throws Exception {
-		
-		int counter = 0;
-		// iterate through all items
-		LongPrimitiveIterator it = model.getItemIDs();
-		while (it.hasNext()) {
-			
-			long itemID = it.next();
-			PreferenceArray prefs = model.getPreferencesForItem(itemID);
-			
-			// iterate through all prefs for item
-			for (Preference p : prefs) {
-	
-				SMPreference pref = (SMPreference) p;
-				boolean hasExplicit = pref.getValue(RATING_INDEX) >= 1;
-	
-				if (!hasExplicit) {
-					Instance i = new Instance(1, new double[]{-1, pref.getValue(TIME_ON_PAGE_INDEX), 
-							pref.getValue(TIME_ON_MOUSE_INDEX)});
-					i.setDataset(data);
-					int pseudorating = (int) (cvc.classifyInstance(i) + 1);
-					
-					System.out.println(String.format("%d: User %d gave item %d a pseudorating of: %d", 
-							++counter, pref.getUserID(), pref.getItemID(), pseudorating));
-					
-					pref.setValue(pseudorating, RATING_INDEX);
-					pseudoRatings.add(String.format("%d_%d", pref.getUserID(), pref.getItemID()));
-				}
-			}
-		}
-	}
-
-	
 	public void ManualClassificationViaClustering() throws Exception{
 		
 		// create the simpleKMeans cluster
