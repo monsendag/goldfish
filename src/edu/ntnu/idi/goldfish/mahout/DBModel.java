@@ -53,9 +53,15 @@ public class DBModel implements DataModel {
 
     }
 
-    public void startServer() throws SQLException {
-        Server webServer = Server.createWebServer("-webAllowOthers").start();
-        System.out.println("Running server on http://localhost:8082 at jdbc:h2:mem:"+this.hashCode());
+    public static void startServer() throws SQLException {
+        new Thread(() -> {
+            try {
+                Server webServer = Server.createWebServer("-webAllowOthers").start();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
     }
 
     public DBModel(File f) throws Exception {
@@ -181,6 +187,10 @@ public class DBModel implements DataModel {
             // set indices
             context.query("CREATE INDEX uindex ON yow (userid)").execute();
             context.query("CREATE INDEX iindex ON yow (itemid)").execute();
+
+
+            System.out.println("Browse DB at http://localhost:8082 with address jdbc:h2:mem:"+this.hashCode());
+
         } catch (Exception e) {
             e.printStackTrace();
         }
