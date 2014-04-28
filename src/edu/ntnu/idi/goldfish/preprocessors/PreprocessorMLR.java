@@ -35,7 +35,7 @@ public class PreprocessorMLR extends Preprocessor {
 			
 			float pseudoRating = (float) beta[0];
 			for (int i = 0; i < numberOfIndependentVariables; i++) {
-				pseudoRating += beta[i] * row.implicitfeedback[i];
+				pseudoRating += beta[i+1] * row.implicitfeedback[i];
 			}
 			
 			// is pseudo rating > 5, then outlier feedback has been used and we don't want to use this pseudo rating
