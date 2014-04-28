@@ -2,23 +2,11 @@ package edu.ntnu.idi.goldfish.preprocessors;
 
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
-import edu.ntnu.idi.goldfish.mahout.SMDataModel;
-import edu.ntnu.idi.goldfish.mahout.SMPreference;
-
-import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
-import org.apache.mahout.cf.taste.model.Preference;
-import org.apache.mahout.cf.taste.model.PreferenceArray;
-
 import weka.classifiers.meta.ClassificationViaClustering;
 import weka.clusterers.*;
-import weka.core.ChebyshevDistance;
-import weka.core.DistanceFunction;
-import weka.core.EuclideanDistance;
-import weka.core.Instance;
-import weka.core.Instances;
-import weka.core.ManhattanDistance;
+import weka.core.*;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 
