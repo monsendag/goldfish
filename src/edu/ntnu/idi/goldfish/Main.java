@@ -51,7 +51,8 @@ public class Main {
         doIbk = options.contains("-ibk");
         doNaiveBayes = options.contains("-naivebayes");
 //        doBaseline = doStat = doTime = doClustering = doMlr = doSmoreg = doAnn = doIbk = doNaiveBayes = true;
-
+        doStat = true;
+        
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
         Columns cols = new Columns();
@@ -93,7 +94,7 @@ public class Main {
                 .set("rating", 4);
 
             for (int minT = 15000; minT <= 30000; minT += 5000) {
-                for (double corrLimit = 0.4; corrLimit <= 0.8; corrLimit += 0.1) {
+            	for (double corrLimit : new double[]{0.0, 0.1, 0.2, 0.3}) {
                     for (PredictionMethod method : PredictionMethod.values()) {
                         config = stat.clone()
                                 .set("minTimeOnPage", minT)
