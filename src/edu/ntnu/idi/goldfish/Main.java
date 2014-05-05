@@ -340,6 +340,7 @@ public class Main {
 
         System.out.println(StringUtils.repeat("=", 190));
         results.printSummary(cols.getPrintFormats());
+//        results.print(cols.getPrintFormats());
 
         System.out.format("Evaluated %d configurations in %s \n", configs.size(), StopWatch.str("total evaluation"));
         results.save(cols.getSaveFormats());
