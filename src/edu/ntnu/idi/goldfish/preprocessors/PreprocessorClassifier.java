@@ -15,6 +15,7 @@ public abstract class PreprocessorClassifier extends Preprocessor {
 
     public DBModel classify(Config config, Classifier classifier, Instances dataset) throws Exception {
         DBModel model = config.get("model");
+        double threshold = config.get("threshold");
 
         StopWatch.start("classifier-build");
         classifier.buildClassifier(dataset);
@@ -22,15 +23,34 @@ public abstract class PreprocessorClassifier extends Preprocessor {
 
         List<DBModel.DBRow> results = model.getFeedbackRows().stream().filter(row -> row.rating == 0).collect(Collectors.toList());
         for (DBModel.DBRow row : results) {
-            Instance un = new Instance(1, new double[]{0, row.timeonpage, row.timeonmouse});
+            Instance un = new Instance(1, new double[]{1, row.timeonpage, row.timeonmouse});
             un.setDataset(dataset);
-            double rating = classifier.classifyInstance(un);
-//            System.out.format("classify: u: %d  i: %6d  estimate: %.2f\n", row.userid, row.itemid, rating);
+
+            double rating;
+            double index = classifier.classifyInstance(un);
+            double[] distributions = classifier.distributionForInstance(un);
+
+            if(dataset.classAttribute().isNominal()) {
+                // ensure we have a certain threshold
+                if(distributions[(int)index] < threshold) {
+                    continue;
+                }
+
+                // get rating value of classification
+                double[] values = new double[]{1.0, 2.0, 3.0, 4.0, 5.0};
+
+//                System.out.format("%s u:%d i:%6d res: %.2f  probs:%s\n", prep.getSimpleName(), row.userid, row.itemid, rating, Arrays.toString(distributions));
+                rating = values[(int)index];
+            }
+
+            // rating is not an index
+            else {
+                rating = index;
+            }
+
             model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
             addPseudoPref(row.userid, row.itemid);
         }
-
         return model;
     }
-
 }
