@@ -106,7 +106,7 @@ public class Main {
                 }
             }
 
-           
+
             cols.add("minTimeOnPage", "%5d", "%d");
             cols.add("correlationLimit", "%2.1f", "%.1f");
             cols.add("predictionMethod", "%16s", "%s");
@@ -269,6 +269,7 @@ public class Main {
             cols.add("momentum", "%6.5f", "%.5f");
             cols.add("epochs", "%4d", "%d");
             cols.add("neurons", "%s", "%s");
+            cols.add("threshold", "%2.1f", "%.1f");
         }
 
         /***********************************************************************************/
@@ -285,20 +286,23 @@ public class Main {
             for(DistanceWeighting weighting : DistanceWeighting.values()) {
                 for(ErrorMinimization minimization : ErrorMinimization.values()) {
                     for(NeighborSearchMethod method : NeighborSearchMethod.values()) {
-
                         for (int K = 1; K < 10; K++) {
-                            config = ibk.clone()
-                                .set("K", K)
-                                .set("distanceMeasure", weighting)
-                                .set("minimization", minimization)
-                                .set("method", method);
+                            for(double threshold : new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6}) {
+                                config = ibk.clone()
+                                    .set("K", K)
+                                    .set("distanceMeasure", weighting)
+                                    .set("minimization", minimization)
+                                    .set("threshold", threshold)
+                                    .set("method", method);
 
-                            configs.add(config);
+                                configs.add(config);
+                            }
                         }
                     }
                 }
             }
 
+            cols.add("threshold", "%2.1f", "%.1f");
             cols.add("K", "%2d", "%d");
             cols.add("distanceMeasure", "%15s", "%s");
             cols.add("minimization", "%25s", "%s");
@@ -314,7 +318,14 @@ public class Main {
                     .set("preprocessor", PreprocessorNaiveBayes.class)
                     .set("average", average);
 
-            configs.add(naivebayes);
+            for(double threshold : new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7}) {
+                config = naivebayes.clone()
+                        .set("threshold", threshold);
+
+                configs.add(config);
+            }
+
+            cols.add("threshold", "%2.1f", "%.1f");
         }
        
         /***********************************************************************************/
