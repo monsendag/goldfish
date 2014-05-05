@@ -94,10 +94,10 @@ public class Main {
                 .set("rating", 4);
 
             for (int minT = 15000; minT <= 30000; minT += 5000) {
-            	for (double corrLimit : new double[]{0.0, 0.1, 0.2, 0.3}) {
+		for (double corrLimit : new double[]{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}) {
                     for (PredictionMethod method : PredictionMethod.values()) {
                         config = stat.clone()
-                                .set("minTimeOnPage", minT)
+                                .set("minTimeOnPage", 0)
                                 .set("correlationLimit", corrLimit)
                                 .set("predictionMethod", method);
 
