@@ -51,7 +51,7 @@ public class ResultList extends ArrayList<Result> {
 
     public Result getTotal() {
         // list of properties relevant to calculate totals of
-        String[] properties = new String[]{"RMSE", "AAD", "precision", "recall", "buildTime", "recTime", "evalTime", "average"};
+        String[] properties = new String[]{"RMSE", "AAD", "precision", "recall", "buildTime", "recTime", "evalTime"};
 
         // create result object
         Result total = new Result().set("name", "# TOTAL");
@@ -76,7 +76,7 @@ public class ResultList extends ArrayList<Result> {
 
     public Result getAverage() {
         // list of properties relevant to calculate averages of
-        String[] properties = new String[]{"RMSE", "AAD", "precision", "recall", "buildTime", "recTime", "evalTime", "average"};
+        String[] properties = new String[]{"RMSE", "AAD", "precision", "recall", "buildTime", "recTime", "evalTime"};
         Result total = getTotal();
         Result average = new Result().set("name", "# AVERAGE");
         int N = size();

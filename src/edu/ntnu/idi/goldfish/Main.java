@@ -58,7 +58,7 @@ public class Main {
         Columns cols = new Columns();
 
         cols.add("name", "%-11s", "%s");
-        cols.add("average", "%4.0f", "%.0f");
+        cols.add("average", "%4d", "%d");
         cols.add("RMSE", "%6.3f", "%.3f");
         cols.add("pseudoRatings", "%4d", "%d");
         cols.add("evalTime", "%4.0f", "%.0f");
