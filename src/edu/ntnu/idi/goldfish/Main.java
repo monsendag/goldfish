@@ -51,8 +51,8 @@ public class Main {
         doIbk = options.contains("-ibk");
         doNaiveBayes = options.contains("-naivebayes");
 //        doBaseline = doStat = doTime = doClustering = doMlr = doSmoreg = doAnn = doIbk = doNaiveBayes = true;
-        doStat = true;
-        
+
+
         List<Config> configs = new ArrayList<>();
         ResultList results = new ResultList();
         Columns cols = new Columns();
