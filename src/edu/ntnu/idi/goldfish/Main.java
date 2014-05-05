@@ -148,38 +148,46 @@ public class Main {
                   .set("preprocessor", PreprocessorClustering.class)
                   .set("average", average);
 
-          for(Clusterer clusterer : Arrays.asList(Clusterer.SimpleKMeans, Clusterer.XMeans, Clusterer.DensityBased)) {
-              for(ClusterDataset dataset : ClusterDataset.values()) {
-              	for (DistFunc distFunc : Arrays.asList(DistFunc.Euclidean, DistFunc.Manhattan)) {
-              		config = clustering.clone()
-              				.set("clusterer", clusterer)
-              				.set("clusterDataset", dataset)
-              				.set("distFunc", distFunc);
-              		configs.add(config);
-					}
+
+          for(double threshold : new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7}) {
+              for (Clusterer clusterer : Arrays.asList(Clusterer.SimpleKMeans, Clusterer.XMeans, Clusterer.DensityBased)) {
+                  for (ClusterDataset dataset : ClusterDataset.values()) {
+                      for (DistFunc distFunc : Arrays.asList(DistFunc.Euclidean, DistFunc.Manhattan)) {
+                          config = clustering.clone()
+                                  .set("clusterer", clusterer)
+                                  .set("clusterDataset", dataset)
+                                  .set("distFunc", distFunc)
+                                  .set("threshold", threshold);
+                          configs.add(config);
+                      }
+                  }
               }
-          }
-          
-          for(Clusterer clusterer : Arrays.asList(Clusterer.Cobweb, Clusterer.EM, Clusterer.FarthestFirst)) {
-          	for(ClusterDataset dataset : ClusterDataset.values()) {
+
+              for (Clusterer clusterer : Arrays.asList(Clusterer.Cobweb, Clusterer.EM, Clusterer.FarthestFirst)) {
+                  for (ClusterDataset dataset : ClusterDataset.values()) {
+                      config = clustering.clone()
+                              .set("clusterer", clusterer)
+                              .set("clusterDataset", dataset)
+                              .set("distFunc", DistFunc.None)
+                              .set("threshold", threshold);
+                      configs.add(config);
+                  }
+              }
+
+              for (ClusterDataset dataset : ClusterDataset.values()) {
                   config = clustering.clone()
-                          .set("clusterer", clusterer)
+                          .set("clusterer", Clusterer.XMeans)
                           .set("clusterDataset", dataset)
-                          .set("distFunc", DistFunc.None);
+                          .set("distFunc", DistFunc.Chebyshev)
+                          .set("threshold", threshold);
                   configs.add(config);
               }
+
           }
-          
-          for (ClusterDataset dataset : ClusterDataset.values()) {
-				config = clustering.clone()
-						.set("clusterer", Clusterer.XMeans)
-						.set("clusterDataset", dataset)
-						.set("distFunc", DistFunc.Chebyshev);
-				configs.add(config);
-			}
           cols.add("clusterer", "%13s", "%s");
           cols.add("clusterDataset", "%18s", "%s");
           cols.add("distFunc", "%9s", "%s");
+          cols.add("threshold", "%2.1f", "%.1f");
       }
         /***********************************************************************************/
         // PreprocessorMLR
