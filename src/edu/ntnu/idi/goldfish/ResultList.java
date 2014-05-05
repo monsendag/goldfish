@@ -30,8 +30,8 @@ public class ResultList extends ArrayList<Result> {
 	public String toTSV(Map<String, String> columns) {
 		String out = "";
 		out += StringUtils.join(columns.keySet(), "\t") +"\n";
-        out += getTotal().toTSV(columns)+"\n";
-        out += getAverage().toTSV(columns)+"\n";
+        //out += getTotal().toTSV(columns)+"\n";
+        //out += getAverage().toTSV(columns)+"\n";
 		for (Result res : this) {
 			out += res.toTSV(columns)+"\n";
 		}
