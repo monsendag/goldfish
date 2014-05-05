@@ -108,6 +108,7 @@ public class RecommenderAPI {
         StopWatch.start("preprocess");
         Preprocessor preprocessor = new PreprocessorStat();
         model = preprocessor.preprocess(config);
+        StopWatch.print("preprocess");
 
         StopWatch.start("buildRecommender");
         recommender = ((Lynx) config).getBuilder().buildRecommender(model);
