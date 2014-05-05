@@ -61,7 +61,7 @@ public class Main {
         cols.add("average", "%4d", "%d");
         cols.add("RMSE", "%6.3f", "%.3f");
         cols.add("pseudoRatings", "%4d", "%d");
-        cols.add("evalTime", "%4.0f", "%.0f");
+        cols.add("evalTime", "%6.0f", "%.0f");
 
         Config config;
 
