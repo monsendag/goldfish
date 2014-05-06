@@ -218,9 +218,10 @@ public class Main {
                     .set("name", "smoreg")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorSMOreg.class)
-                    .set("average", average);
+                    .set("average", average)
+                    .set("threshold", 0.0);
 
-            for(double Cn = -10; Cn <= 10; Cn += 1) {
+            for(double Cn = -15; Cn <= 15; Cn += 1) {
 
                 // RBFKernel
                 for(double gammaN = -6; gammaN <= 6; gammaN += 1) {
@@ -230,24 +231,11 @@ public class Main {
                             .set("kernelGamma", Math.pow(2, gammaN));
                     configs.add(config);
                 }
-
-                // PolyKernel, NormalizedPolyKernel
-                List<Kernel> kernels = Arrays.asList(Kernel.PolyKernel, Kernel.NormalizedPolyKernel);
-                for(Kernel kernel : kernels) {
-                    for(double exponentN = -6; exponentN <= 6; exponentN += 0.5) {
-                        config = smoreg.clone()
-                                .set("kernel", kernel)
-                                .set("C", Cn)
-                                .set("kernelExponent", Math.pow(2, exponentN));
-                        configs.add(config);
-                    }
-                }
             }
 
             cols.add("kernel", "%20s", "%s");
             cols.add("C", "%6.5f", "%.5f");
             cols.add("kernelGamma", "%6.5f", "%.5f");
-            cols.add("kernelExponent", "%6.5f", "%.5f");
         }
 
         /***********************************************************************************/
