@@ -246,7 +246,8 @@ public class Main {
                     .set("name", "ann")
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorANN.class)
-                    .set("average", average);
+                    .set("average", average)
+                    .set("threshold", 0.0);
 
 
             for (double learningRate = 0.1; learningRate <= 1; learningRate += 0.1) {
