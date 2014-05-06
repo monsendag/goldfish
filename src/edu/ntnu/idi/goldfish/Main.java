@@ -282,8 +282,8 @@ public class Main {
             for(DistanceWeighting weighting : DistanceWeighting.values()) {
                 for(ErrorMinimization minimization : ErrorMinimization.values()) {
                     for(NeighborSearchMethod method : NeighborSearchMethod.values()) {
-                        for (int K = 1; K < 10; K++) {
-                            for(double threshold : new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6}) {
+                        for (int K = 1; K < 20; K++) {
+                            for(double threshold : new double[]{0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1}) {
                                 config = ibk.clone()
                                     .set("K", K)
                                     .set("distanceMeasure", weighting)
