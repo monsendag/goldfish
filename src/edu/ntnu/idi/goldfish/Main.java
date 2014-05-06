@@ -65,7 +65,7 @@ public class Main {
 
         Config config;
 
-        int average = 1000;
+        int average = 5000;
 
         /***********************************************************************************/
         // Baseline
