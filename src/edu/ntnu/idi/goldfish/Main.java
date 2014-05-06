@@ -149,7 +149,7 @@ public class Main {
                   .set("average", average);
 
 
-          for(double threshold : new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7}) {
+          for(double threshold : new double[]{0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1}) {
               for (Clusterer clusterer : Arrays.asList(Clusterer.SimpleKMeans, Clusterer.XMeans, Clusterer.DensityBased)) {
                   for (ClusterDataset dataset : ClusterDataset.values()) {
                       for (DistFunc distFunc : Arrays.asList(DistFunc.Euclidean, DistFunc.Manhattan)) {
