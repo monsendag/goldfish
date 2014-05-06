@@ -266,7 +266,6 @@ public class Main {
             cols.add("momentum", "%6.5f", "%.5f");
             cols.add("epochs", "%4d", "%d");
             cols.add("neurons", "%s", "%s");
-            cols.add("threshold", "%2.1f", "%.1f");
         }
 
         /***********************************************************************************/
