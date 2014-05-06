@@ -250,8 +250,8 @@ public class Main {
                     .set("threshold", 0.0);
 
 
-            for (double learningRate = 0.1; learningRate <= 1; learningRate += 0.1) {
-                for (double momentum : new double[]{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}) {
+            for (double learningRate : new double[]{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}) {
+                for (double momentum : new double[]{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}) {
 
                     config = ann.clone()
                         .set("learningRate", learningRate)
