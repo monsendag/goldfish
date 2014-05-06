@@ -182,15 +182,11 @@ public class PreprocessorClustering extends Preprocessor {
 			}
 			
 			i.setDataset(data);
-			int rating = (int) (cvc.classifyInstance(i)+1); // zero indexed
-            double threshold = config.get("treshold");
+			int index = (int) (cvc.classifyInstance(i)); // zero indexed
+            // get rating value of classification
+            double[] values = new double[]{1.0, 2.0, 3.0, 4.0, 5.0};
+            double rating = values[index];
 
-            if(data.classAttribute().isNominal()) {
-                if(cvc.distributionForInstance(i)[rating] < threshold) {
-                    continue;
-                }
-            }
-			
 			model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
 			addPseudoPref(row.userid, row.itemid);
 		}
