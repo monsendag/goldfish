@@ -22,7 +22,7 @@ public class PreprocessorStat extends Preprocessor{
         int minTimeOnPage = config.get("minTimeOnPage");
         double correlationLimit = config.get("correlationLimit");
         int rating = config.get("rating");
-        
+
 		List<DBModel.DBRow> allResults = model.getFeedbackRows();
 		List<DBModel.DBRow> results = allResults.stream().filter(row -> row.rating == 0).collect(Collectors.toList());
 		for (DBRow r : results) {
@@ -94,6 +94,8 @@ public class PreprocessorStat extends Preprocessor{
 	}
 	
 	public boolean enoughImplicitFeedback(List<DBModel.DBRow> feedbackForItemID ){
+        if(feedbackForItemID.size() == 0 ) return false;
+
 		int[] feedbackCount = new int[feedbackForItemID.get(0).implicitfeedback.length];
 		for (DBRow row : feedbackForItemID) {
 			for (int i = 0; i < row.implicitfeedback.length; i++) {
