@@ -31,6 +31,13 @@ public class RecommenderAPI {
     public BiMap<String, Long> userMaps;
     public BiMap<String, Long> itemMaps;
 
+    private String hostname;
+    private int port;
+    private String username;
+    private String password;
+    private String database;
+    private String collection;
+
 
     public static void main(String[] args) throws Exception {
         new RecommenderAPI();
@@ -93,10 +100,8 @@ public class RecommenderAPI {
         System.out.println("Rebuilding.. ");
         StopWatch.start("totalRebuild");
 
-
         StopWatch.start("getModel");
-//        model = new DBModel("ds027819.mongolab.com", 27819, "read", "nonews", "smartnews", "event", userMaps, itemMaps);
-        model = DataSet.yowImplicit.getModel();
+        DataModel model = new DBModel(hostname, port, username, password, database, collection, userMaps, itemMaps);
         StopWatch.print("getModel");
 
         Config config = new Lynx()
