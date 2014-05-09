@@ -101,9 +101,9 @@ public class RecommenderAPI {
 
         Config config = new Lynx()
             .set("model", model)
-            .set("minTimeOnPage", 15000)
-            .set("correlationLimit", 0.4)
-            .set("predictionMethod", PreprocessorStat.PredictionMethod.LinearRegression);
+            .set("minTimeOnPage", 25000)
+            .set("correlationLimit", 0.3)
+            .set("predictionMethod", PreprocessorStat.PredictionMethod.ClosestNeighbor);
 
         StopWatch.start("preprocess");
         Preprocessor preprocessor = new PreprocessorStat();
