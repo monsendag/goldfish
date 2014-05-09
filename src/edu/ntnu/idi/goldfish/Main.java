@@ -32,7 +32,7 @@ public class Main {
 
     public Main(String[] args) throws Exception {
 
-        System.out.println("Loading configurations..");
+        System.out.println("Loading datasets and configurations");
 
         Set<String> options = new HashSet<String>(Arrays.asList(args));
 
@@ -61,7 +61,7 @@ public class Main {
 
         Config config;
 
-        int average = 5000;
+        int average = 3000;
 
         /***********************************************************************************/
         // Baseline
@@ -79,7 +79,7 @@ public class Main {
         
         /***********************************************************************************/
         // PreprocessorStat
-        
+
         if(doStat)
         {
         	Config stat = new Lynx()
