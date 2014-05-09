@@ -249,16 +249,16 @@ public class Main {
                     .set("average", average)
                     .set("threshold", 0.0);
 
-
-            for (double learningRate : new double[]{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}) {
-                for (double momentum : new double[]{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}) {
-
-                    config = ann.clone()
-                        .set("learningRate", learningRate)
-                        .set("momentum", momentum)
-                        .set("epochs", 500)
-                        .set("neurons", "a");
-                    configs.add(config);
+            for (int epochs = 10; epochs <= 1500; epochs += 35) {
+                for (double learningRate = 0.001; learningRate <= 0.3; learningRate += 0.002) {
+                    for (double momentum : new double[]{0.1}) {
+                        config = ann.clone()
+                            .set("learningRate", learningRate)
+                            .set("momentum", momentum)
+                            .set("epochs", epochs)
+                            .set("neurons", "a");
+                        configs.add(config);
+                    }
                 }
             }
 
