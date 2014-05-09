@@ -3,20 +3,16 @@ package edu.ntnu.idi.goldfish;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.preprocessors.*;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.ClusterDataset;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.Clusterer;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.DistFunc;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.DistanceWeighting;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.ErrorMinimization;
-import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.NeighborSearchMethod;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorClustering.*;
+import edu.ntnu.idi.goldfish.preprocessors.PreprocessorIBK.*;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorSMOreg.Kernel;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat.PredictionMethod;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
-import static edu.ntnu.idi.goldfish.DataSet.yowBaseline;
-import static edu.ntnu.idi.goldfish.DataSet.yowImplicit;
+import static edu.ntnu.idi.goldfish.DataSet.*;
+
 
 public class Main {
 
