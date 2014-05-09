@@ -44,6 +44,8 @@ public class RecommenderAPI {
 
     public RecommenderAPI() throws Exception {
         try {
+
+            // load configuration options from environment
             hostname = System.getenv("SMARTMEDIA_HOSTNAME");
             port = Integer.parseInt(System.getenv("SMARTMEDIA_PORT"));
             username = System.getenv("SMARTMEDIA_USERNAME");
@@ -51,47 +53,72 @@ public class RecommenderAPI {
             database = System.getenv("SMARTMEDIA_DATABASE");
             collection = System.getenv("SMARTMEDIA_COLLECTION");
 
+            // initialize rest server and set port
             IceBreakRestServer rest = new IceBreakRestServer();
             rest.setPort(8080);
 
+            /**
+             * The userIDs and itemIDs are represented as strings in mongo (i.e 5320767388b38d00075f7b91)
+             * We create two biMaps where we store the mappings between these strings and our internal Long values
+              */
             userMaps = HashBiMap.create();
             itemMaps = HashBiMap.create();
 
+
+            // build recommendation model before starting
             rebuild();
 
+            // wait for HTTP requests
             while (true) {
                 try {
-                    // Now wait for any HTTP request
-                    // the "config.properties" file contains the port we are listening on
                     rest.getHttpRequest();
+                    // set output content type to JSON
                     rest.setContentType("application/json");
 
+                    // read and parse GET parameters
                     String rawUserID = rest.getQuery("recommendfor");
                     String notify = rest.getQuery("notify");
                     int howMany = Integer.parseInt(rest.getQuery("howMany", "10"));
 
+                    // got ?recommendfor - try to provide recommendations
                     if (rawUserID != null && !rawUserID.isEmpty()) {
-                        long userID = Long.parseLong(rawUserID);
 
+                        // get internal Long userID from map
+                        long userID = userMaps.get(rawUserID);
+
+                        // get list of recommendations
                         List<RecommendedItem> recommend = recommender.recommend(userID, howMany);
+
+                        // iterate over recomendation items
                         List<String> items = recommend.stream().map(item -> {
-                            String itemID = String.valueOf(item.getItemID());
-//                        String itemID = itemMaps.inverse().get(item.getItemID());
+                            // convert Long itemID to respective String ID
+                            String itemID = String.valueOf(itemMaps.inverse().get(item.getItemID()));
+                            // serialize to JSON
                             return String.format("{\"itemid\":\"%s\", \"rating\":\"%.2f\"}", itemID, item.getValue());
                         }).collect(Collectors.toList());
 
+                        // return JSON array to client
                         rest.write(StringUtils.join(items));
 
-                    } else if (notify != null) {
+                    }
+                    // got notification about database change
+                    else if (notify != null) {
+                        // get number of minutes since last rebuild
                         long minuteDelta = (new Date().getTime() - lastUpdate.getTime()) / (1000 * 60);
+
+                        // determine if we want to rebuild
                         if (counter++ > 10 && minuteDelta > 10) {
                             rebuild();
                         }
-                    } else {
+                    }
+                    // invalid request
+                    else {
                         throw new Exception("Invalid request. Expecting ?notify or ?recommendfor={userid}");
                     }
 
-                } catch (Exception e) {
+                }
+                // catch all exceptions and try to return a parseable error response
+                catch (Exception e) {
                     e.printStackTrace();
                     String out = String.format("{\"error\":\"%s: %s\"}", e.getClass().getSimpleName(), e.getMessage());
                     System.out.println(out);
@@ -100,37 +127,52 @@ public class RecommenderAPI {
                 }
             }
 
-        } catch(Exception e) {
+        }
+        // catch any error and print stack trace
+        catch(Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void rebuild() throws Exception {
 
-        System.out.println("Rebuilding.. ");
+    /**
+     * This method will rebuild the recommendation model
+     * @throws Exception
+     */
+    public void rebuild() throws Exception {
+        System.out.println("Rebuilding...");
+
+        // start timing of rebuild
         StopWatch.start("totalRebuild");
 
+        // load dataset from database into DataModel
         StopWatch.start("getModel");
         DataModel model = new DBModel(hostname, port, username, password, database, collection, userMaps, itemMaps);
         StopWatch.print("getModel");
 
+        // set configuration parameters and preprocessor
         Config config = new Lynx()
             .set("model", model)
             .set("minTimeOnPage", 25000)
             .set("correlationLimit", 0.3)
+            .set("rating", 4)
             .set("predictionMethod", PreprocessorStat.PredictionMethod.ClosestNeighbor);
 
+        // preprocess dataModel
         StopWatch.start("preprocess");
         Preprocessor preprocessor = new PreprocessorStat();
         model = preprocessor.preprocess(config);
         StopWatch.print("preprocess");
 
+        // build Recommendation model
         StopWatch.start("buildRecommender");
         Recommender newRecommender = ((Lynx) config).getBuilder().buildRecommender(model);
         StopWatch.print("buildRecommender");
 
+        // replace recommendation model in memory
         recommender = newRecommender;
 
+        // reset rebuild cycle
         counter = 0;
         lastUpdate = new Date();
 
