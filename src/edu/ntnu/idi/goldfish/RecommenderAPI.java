@@ -5,6 +5,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import edu.ntnu.idi.goldfish.configurations.Config;
 import edu.ntnu.idi.goldfish.configurations.Lynx;
+import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat;
 import org.apache.commons.lang3.StringUtils;
@@ -16,7 +17,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// Drop this jar-file into you project
 public class RecommenderAPI {
     // disable Mahout logging output
     static {
@@ -26,7 +26,6 @@ public class RecommenderAPI {
 
     public int counter = 0;
     public Date lastUpdate;
-    public DataModel model;
     public Recommender recommender;
     public BiMap<String, Long> userMaps;
     public BiMap<String, Long> itemMaps;
@@ -127,8 +126,10 @@ public class RecommenderAPI {
         StopWatch.print("preprocess");
 
         StopWatch.start("buildRecommender");
-        recommender = ((Lynx) config).getBuilder().buildRecommender(model);
+        Recommender newRecommender = ((Lynx) config).getBuilder().buildRecommender(model);
         StopWatch.print("buildRecommender");
+
+        recommender = newRecommender;
 
         counter = 0;
         lastUpdate = new Date();
