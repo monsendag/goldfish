@@ -44,54 +44,65 @@ public class RecommenderAPI {
     }
 
     public RecommenderAPI() throws Exception {
-        IceBreakRestServer rest = new IceBreakRestServer();
-        rest.setPort(8080);
+        try {
+            hostname = System.getenv("SMARTMEDIA_HOSTNAME");
+            port = Integer.parseInt(System.getenv("SMARTMEDIA_PORT"));
+            username = System.getenv("SMARTMEDIA_USERNAME");
+            password = System.getenv("SMARTMEDIA_PASSWORD");
+            database = System.getenv("SMARTMEDIA_DATABASE");
+            collection = System.getenv("SMARTMEDIA_COLLECTION");
 
-        userMaps = HashBiMap.create();
-        itemMaps = HashBiMap.create();
+            IceBreakRestServer rest = new IceBreakRestServer();
+            rest.setPort(8080);
 
-        rebuild();
+            userMaps = HashBiMap.create();
+            itemMaps = HashBiMap.create();
 
-        while (true) {
-            try {
-                // Now wait for any HTTP request
-                // the "config.properties" file contains the port we are listening on
-                rest.getHttpRequest();
-                rest.setContentType("application/json");
+            rebuild();
 
-                String rawUserID = rest.getQuery("recommendfor");
-                String notify = rest.getQuery("notify");
-                int howMany = Integer.parseInt(rest.getQuery("howMany", "10"));
+            while (true) {
+                try {
+                    // Now wait for any HTTP request
+                    // the "config.properties" file contains the port we are listening on
+                    rest.getHttpRequest();
+                    rest.setContentType("application/json");
 
-                if (rawUserID != null && !rawUserID.isEmpty()) {
-                    long userID = Long.parseLong(rawUserID);
+                    String rawUserID = rest.getQuery("recommendfor");
+                    String notify = rest.getQuery("notify");
+                    int howMany = Integer.parseInt(rest.getQuery("howMany", "10"));
 
-                    List<RecommendedItem> recommend = recommender.recommend(userID, howMany);
-                    List<String> items = recommend.stream().map(item -> {
-                        String itemID =  String.valueOf(item.getItemID());
+                    if (rawUserID != null && !rawUserID.isEmpty()) {
+                        long userID = Long.parseLong(rawUserID);
+
+                        List<RecommendedItem> recommend = recommender.recommend(userID, howMany);
+                        List<String> items = recommend.stream().map(item -> {
+                            String itemID = String.valueOf(item.getItemID());
 //                        String itemID = itemMaps.inverse().get(item.getItemID());
-                        return String.format("{\"itemid\":\"%s\", \"rating\":\"%.2f\"}", itemID, item.getValue());
-                    }).collect(Collectors.toList());
+                            return String.format("{\"itemid\":\"%s\", \"rating\":\"%.2f\"}", itemID, item.getValue());
+                        }).collect(Collectors.toList());
 
-                    rest.write(StringUtils.join(items));
+                        rest.write(StringUtils.join(items));
 
-                } else if(notify != null) {
-                    long minuteDelta = (new Date().getTime() - lastUpdate.getTime())/ (1000*60);
-                    if(counter++ > 10 && minuteDelta > 10) {
-                        rebuild();
+                    } else if (notify != null) {
+                        long minuteDelta = (new Date().getTime() - lastUpdate.getTime()) / (1000 * 60);
+                        if (counter++ > 10 && minuteDelta > 10) {
+                            rebuild();
+                        }
+                    } else {
+                        throw new Exception("Invalid request. Expecting ?notify or ?recommendfor={userid}");
                     }
-                }
-                else {
-                    throw new Exception("Invalid request. Expecting ?notify or ?recommendfor={userid}");
-                }
 
-            } catch (Exception e) {
-                e.printStackTrace();
-                String out = String.format("{\"error\":\"%s: %s\"}", e.getClass().getSimpleName(), e.getMessage());
-                System.out.println(out);
-                rest.setStatus("400");
-                rest.write(out);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    String out = String.format("{\"error\":\"%s: %s\"}", e.getClass().getSimpleName(), e.getMessage());
+                    System.out.println(out);
+                    rest.setStatus("400");
+                    rest.write(out);
+                }
             }
+
+        } catch(Exception e) {
+            e.printStackTrace();
         }
     }
 
