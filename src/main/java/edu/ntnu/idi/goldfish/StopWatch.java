@@ -39,7 +39,7 @@ public class StopWatch {
 	public static String str(String name) {
 		stop(name);
 		long time = timings.get(id(name));
-		return getString(time);
+		return name+": "+getString(time);
 	}
 	
 	public static void print(String name) {
