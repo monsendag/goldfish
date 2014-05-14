@@ -7,11 +7,13 @@ import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.mahout.cf.taste.common.NoSuchUserException;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.recommender.Recommender;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONObject;
 import org.restlet.*;
 import org.restlet.data.MediaType;
 import org.restlet.data.Parameter;
@@ -22,7 +24,7 @@ import org.restlet.routing.Template;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.logging.Level;
 
 public class RecommenderAPI extends Application {
     // disable Mahout logging output
@@ -47,8 +49,15 @@ public class RecommenderAPI extends Application {
     public static void main(String[] args) throws Exception {
         Component component = new Component();
         component.getDefaultHost().attach("", new RecommenderAPI());
-        new Server(Protocol.HTTP, 8182, component).start();
+        Server server = component.getServers().add(Protocol.HTTP, 8182);
+        server.getContext().getParameters().add("useForwardedForHeader", "true");
+        component.start();
+    }
 
+    public static String getJSONError(String error, String message) {
+        error = StringEscapeUtils.escapeJava(error);
+        message = StringEscapeUtils.escapeJava(message);
+        return String.format("{\"error\":\"%s\",\"message\":\"%s\"}", error, message);
     }
 
     public Restlet createInboundRoot() {
@@ -60,18 +69,28 @@ public class RecommenderAPI extends Application {
             public void handle(Request request, Response response) {
                 System.err.println("Invalid request: "+request.toString());
                 response.setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
-                response.setEntity("Error: allowed paths /recommend/{userid} and /notify", MediaType.TEXT_PLAIN);
+                response.setEntity(getJSONError("InvalidRequestException", "allowed paths are /recommend/{userid} and /notify"), MediaType.APPLICATION_JSON);
+            }
+        });
+
+        router.attach("/favico", new Restlet() {
+            @Override
+            public void handle(Request request, Response response) {
+                response.setEntity("null", MediaType.TEXT_PLAIN);
             }
         });
 
         // request for recommendations
         router.attach("/recommend/{userid}", new Restlet() {
             public void handle(Request request, Response response) {
+
+                JSONObject output = new JSONObject();
+
                 try {
                     // parse userid and make sure it exists
                     String rawUserid = (String) request.getAttributes().get("userid");
-                    if(!userMaps.containsKey(rawUserid)) {
-                        throw new NoSuchUserException("user id not found");
+                    if (!userMaps.containsKey(rawUserid)) {
+                        throw new NoSuchUserException(String.format("User %s does not exist", rawUserid));
                     }
                     long userID = userMaps.get(rawUserid);
 
@@ -82,20 +101,30 @@ public class RecommenderAPI extends Application {
                     // get list of recommendations
                     List<RecommendedItem> recommend = recommender.recommend(userID, limit);
 
+                    JSONArray items = new JSONArray();
                     // iterate over recomendation items
-                    List<String> items = recommend.stream().map(item -> {
+                    for (RecommendedItem item : recommend) {
                         // convert Long itemID to respective String ID
                         String itemID = String.valueOf(itemMaps.inverse().get(item.getItemID()));
                         // serialize to JSON
-                        return String.format("{\"itemid\":\"%s\", \"rating\":\"%.2f\"}", itemID, item.getValue());
-                    }).collect(Collectors.toList());
 
-                    response.setEntity(StringUtils.join(items), MediaType.APPLICATION_JSON);
+                        JSONObject itemObject = new JSONObject();
+                        itemObject.put("itemid", itemID);
+                        itemObject.put("rating", String.format("%.2f", item.getValue()));
+                        items.put(itemObject);
+                    }
+
+                    output.put("data", items);
+
+                    response.setEntity(output.toString(), MediaType.APPLICATION_JSON);
                 }
                 catch (Exception e) {
-                    e.printStackTrace();
+
+                    // would have constructed a proper JSON object here, but that might throw an exception
+                    // so we do it manually
+
                     response.setStatus(Status.SERVER_ERROR_INTERNAL);
-                    response.setEntity(String.format("{\"error\":\"%s\"}", e.getMessage()), MediaType.APPLICATION_JSON);
+                    response.setEntity(getJSONError(e.getClass().getSimpleName(), e.getMessage()), MediaType.APPLICATION_JSON);
                 }
             }
         });
@@ -104,21 +133,36 @@ public class RecommenderAPI extends Application {
         router.attach("/notify", new Restlet() {
             public void handle(Request request, Response response) {
                 try {
+
                     // get number of minutes since last rebuild
                     long minuteDelta = (new Date().getTime() - lastUpdate.getTime()) / (1000 * 60);
-                    String out = "";
-                    // determine if we want to rebuild
-                    if (counter++ > 10 && minuteDelta > 10) {
+
+                    boolean doRebuild = counter > 10 && minuteDelta > 10;
+
+                    JSONObject output = new JSONObject();
+                    output.put("rebuild", Boolean.toString(doRebuild));
+                    output.put("lastrebuild", lastUpdate.getTime()/1000); // unix timestamp (convert ms to sec)
+                    output.put("updates", counter);
+
+                    response.setEntity(output.toString(), MediaType.APPLICATION_JSON);
+
+
+
+                    if (doRebuild) {
                         rebuild();
-                        out += String.format("%d minutes passed ... rebuilding", minuteDelta);
+
+                        System.out.println(output.toString());
                     }
-                    System.out.format("%s - %s\n", request.toString(), out);
-                    response.setEntity("1", MediaType.APPLICATION_JSON);
+
+                    // increment notification updates
+                    counter ++;
                 }
                 catch(Exception e) {
-                    e.printStackTrace();
+
+                    // would have constructed a proper JSON object here, but that might throw an exception
+                    // so we do it manually
                     response.setStatus(Status.SERVER_ERROR_INTERNAL);
-                    response.setEntity(String.format("{\"error\":\"%s\"}", e.getMessage()), MediaType.APPLICATION_JSON);
+                    response.setEntity(getJSONError(e.getClass().getSimpleName(), e.getMessage()), MediaType.APPLICATION_JSON);
                 }
             }
         });
@@ -168,7 +212,8 @@ public class RecommenderAPI extends Application {
         // load dataset from database into DataModel
         StopWatch.start("getModel");
         DataModel model = new DBModel(hostname, port, username, password, database, collection, userMaps, itemMaps);
-        StopWatch.print("getModel");
+
+        getLogger().log(Level.INFO, String.format("%s (%d users, %d items)", StopWatch.str("getModel"), model.getNumUsers(), model.getNumItems()));
 
         // set configuration parameters and preprocessor
         Config config = new Lynx()
@@ -182,12 +227,12 @@ public class RecommenderAPI extends Application {
         StopWatch.start("preprocess");
         Preprocessor preprocessor = new PreprocessorStat();
         model = preprocessor.preprocess(config);
-        StopWatch.print("preprocess");
+        getLogger().log(Level.INFO, String.format("%s (%d users, %d items)", StopWatch.str("preprocess"), model.getNumUsers(), model.getNumItems()));
 
         // build Recommendation model
         StopWatch.start("buildRecommender");
         Recommender newRecommender = ((Lynx) config).getBuilder().buildRecommender(model);
-        StopWatch.print("buildRecommender");
+        getLogger().log(Level.INFO, StopWatch.str("buildRecommender"));
 
         // replace recommendation model in memory
         recommender = newRecommender;
@@ -196,6 +241,6 @@ public class RecommenderAPI extends Application {
         counter = 0;
         lastUpdate = new Date();
 
-        StopWatch.print("totalRebuild");
+        getLogger().log(Level.WARNING, StopWatch.str("totalRebuild"));
     }
 }
