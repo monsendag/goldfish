@@ -188,8 +188,7 @@ public class DBModel implements DataModel {
             context.query("CREATE INDEX uindex ON yow (userid)").execute();
             context.query("CREATE INDEX iindex ON yow (itemid)").execute();
 
-
-            System.out.println("Browse DB at http://localhost:8082 with address jdbc:h2:mem:"+this.hashCode());
+//            System.out.println("Browse DB at http://localhost:8082 with address jdbc:h2:mem:"+this.hashCode());
 
         } catch (Exception e) {
             e.printStackTrace();
