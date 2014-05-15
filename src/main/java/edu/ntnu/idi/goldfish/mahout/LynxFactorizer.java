@@ -236,7 +236,7 @@ public class LynxFactorizer extends AbstractFactorizer {
     initialize();
 
     if (logger.isInfoEnabled()) {
-      logger.info("starting to compute the factorization...");
+//      logger.info("starting to compute the factorization...");
     }
 
     for (epoch = 1; epoch <= numEpochs; epoch++) {
