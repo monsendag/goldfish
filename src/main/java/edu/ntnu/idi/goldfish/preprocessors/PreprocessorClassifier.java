@@ -39,13 +39,17 @@ public abstract class PreprocessorClassifier extends Preprocessor {
                 // get rating value of classification
                 double[] values = new double[]{1.0, 2.0, 3.0, 4.0, 5.0};
 
-//                System.out.format("%s u:%d i:%6d res: %.2f  probs:%s\n", prep.getSimpleName(), row.userid, row.itemid, rating, Arrays.toString(distributions));
                 rating = values[(int)index];
             }
 
             // rating is not an index
             else {
                 rating = index;
+                
+                // set confidence threshold as difference between estimated rating and closest integer
+                if(Math.abs(rating - Math.round(rating)) > threshold) {
+                    continue;
+                }
             }
 
             model.setPreference(row.userid, row.itemid, (float) Math.round(rating));
