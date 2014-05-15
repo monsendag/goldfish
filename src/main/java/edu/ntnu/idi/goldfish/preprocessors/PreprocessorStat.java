@@ -5,16 +5,18 @@ import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.mahout.DBModel.DBRow;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.mahout.cf.taste.common.TasteException;
+import org.jooq.InsertValuesStep4;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public class PreprocessorStat extends Preprocessor{
 
 	private final int THRESHOLD = 3;
-	
-	public static enum PredictionMethod { LinearRegression, ClosestNeighbor, EqualBins }
+    private InsertValuesStep4 chain;
+
+    public static enum PredictionMethod { LinearRegression, ClosestNeighbor, EqualBins }
 	
 	public DBModel getProcessedModel(Config config) throws TasteException, IOException {
         DBModel model = config.get("model");
@@ -23,66 +25,72 @@ public class PreprocessorStat extends Preprocessor{
         double correlationLimit = config.get("correlationLimit");
         int rating = config.get("rating");
 
-		List<DBModel.DBRow> allResults = model.getFeedbackRows();
-		List<DBModel.DBRow> results = allResults.stream().filter(row -> row.rating == 0).collect(Collectors.toList());
-		for (DBRow r : results) {
-			long itemID = r.itemid;
-			
-			List<DBModel.DBRow> feedbackForItemID = allResults.stream()
-					.filter(row -> row.itemid == itemID)
-					.filter(row -> row.rating > 0)
-					.collect(Collectors.toList());
-			
-			if(hasImplicit(r.implicitfeedback) && enoughImplicitFeedback(feedbackForItemID)){
-				
-				double[] dependentVariables = new double[feedbackForItemID.size()]; // the explicit ratings to infer
-				double[][] independentVariables = new double[feedbackForItemID.size()][]; // the implicit feedback
-				double[] implicitFeedback = null;
-				int index = 0;
-				
-				for (DBRow f : feedbackForItemID) {
-					dependentVariables[index] = f.rating;
-					
-					implicitFeedback = new double[f.implicitfeedback.length];
-					for (int i = 0; i < implicitFeedback.length; i++) {
-						implicitFeedback[i] = f.implicitfeedback[i];
-					}
-					independentVariables[index] = implicitFeedback;
-					index++;
-				}
-				
-				
-				int bestCorrelated = getBestCorrelated(dependentVariables, independentVariables);
-				double correlation = getCorrelation(dependentVariables, independentVariables, bestCorrelated);
-				
-				if(correlation > correlationLimit){
-					float pseudoRating = 0;
-					switch (predictionMethod) {
-					case LinearRegression:
-						pseudoRating = getPseudoRatingLinearRegression(dependentVariables, independentVariables, bestCorrelated, r.implicitfeedback);
-						break;
-					case ClosestNeighbor:
-						pseudoRating = getPseudoRatingClosestNeighbor(dependentVariables, independentVariables, bestCorrelated, r.implicitfeedback);
-						break;
-					case EqualBins:
-						pseudoRating = getPseudoRatingEqualBins(independentVariables, bestCorrelated, r.implicitfeedback, correlation);
-						break;
-					default:
-						pseudoRating = getPseudoRatingLinearRegression(dependentVariables, independentVariables, bestCorrelated, r.implicitfeedback);
-						break;
-					}
-					
-					model.setPreference(r.userid, r.itemid, (float) Math.round(pseudoRating));
-					addPseudoPref(r.userid, r.itemid);
-					
-//					System.out.println(String.format("%d, %d, %.0f", r.userid, r.itemid, pseudoRating));
-				}
-			}
-			else if(timeOnPageFeedback(r.implicitfeedback, minTimeOnPage, 120000)){
-				model.setPreference(r.userid, r.itemid, rating);
-				addPseudoPref(r.userid, r.itemid);
-			}
-		}
+        Map<Long, List<DBRow>> byItem = model.getFeedbackRowsExplicitByItem();
+
+		List<DBModel.DBRow> results = model.getFeedbackRowsImplicit();
+
+        chain = model.getInsertChain();
+
+        results.stream().forEach(r -> {
+            try {
+                long itemID = r.itemid;
+
+                List<DBModel.DBRow> feedbackForItemID = byItem.get(itemID);
+
+                if (hasImplicit(r.implicitfeedback) && enoughImplicitFeedback(feedbackForItemID)) {
+
+                    double[] dependentVariables = new double[feedbackForItemID.size()]; // the explicit ratings to infer
+                    double[][] independentVariables = new double[feedbackForItemID.size()][]; // the implicit feedback
+                    double[] implicitFeedback = null;
+                    int index = 0;
+
+                    for (DBRow f : feedbackForItemID) {
+                        dependentVariables[index] = f.rating;
+
+                        implicitFeedback = new double[f.implicitfeedback.length];
+                        for (int i = 0; i < implicitFeedback.length; i++) {
+                            implicitFeedback[i] = f.implicitfeedback[i];
+                        }
+                        independentVariables[index] = implicitFeedback;
+                        index++;
+                    }
+
+                    int bestCorrelated = getBestCorrelated(dependentVariables, independentVariables);
+                    double correlation = getCorrelation(dependentVariables, independentVariables, bestCorrelated);
+
+                    if (correlation > correlationLimit) {
+                        float pseudoRating = 0;
+                        switch (predictionMethod) {
+                            case LinearRegression:
+                                pseudoRating = getPseudoRatingLinearRegression(dependentVariables, independentVariables, bestCorrelated, r.implicitfeedback);
+                                break;
+                            case ClosestNeighbor:
+                                pseudoRating = getPseudoRatingClosestNeighbor(dependentVariables, independentVariables, bestCorrelated, r.implicitfeedback);
+                                break;
+                            case EqualBins:
+                                pseudoRating = getPseudoRatingEqualBins(independentVariables, bestCorrelated, r.implicitfeedback, correlation);
+                                break;
+                            default:
+                                pseudoRating = getPseudoRatingLinearRegression(dependentVariables, independentVariables, bestCorrelated, r.implicitfeedback);
+                                break;
+                        }
+                            chain = chain.values(r.userid, r.itemid, DBModel.EXPLICIT, (float) Math.round(pseudoRating));
+                        addPseudoPref(r.userid, r.itemid);
+
+                    }
+                } else if (timeOnPageFeedback(r.implicitfeedback, minTimeOnPage, 120000)) {
+
+                        chain = chain.values(r.userid, r.itemid, DBModel.EXPLICIT, rating);
+                    addPseudoPref(r.userid, r.itemid);
+                }
+            }
+            catch(Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        chain.execute();
+
 		return model;
 	}
 	
@@ -94,7 +102,7 @@ public class PreprocessorStat extends Preprocessor{
 	}
 	
 	public boolean enoughImplicitFeedback(List<DBModel.DBRow> feedbackForItemID ){
-        if(feedbackForItemID.size() == 0 ) return false;
+        if(feedbackForItemID == null || feedbackForItemID.size() == 0) return false;
 
 		int[] feedbackCount = new int[feedbackForItemID.get(0).implicitfeedback.length];
 		for (DBRow row : feedbackForItemID) {

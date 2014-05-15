@@ -391,7 +391,70 @@ public class DBModel implements DataModel {
 
         return rows;
     }
-    
+
+    public Map<Long, List<DBRow>> getFeedbackRowsExplicitByItem() {
+        String query = "" +
+                "(select \n" +
+                "yow.userid AS userid, \n" +
+                "yow.itemid AS itemid,\n" +
+                "cast(isNull(col0.value, 0) as real) AS explicit,\n" +
+                "cast(IsNull(col1.value, 0) as real) AS timeonpage,\n" +
+                "cast(IsNull(col2.value, 0) as real) AS timeonmouse\n" +
+                "FROM yow \n" +
+                "LEFT JOIN yow AS col0 ON col0.feedback = 0 \n" +
+                "AND col0.userid=yow.userid AND col0.itemid=yow.itemid\n" +
+                "LEFT JOIN yow AS col1 ON col1.feedback = 1 \n" +
+                "AND col1.userid=yow.userid AND col1.itemid=yow.itemid\n" +
+                "LEFT JOIN yow AS col2 ON col2.feedback = 2 \n" +
+                "AND col2.userid=yow.userid AND col2.itemid=yow.itemid\n" +
+                "where col0.value is not null\n" +
+                "GROUP BY userid, itemid)\n";
+
+        Result<Record> result = context.fetch(query);
+        Map<Long, List<DBRow>> byItem = new HashMap<>();
+        result.stream().forEach(r -> {
+            long itemID = r.getValue(itemField);
+            if (!byItem.containsKey(itemID)) {
+                List<DBRow> rows = new ArrayList<>(5);
+                rows.add(new DBRow(r.getValue(userField), itemID, r.getValue(explicitField), r.getValue(pageField), r.getValue(mouseField)));
+                byItem.put(itemID, rows);
+            }
+            else {
+                byItem.get(itemID).add(new DBRow(r.getValue(userField), itemID, r.getValue(explicitField), r.getValue(pageField), r.getValue(mouseField)));
+            }
+        });
+
+        return byItem;
+    }
+
+
+    public List<DBRow> getFeedbackRowsImplicit() {
+        String query = "" +
+        "(select \n" +
+        "yow.userid AS userid, \n" +
+        "yow.itemid AS itemid,\n" +
+        "cast(isNull(col0.value, 0) as real) AS explicit,\n" +
+        "cast(IsNull(col1.value, 0) as real) AS timeonpage,\n" +
+        "cast(IsNull(col2.value, 0) as real) AS timeonmouse\n" +
+        "FROM yow \n" +
+        "LEFT JOIN yow AS col0 ON col0.feedback = 0 \n" +
+        "AND col0.userid=yow.userid AND col0.itemid=yow.itemid\n" +
+        "LEFT JOIN yow AS col1 ON col1.feedback = 1 \n" +
+        "AND col1.userid=yow.userid AND col1.itemid=yow.itemid\n" +
+        "LEFT JOIN yow AS col2 ON col2.feedback = 2 \n" +
+        "AND col2.userid=yow.userid AND col2.itemid=yow.itemid\n" +
+        "where col0.value is null\n" +
+        "GROUP BY userid, itemid)\n";
+
+        Result<Record> result = context.fetch(query);
+        List<DBRow> rows = new ArrayList<>();
+        result.stream().forEach(r ->
+            rows.add(new DBRow(r.getValue(userField), r.getValue(itemField), r.getValue(explicitField), r.getValue(pageField), r.getValue(mouseField)))
+        );
+
+        return rows;
+    }
+
     public void toCSV(String path){
     	try {
             FileWriter writer = new FileWriter(new File(path));
