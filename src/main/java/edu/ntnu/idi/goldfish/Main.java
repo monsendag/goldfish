@@ -278,24 +278,19 @@ public class Main {
                     .set("model", yowImplicit.getModel())
                     .set("preprocessor", PreprocessorIBK.class)
                     .set("window", 0)
+                    .set("method", NeighborSearchMethod.LinearNN)
+                    .set("distanceMeasure", DistanceWeighting.Distance)
                     .set("average", average);
 
-            for(DistanceWeighting weighting : DistanceWeighting.values()) {
                 for(ErrorMinimization minimization : ErrorMinimization.values()) {
-                    for(NeighborSearchMethod method : NeighborSearchMethod.values()) {
-                        for (int K = 1; K < 20; K++) {
-                            for(double threshold : new double[]{0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1}) {
-                                config = ibk.clone()
-                                    .set("K", K)
-                                    .set("distanceMeasure", weighting)
-                                    .set("minimization", minimization)
-                                    .set("threshold", threshold)
-                                    .set("method", method);
-
-                                configs.add(config);
-                            }
+                    for (int K = 1; K < 20; K += 2) {
+                        for(double threshold : new double[]{0.8, 0.7, 0.6, 0.5, 0.4, 0.3}) {
+                            config = ibk.clone()
+                                .set("K", K)
+                                .set("minimization", minimization)
+                                .set("threshold", threshold);
+                            configs.add(config);
                         }
-                    }
                 }
             }
 
