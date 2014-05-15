@@ -27,8 +27,8 @@ public class Config extends HashMap<String, Object> {
         .set("evaluationPercentage", 1.0) // how much of the data set to evaluate
         .set("getRMSE", true)
         .set("getAAD", false)
-        .set("getBuildTime", false)
-        .set("getRecTime", false)
+        .set("getBuildTime", true)
+        .set("getRecTime", true)
         .set("getRecTimeIterations", 10)
         ;
     }
