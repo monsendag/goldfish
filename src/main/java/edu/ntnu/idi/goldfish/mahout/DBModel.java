@@ -281,7 +281,7 @@ public class DBModel implements DataModel {
 
     @Override
     public int getNumItems() throws TasteException {
-        return context.selectCount().from(table).groupBy(itemField).fetchCount();
+        return context.selectCount().from(table).groupBy(userField, itemField).fetchCount();
     }
 
     @Override
