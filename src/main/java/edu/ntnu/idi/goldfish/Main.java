@@ -245,15 +245,20 @@ public class Main {
                     .set("average", average)
                     .set("threshold", 0.0);
 
-            for (int epochs = 10; epochs <= 1500; epochs += 35) {
-                for (double learningRate = 0.001; learningRate <= 0.3; learningRate += 0.002) {
+
+            for (int epochs = 10; epochs <= 1000; epochs += 100) {
+                for (double learningRate = 0.001; learningRate <= 0.3; learningRate += 0.02) {
                     for (double momentum : new double[]{0.1}) {
-                        config = ann.clone()
+                        for (double threshold : new double[]{0.1, 0.2, 0.3}) {
+
+                            config = ann.clone()
                             .set("learningRate", learningRate)
                             .set("momentum", momentum)
                             .set("epochs", epochs)
-                            .set("neurons", "a");
-                        configs.add(config);
+                            .set("threshold", threshold)
+                            .set("neurons", "5");
+                            configs.add(config);
+                        }
                     }
                 }
             }
