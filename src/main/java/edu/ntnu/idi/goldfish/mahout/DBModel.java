@@ -183,7 +183,7 @@ public class DBModel implements DataModel {
             Class.forName("org.h2.Driver");
             Connection conn = DriverManager.getConnection(String.format("jdbc:h2:mem:%s;DATABASE_TO_UPPER=FALSE", hashCode()));
 
-            context = DSL.using(conn, SQLDialect.MYSQL);
+            context = DSL.using(conn, SQLDialect.H2);
 
             // initialize db
             context.query("CREATE TABLE IF NOT EXISTS yow (" +
