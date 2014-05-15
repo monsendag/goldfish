@@ -43,7 +43,7 @@ public class StopWatch {
 	}
 	
 	public static void print(String name) {
-		System.out.format("%s: %s\n", name, str(name));
+		System.out.println(str(name));
 	}
 	
 	public static long get(String name) {
