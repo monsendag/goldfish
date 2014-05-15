@@ -88,18 +88,28 @@ public class DBModel implements DataModel {
         long itemID = sc.nextLong();
 
         float explicit = sc.nextFloat();
-        float timeonpage = sc.nextFloat();
-        float timeonmouse = sc.nextFloat();
+
+        InsertValuesStep4 chain = getInsertChain();
 
         if (explicit > 0) {
-            setPreference(userID, itemID, EXPLICIT, explicit);
+            chain = chain.values(userID, itemID, EXPLICIT, explicit);
         }
-        if(timeonpage > 0) {
-            setPreference(userID, itemID, TIMEONPAGE, timeonpage);
+
+        if(sc.hasNextFloat()) {
+            float timeonpage = sc.nextFloat();
+            if(timeonpage > 0) {
+                chain = chain.values(userID, itemID, TIMEONPAGE, timeonpage);
+            }
         }
-        if(timeonmouse > 0) {
-            setPreference(userID, itemID, TIMEONMOUSE, timeonmouse);
+
+        if(sc.hasNextFloat()) {
+            float timeonmouse = sc.nextFloat();
+            if(timeonmouse > 0) {
+                chain = chain.values(userID, itemID, TIMEONMOUSE, timeonmouse);
+            }
         }
+
+        chain.execute();
     }
 
 
