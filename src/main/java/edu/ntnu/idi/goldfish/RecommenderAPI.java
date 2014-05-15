@@ -1,5 +1,7 @@
 package edu.ntnu.idi.goldfish;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import edu.ntnu.idi.goldfish.configurations.Config;
@@ -7,12 +9,13 @@ import edu.ntnu.idi.goldfish.configurations.Lynx;
 import edu.ntnu.idi.goldfish.mahout.DBModel;
 import edu.ntnu.idi.goldfish.preprocessors.Preprocessor;
 import edu.ntnu.idi.goldfish.preprocessors.PreprocessorStat;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mahout.cf.taste.common.NoSuchUserException;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.recommender.Recommender;
 import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.restlet.*;
 import org.restlet.data.MediaType;
@@ -21,23 +24,18 @@ import org.restlet.data.Protocol;
 import org.restlet.data.Status;
 import org.restlet.routing.Router;
 import org.restlet.routing.Template;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
 
 public class RecommenderAPI extends Application {
-    // disable Mahout logging output
-    static {
-        System.setProperty("org.apache.commons.logging.Log",
-                "org.apache.commons.logging.impl.NoOpLog");
-    }
 
     public int counter = 0;
     public Date lastUpdate;
     public Recommender recommender;
-    public BiMap<String, Long> userMaps;
-    public BiMap<String, Long> itemMaps;
+    public BiMap<String, Long> userMap;
+    public BiMap<String, Long> itemMap;
 
     private String hostname;
     private int port;
@@ -45,8 +43,12 @@ public class RecommenderAPI extends Application {
     private String password;
     private String database;
     private String collection;
+    static Logger log;
 
     public static void main(String[] args) throws Exception {
+        log = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        log.setLevel(Level.INFO);
+
         Component component = new Component();
         component.getDefaultHost().attach("", new RecommenderAPI());
         Server server = component.getServers().add(Protocol.HTTP, 8182);
@@ -54,10 +56,18 @@ public class RecommenderAPI extends Application {
         component.start();
     }
 
-    public static String getJSONError(String error, String message) {
-        error = StringEscapeUtils.escapeJava(error);
-        message = StringEscapeUtils.escapeJava(message);
-        return String.format("{\"error\":\"%s\",\"message\":\"%s\"}", error, message);
+    public static String getJSONError(Exception e) {
+        try {
+            JSONObject out = new JSONObject();
+            out.put("stacktrace", ExceptionUtils.getStackTrace(e));
+            out.put("error", e.getClass().getSimpleName());
+            out.put("message", e.getMessage());
+            return out.toString();
+
+        } catch (JSONException e1) {
+            e1.printStackTrace();
+            return getJSONError(e1);
+        }
     }
 
     public Restlet createInboundRoot() {
@@ -69,7 +79,7 @@ public class RecommenderAPI extends Application {
             public void handle(Request request, Response response) {
                 System.err.println("Invalid request: "+request.toString());
                 response.setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
-                response.setEntity(getJSONError("InvalidRequestException", "allowed paths are /recommend/{userid} and /notify"), MediaType.APPLICATION_JSON);
+                response.setEntity(getJSONError(new Exception("allowed paths are /recommend/{userid} and /notify")), MediaType.APPLICATION_JSON);
             }
         });
 
@@ -89,10 +99,10 @@ public class RecommenderAPI extends Application {
                 try {
                     // parse userid and make sure it exists
                     String rawUserid = (String) request.getAttributes().get("userid");
-                    if (!userMaps.containsKey(rawUserid)) {
+                    if (!userMap.containsKey(rawUserid)) {
                         throw new NoSuchUserException(String.format("User %s does not exist", rawUserid));
                     }
-                    long userID = userMaps.get(rawUserid);
+                    long userID = userMap.get(rawUserid);
 
                     // parse optional ?limit={limit}
                     Parameter limitParam = request.getResourceRef().getQueryAsForm().getFirst("limit");
@@ -105,7 +115,7 @@ public class RecommenderAPI extends Application {
                     // iterate over recomendation items
                     for (RecommendedItem item : recommend) {
                         // convert Long itemID to respective String ID
-                        String itemID = String.valueOf(itemMaps.inverse().get(item.getItemID()));
+                        String itemID = String.valueOf(itemMap.inverse().get(item.getItemID()));
                         // serialize to JSON
 
                         JSONObject itemObject = new JSONObject();
@@ -123,8 +133,11 @@ public class RecommenderAPI extends Application {
                     // would have constructed a proper JSON object here, but that might throw an exception
                     // so we do it manually
 
+                    String out = getJSONError(e);
+                    System.out.println(out);
+
                     response.setStatus(Status.SERVER_ERROR_INTERNAL);
-                    response.setEntity(getJSONError(e.getClass().getSimpleName(), e.getMessage()), MediaType.APPLICATION_JSON);
+                    response.setEntity(out, MediaType.APPLICATION_JSON);
                 }
             }
         });
@@ -150,8 +163,6 @@ public class RecommenderAPI extends Application {
 
                     if (doRebuild) {
                         rebuild();
-
-                        System.out.println(output.toString());
                     }
 
                     // increment notification updates
@@ -161,8 +172,12 @@ public class RecommenderAPI extends Application {
 
                     // would have constructed a proper JSON object here, but that might throw an exception
                     // so we do it manually
+
+                    String out = getJSONError(e);
+                    System.out.println(out);
+
                     response.setStatus(Status.SERVER_ERROR_INTERNAL);
-                    response.setEntity(getJSONError(e.getClass().getSimpleName(), e.getMessage()), MediaType.APPLICATION_JSON);
+                    response.setEntity(out, MediaType.APPLICATION_JSON);
                 }
             }
         });
@@ -182,13 +197,6 @@ public class RecommenderAPI extends Application {
             database = System.getenv("SMARTMEDIA_DATABASE");
             collection = System.getenv("SMARTMEDIA_COLLECTION");
 
-            /**
-             * The userIDs and itemIDs are represented as strings in mongo (i.e 5320767388b38d00075f7b91)
-             * We create two biMaps where we store the mappings between these strings and our internal Long values
-              */
-            userMaps = HashBiMap.create();
-            itemMaps = HashBiMap.create();
-
             // build recommendation model before starting
             rebuild();
         }
@@ -206,14 +214,23 @@ public class RecommenderAPI extends Application {
     public void rebuild() throws Exception {
         System.out.println("Rebuilding...");
 
+        /**
+         * The userIDs and itemIDs are represented as strings in mongo (i.e 5320767388b38d00075f7b91)
+         * We create two biMaps where we store the mappings between these strings and our internal Long values
+         */
+
+        BiMap<String, Long> newUserMap = HashBiMap.create();
+        BiMap<String, Long> newitemMap = HashBiMap.create();
+
+
         // start timing of rebuild
         StopWatch.start("totalRebuild");
 
         // load dataset from database into DataModel
         StopWatch.start("getModel");
-        DataModel model = new DBModel(hostname, port, username, password, database, collection, userMaps, itemMaps);
+        DataModel model = new DBModel(hostname, port, username, password, database, collection, newUserMap, newitemMap);
 
-        getLogger().log(Level.INFO, String.format("%s (%d users, %d items)", StopWatch.str("getModel"), model.getNumUsers(), model.getNumItems()));
+        log.info(String.format("%s (%d users, %d items)", StopWatch.str("getModel"), model.getNumUsers(), model.getNumItems()));
 
         // set configuration parameters and preprocessor
         Config config = new Lynx()
@@ -227,20 +244,22 @@ public class RecommenderAPI extends Application {
         StopWatch.start("preprocess");
         Preprocessor preprocessor = new PreprocessorStat();
         model = preprocessor.preprocess(config);
-        getLogger().log(Level.INFO, String.format("%s (%d users, %d items)", StopWatch.str("preprocess"), model.getNumUsers(), model.getNumItems()));
+        log.info(String.format("%s (%d users, %d items)", StopWatch.str("preprocess"), model.getNumUsers(), model.getNumItems()));
 
         // build Recommendation model
         StopWatch.start("buildRecommender");
         Recommender newRecommender = ((Lynx) config).getBuilder().buildRecommender(model);
-        getLogger().log(Level.INFO, StopWatch.str("buildRecommender"));
+        log.info(StopWatch.str("buildRecommender"));
 
-        // replace recommendation model in memory
+        // swap in new models
         recommender = newRecommender;
+        userMap = newUserMap;
+        itemMap = newitemMap;
 
         // reset rebuild cycle
         counter = 0;
         lastUpdate = new Date();
 
-        getLogger().log(Level.WARNING, StopWatch.str("totalRebuild"));
+        log.info(StopWatch.str("totalRebuild"));
     }
 }
