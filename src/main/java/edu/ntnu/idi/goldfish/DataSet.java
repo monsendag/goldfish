@@ -10,7 +10,7 @@ import java.io.File;
 
 public enum DataSet {
 
-    yowSMImplicit, yowImplicit, yowBaseline, claypool2k, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, VTT36k, food;
+    yowSMImplicit, yowImplicit, yowBaseline, claypool2k, Netflix100M, Movielens1M, Movielens50k, Movielens1Mbinary, Movielens50kbinary, MovielensSynthesized1M, MovielensSynthesized200k, MovielensSynthesized50k, MovielensMock1M,MovielensMock100K,MovielensMock500K, VTT36k, food;
 
     public DataModel getModel() throws Exception {
         DataModel model;
@@ -45,6 +45,14 @@ public enum DataSet {
                 return new SMDataModel(new File("datasets/movielens-synthesized/ratings-200k.tsv"));
             case MovielensSynthesized50k:
                 return new SMDataModel(new File("datasets/movielens-synthesized/ratings-50k.tsv"));
+
+
+            case MovielensMock1M:
+                return new DBModel(new File("datasets/movielens-mock/mock1m-nodupes.csv"));
+            case MovielensMock500K:
+                return new DBModel(new File("datasets/movielens-mock/mock500k-nodupes.csv"));
+            case MovielensMock100K:
+                return new DBModel(new File("datasets/movielens-mock/mock100k-nodupes.csv"));
 
             case food:
                 return new SMDataModel(new File("datasets/FOOD_Dataset/food-ettellerannet.csv"));
