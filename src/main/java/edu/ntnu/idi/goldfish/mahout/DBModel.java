@@ -317,17 +317,13 @@ public class DBModel implements DataModel {
     }
 
     public void setPreference(long userID, long itemID, long feedback, float value) throws TasteException {
-        Condition cond = userField.equal(userID).and(itemField.equal(itemID)).and(fbackField.equal(feedback));
-        int numRows = context.selectOne().from(table).where(cond).fetchCount();
-        UpdateConditionStep update = context.update(table).set(valueField, value).where(cond);
-        InsertValuesStep4 insert = context.insertInto(table, userField, itemField, fbackField, valueField).values(userID, itemID, feedback, value);
+        context.mergeInto(table, userField, itemField, fbackField, valueField)
+                .values(userID, itemID, feedback, value)
+                .execute();
+    }
 
-        if(numRows > 0) {
-            update.execute();
-        }
-        else {
-            insert.execute();
-        }
+    public InsertValuesStep4 getInsertChain() {
+        return context.insertInto(table, userField, itemField, fbackField, valueField);
     }
 
     public boolean hasPreference(long userID, long itemID, long feedback) {
