@@ -30,8 +30,11 @@ public class Evaluator {
                 if(config.containsKey("preprocessor")) {
                     // do preprocessing
                     Class<Preprocessor> pre = config.get("preprocessor");
+
+                    StopWatch.start("preprocess");
                     Preprocessor p = pre.newInstance();
                     DataModel model = p.preprocess(config);
+                    config.set("time:preprocess", StopWatch.get("preprocess"));
                     config.set("model", model);
                 }
 
@@ -39,7 +42,7 @@ public class Evaluator {
                 StopWatch.start("evalTime");
                 Result result = config.containsKey("average") ? Evaluator.evaluateAverage(config) : Evaluator.evaluateOne(config);
                 // get time of total evaluation
-                result.set("evalTime", (double)StopWatch.get("evalTime"));
+                result.set("time:evaluate", (double)StopWatch.get("evalTime"));
 
                 if(callback!= null) callback.accept(result);
                 results.add(result);
@@ -123,14 +126,14 @@ public class Evaluator {
                 StopWatch.start("buildTime");
                 recBuilder.buildRecommender(model);
                 long buildTime = StopWatch.get("buildTime");
-                result.set("buildTime", (double)buildTime);
+                result.set("time:build", (double)buildTime);
             }
 
             if ((boolean) config.get("getRecTime")) {
                 // calculate average recommendation time for x iterations
                 int iterations = config.get("getRecTimeIterations");
                 long recTime = getRecommendationTiming(recBuilder.buildRecommender(model), model, iterations, 10);
-                result.set("recTime", (double)recTime);
+                result.set("time:recommend", (double)recTime);
             }
 
 
